@@ -89,6 +89,7 @@ def staff_login():
         cur.close()
     return render_template("staff_login.html")
 
+#Client Section (Timi)
 #C-home page
 @app.route("/homepage", methods=["GET","POST"])
 def homepage():
@@ -184,6 +185,7 @@ def cart_payment_success():
 def cart_payment_failed():
     return render_template("cart_payment_failed.html")
 
+#Admin section (Ying Xin)
 #A-home page
 @app.route("/admin/homepage", methods=["GET","POST"])
 def admin_homepage():
@@ -219,6 +221,7 @@ def admin_feedback_send():
 def admin_orders():
     return render_template("admin_orders.html")
 
+#Manager section (Zhi Xian)
 #M-home page
 @app.route("/manager/homepage", methods=["GET","POST"])
 def manager_homepage():
