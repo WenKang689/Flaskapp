@@ -5,7 +5,7 @@ import yaml
 app= Flask(__name__)
 app.secret_key = "d03811b6f39d7a1ef40400f3a96648b4"
 
-#db configuration
+#database configuration
 db=yaml.load(open('db.yaml'), Loader=yaml.FullLoader)
 app.config["MYSQL_HOST"] = db["mysql_host"]
 app.config["MYSQL_USER"] = db["mysql_user"]
