@@ -14,7 +14,7 @@ app.config["MYSQL_DB"] = db["mysql_db"]
 
 mysql = MySQL(app)
 
-#login
+#login for all
 @app.route("/", methods=["GET","POST"])
 def login():
     if request.method == "POST":
