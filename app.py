@@ -105,21 +105,6 @@ def setting_profile():
 def setting_profile_edit():
     return render_template("setting_profile_edit.html")
 
-#C-setting/payment method
-@app.route("/user/setting/payment_method", methods=["GET","POST"])
-def setting_payment_method():
-    return render_template("setting_payment_method.html")
-
-#C-setting/payment detail/edit payment detail
-@app.route("/user/setting/payment_method/edit", methods=["GET","POST"])
-def setting_payment_method_edit():
-    return render_template("setting_payment_method_edit.html")
-
-#C-setting/payment detail/add payment detail
-@app.route("/user/setting/payment_method/add", methods=["GET","POST"])
-def setting_payment_method_add():
-    return render_template("setting_payment_method_add.html")
-
 #C-setting/history(default purchase)
 @app.route("/user/setting/history/purchase", methods=["GET","POST"])
 def setting_history_purchase():
