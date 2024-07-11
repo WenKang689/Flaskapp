@@ -98,9 +98,17 @@ def staff_login():
 
 #Client Section (Timi)
 #C-home page
-@app.route("/homepage", methods=["GET","POST"])
+@app.route('/homepage', methods=['GET', 'POST'])
 def homepage():
-    return render_template("homepage.html")
+    if not session.get('logged_in'):
+        return redirect('/login')
+    else:
+        #Search bar
+        if request.method == 'POST':
+            if request.form['action'] == 'search':
+                search_query = request.form['search_query']
+                return redirect(url_for('search_laptops', query=search_query))
+        return render_template('homepage.html')
 
 #C-setting/profile
 @app.route("/user/setting/profile", methods=["GET","POST"])
@@ -112,6 +120,16 @@ def setting_profile():
 def setting_profile_edit():
     return render_template("setting_profile_edit.html")
 
+#C-setting/profile/payment method
+@app.route("/user/setting/payment", methods=["GET","POST"])
+def setting_payment():
+    return render_template("setting_payment.html")
+
+#C-setting/profile/edit payment method(add,delete)
+@app.route("/user/setting/payment/edit", methods=["GET","POST"])
+def setting_payment_edit():
+    return render_template("setting_payment_edit.html")
+
 #C-setting/history(default purchase)
 @app.route("/user/setting/history/purchase", methods=["GET","POST"])
 def setting_history_purchase():
@@ -121,11 +139,6 @@ def setting_history_purchase():
 @app.route("/user/setting/history/search", methods=["GET","POST"])
 def setting_history_search():
     return render_template("setting_history_search.html")
-
-#C-survey page
-@app.route("/recommend/survey", methods=["GET","POST"])
-def recommend_survey():
-    return render_template("recommend_survey.html")
 
 #C-survey/fill in survey
 @app.route("/recommend/survey/form", methods=["GET","POST"])
@@ -142,13 +155,19 @@ def recommend_auto():
 def laptop():
     return render_template("laptop.html")
 
-#C-laptop/search+filter result
+#C-laptop/search result(include filter)
 @app.route("/laptop/search", methods=["GET","POST"])
 def laptop_search():
+    query = request.args.get('query', '')
+    cur = mysql.connection.cursor()
+    search_query = f"%{query}%"
+    cur.execute("SELECT * FROM product WHERE product_name LIKE %s OR brand LIKE %s", (search_query, search_query))
+    laptops = cur.fetchall()
+    cur.close()
     return render_template("laptop_search.html")
 
 #C-laptop/detail
-@app.route("/laptop/detail", methods=["GET","POST"])
+@app.route("/laptop/<product_id>", methods=["GET","POST"])
 def laptop_detail():
     return render_template("laptop_detail.html")
 
