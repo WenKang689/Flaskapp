@@ -100,15 +100,7 @@ def staff_login():
 #C-home page
 @app.route('/homepage', methods=['GET', 'POST'])
 def homepage():
-    if not session.get('logged_in'):
-        return redirect('/login')
-    else:
-        #Search bar
-        if request.method == 'POST':
-            if request.form['action'] == 'search':
-                search_query = request.form['search_query']
-                return redirect(url_for('search_laptops', query=search_query))
-        return render_template('homepage.html')
+    return render_template('homepage.html')
 
 #C-setting/profile
 @app.route("/user/setting/profile", methods=["GET","POST"])
@@ -158,12 +150,6 @@ def laptop():
 #C-laptop/search result(include filter)
 @app.route("/laptop/search", methods=["GET","POST"])
 def laptop_search():
-    query = request.args.get('query', '')
-    cur = mysql.connection.cursor()
-    search_query = f"%{query}%"
-    cur.execute("SELECT * FROM product WHERE product_name LIKE %s OR brand LIKE %s", (search_query, search_query))
-    laptops = cur.fetchall()
-    cur.close()
     return render_template("laptop_search.html")
 
 #C-laptop/detail
