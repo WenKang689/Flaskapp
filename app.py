@@ -59,7 +59,7 @@ def register():
             cur.close()
             return redirect("/register")
         else:
-            cur.execute("INSERT INTO user VALUES(%s,%s,%s,%s,%s,%s,%s,%s)",(username,password,name,email,phone,dob,address,occupation))
+            cur.execute("INSERT INTO user VALUES(%s,%s,%s,%s,%s,%s,%s,%s,NULL)",(username,password,name,email,phone,dob,address,occupation))
             mysql.connection.commit()
             flash("Register Successful.")
             cur.close()
@@ -100,7 +100,7 @@ def staff_login():
 #C-home page
 @app.route('/homepage', methods=['GET', 'POST'])
 def homepage():
-    return render_template('homepage.html')
+    return render_template("homepage.html")
 
 #C-setting/profile
 @app.route("/user/setting/profile", methods=["GET","POST"])
@@ -113,7 +113,7 @@ def setting_profile_edit():
     return render_template("setting_profile_edit.html")
 
 #C-setting/profile/payment method
-@app.route("/user/setting/payment", methods=["GET","POST"])
+@app.route("/user/setting/payment", methods=["GET"])
 def setting_payment():
     return render_template("setting_payment.html")
 
@@ -149,8 +149,74 @@ def laptop():
 
 #C-laptop/search result(include filter)
 @app.route("/laptop/search", methods=["GET","POST"])
-def laptop_search():
-    return render_template("laptop_search.html")
+def laptop_filter():
+    search_query = request.args.get('search', '')
+    brand = request.args.get('brand', '')
+    min_price = request.args.get('min_price', '')
+    max_price = request.args.get('max_price', '')
+    memory = request.args.get('memory', '')
+    graphics = request.args.get('graphics', '')
+    storage = request.args.get('storage', '')
+    battery = request.args.get('battery', '')
+    power_supply = request.args.get('power_supply', '')
+    os = request.args.get('os', '')
+
+    # Fetch laptops from the database using Flask-MySQL
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT product_id, product_name, brand, price, memory, graphics, storage, battery, power_supply, os, dimensions FROM product")
+    all_laptops = cur.fetchall()
+
+    # Fetch distinct values for each filter option
+    cur.execute("SELECT DISTINCT brand FROM product")
+    brands = [row[0] for row in cur.fetchall()]
+
+    cur.execute("SELECT DISTINCT memory FROM product")
+    memories = [row[0] for row in cur.fetchall()]
+
+    cur.execute("SELECT DISTINCT graphics FROM product")
+    graphics_options = [row[0] for row in cur.fetchall()]
+
+    cur.execute("SELECT DISTINCT storage FROM product")
+    storages = [row[0] for row in cur.fetchall()]
+
+    cur.execute("SELECT DISTINCT battery FROM product")
+    batteries = [row[0] for row in cur.fetchall()]
+
+    cur.execute("SELECT DISTINCT power_supply FROM product")
+    power_supplies = [row[0] for row in cur.fetchall()]
+
+    cur.execute("SELECT DISTINCT os FROM product")
+    operating_systems = [row[0] for row in cur.fetchall()]
+
+    # Fetch min and max price from the database
+    cur.execute("SELECT MIN(price), MAX(price) FROM product")
+    min_price_db, max_price_db = cur.fetchone()
+
+    # Validate user input for price range
+    if min_price and max_price and float(min_price) > float(max_price):
+        message = "Max price must be greater than min price."
+        return render_template('laptop_search.html')
+
+    # Filter the laptops based on the criteria
+    filtered_laptops = [
+        laptop for laptop in all_laptops
+        if (search_query.lower() in laptop[1].lower()) and
+           (not brand or brand.lower() in laptop[2].lower()) and
+           (not min_price or laptop[3] >= float(min_price)) and
+           (not max_price or laptop[3] <= float(max_price)) and
+           (not memory or memory.lower() in laptop[4].lower()) and
+           (not graphics or graphics.lower() in laptop[5].lower()) and
+           (not storage or storage.lower() in laptop[6].lower()) and
+           (not battery or battery in str(laptop[7])) and
+           (not power_supply or power_supply in str(laptop[8])) and
+           (not os or os.lower() in laptop[9].lower())
+    ]
+
+    message = None
+    if not filtered_laptops:
+        message = "No laptops found matching the criteria."
+
+    return render_template('laptop_search.html', laptops=filtered_laptops, brands=brands, memories=memories, graphics_options=graphics_options, storages=storages, batteries=batteries, power_supplies=power_supplies, operating_systems=operating_systems, message=message, min_price=min_price_db, max_price=max_price_db)
 
 #C-laptop/detail
 @app.route("/laptop/<product_id>", methods=["GET","POST"])
