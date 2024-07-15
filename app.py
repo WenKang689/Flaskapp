@@ -4,9 +4,9 @@ import yaml
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 
 app= Flask(__name__)
-app.secret_key = "d03811b6f39d7a1ef40400f3a96648b4"
 
 #database configuration
 db=yaml.load(open('db.yaml'), Loader=yaml.FullLoader)
@@ -14,6 +14,7 @@ app.config["MYSQL_HOST"] = db["mysql_host"]
 app.config["MYSQL_USER"] = db["mysql_user"]
 app.config["MYSQL_PASSWORD"] = db["mysql_password"]
 app.config["MYSQL_DB"] = db["mysql_db"]
+app.secret_key = db["secret_key"]
 
 mysql = MySQL(app)
 
@@ -82,6 +83,8 @@ def forgot_password():
         if value > 0:
             # User found, prepare to send email
             try:
+                token = generate_token(email)
+                reset_link = f"http://localhost:5000/reset_password?token={token}"
                 # Set up the SMTP server
                 server = smtplib.SMTP('smtp-mail.outlook.com', 587)
                 server.starttls()
@@ -92,7 +95,7 @@ def forgot_password():
                 msg['From'] = 'laptopkawkaw@outlook.com'
                 msg['To'] = email
                 msg['Subject'] = "Password Reset"
-                body = "Here is your password reset link: localhost:5000/reset_password"
+                body = f"Here is your password reset link: {reset_link}"
                 msg.attach(MIMEText(body, 'plain'))
 
                 # Send the email
@@ -106,18 +109,53 @@ def forgot_password():
             finally:
                 server.quit()
         else:
-            flash("User not found.")
+            flash("User or email incorrect. Please try again.")
         cur.close()
     return render_template("forgot_password.html")
+
+def generate_token(email):
+    s = URLSafeTimedSerializer(app.secret_key)
+    return s.dumps(email)
+
+def verify_token(token, expiration=3600):
+    s = URLSafeTimedSerializer(app.secret_key)
+    if not token:
+        return "No token provided", None
+    try:
+        # Assuming the token includes the email
+        email = s.loads(token, max_age=expiration)
+        return None, email
+    except SignatureExpired:
+        return "Token expired", None
+    except BadSignature:
+        return "Invalid token", None
+    except Exception as e:
+        return f"Error verifying token: {e}", None
 
 #reset password
 @app.route("/reset_password", methods=["GET", "POST"])
 def reset_password():
-    if request.method == "POST":
+    token = request.args.get("token")
+    if request.method == 'GET':
+        error, email = verify_token(token)
+        if error:
+            flash(error)
+            return render_template("reset_password.html")
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT username FROM user WHERE email=%s", (email,))
+        user = cur.fetchone()
+        if user:
+            session['username_for_password_reset'] = user[0]
+            return render_template("reset_password.html", email=email)
+    elif request.method == "POST":
         userdata = request.form
-        username = userdata["username"]
         password = userdata["password"]
         confirm_password = userdata["confirm_password"]  # Get the confirm password field
+        un=userdata["username"]
+        username = session.get('username_for_password_reset')
+        if not username or un!=username:
+            flash("Username incorrect, please try again.")
+            return redirect("/reset_password")
 
         # Check if passwords match
         if password != confirm_password:
@@ -130,6 +168,7 @@ def reset_password():
         mysql.connection.commit()
         flash("Password reset successful.")
         cur.close()
+        session.pop('username_for_password_reset', None)
         return redirect("/")
     return render_template("reset_password.html")
 
