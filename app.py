@@ -1,6 +1,9 @@
 from flask import Flask, render_template, request, session, flash, redirect, url_for
 from flask_mysqldb import MySQL
 import yaml
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 app= Flask(__name__)
 app.secret_key = "d03811b6f39d7a1ef40400f3a96648b4"
@@ -65,6 +68,70 @@ def register():
             cur.close()
             return redirect("/")
     return render_template("register.html")
+
+#forgot password
+@app.route("/forgot_password", methods=["GET", "POST"])
+def forgot_password():
+    if request.method == "POST":
+        userdata = request.form
+        username = userdata["username"]
+        email = userdata["email"]
+        cur = mysql.connection.cursor()
+        value = cur.execute("SELECT username, email FROM user WHERE username=%s AND email=%s", (username, email))
+
+        if value > 0:
+            # User found, prepare to send email
+            try:
+                # Set up the SMTP server
+                server = smtplib.SMTP('smtp-mail.outlook.com', 587)
+                server.starttls()
+                server.login('laptopkawkaw@outlook.com', 'kawkawlaptop123')
+
+                # Create the email
+                msg = MIMEMultipart()
+                msg['From'] = 'laptopkawkaw@outlook.com'
+                msg['To'] = email
+                msg['Subject'] = "Password Reset"
+                body = "Here is your password reset link: localhost:5000/reset_password"
+                msg.attach(MIMEText(body, 'plain'))
+
+                # Send the email
+                server.send_message(msg)
+                del msg  # Clean up
+                
+                flash("Password reset link has been sent to your email.")
+            except Exception as e:
+                flash("An error occurred while sending the email.")
+                print(e)  # For debugging purposes
+            finally:
+                server.quit()
+        else:
+            flash("User not found.")
+        cur.close()
+    return render_template("forgot_password.html")
+
+#reset password
+@app.route("/reset_password", methods=["GET", "POST"])
+def reset_password():
+    if request.method == "POST":
+        userdata = request.form
+        username = userdata["username"]
+        password = userdata["password"]
+        confirm_password = userdata["confirm_password"]  # Get the confirm password field
+
+        # Check if passwords match
+        if password != confirm_password:
+            flash("Passwords do not match. Please try again.")
+            return render_template("reset_password.html")
+
+        # Proceed with password reset if passwords match
+        cur = mysql.connection.cursor()
+        cur.execute("UPDATE user SET password=%s WHERE username=%s", (password, username))
+        mysql.connection.commit()
+        flash("Password reset successful.")
+        cur.close()
+        return redirect("/")
+    return render_template("reset_password.html")
 
 #staff login
 @app.route("/staff/login", methods=["GET","POST"])
@@ -150,7 +217,11 @@ def laptop():
 #C-laptop/search result(include filter)
 @app.route("/laptop/search", methods=["GET","POST"])
 def laptop_filter():
+<<<<<<< HEAD
     return render_template("laptop_search.html")
+=======
+    return render_template("aptop_search.html")
+>>>>>>> master
 
 #C-laptop/detail
 @app.route("/laptop/<product_id>", methods=["GET","POST"])
