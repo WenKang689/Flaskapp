@@ -29,6 +29,11 @@
       <input type="password" id="password" name="password" required><br>
       <button type="submit">Login</button>
     </form>
+
+    <!-- Add this inside your login.html where appropriate -->
+<form action="/forgot_password" method="get">
+    <button type="submit">Forgot Password?</button>
+</form>
     <a href="{{ url_for('register') }}">Don't have an account? Register</a>
     <br>
     <a href="{{ url_for('staff_login') }}">
