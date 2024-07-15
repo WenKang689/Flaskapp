@@ -217,11 +217,7 @@ def laptop():
 #C-laptop/search result(include filter)
 @app.route("/laptop/search", methods=["GET","POST"])
 def laptop_filter():
-<<<<<<< HEAD
     return render_template("laptop_search.html")
-=======
-    return render_template("aptop_search.html")
->>>>>>> master
 
 #C-laptop/detail
 @app.route("/laptop/<product_id>", methods=["GET","POST"])
