@@ -1,6 +1,9 @@
 from flask import Flask, render_template, request, session, flash, redirect, url_for
 from flask_mysqldb import MySQL
 import yaml
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 app= Flask(__name__)
 app.secret_key = "d03811b6f39d7a1ef40400f3a96648b4"
@@ -65,6 +68,70 @@ def register():
             cur.close()
             return redirect("/")
     return render_template("register.html")
+
+#forgot password
+@app.route("/forgot_password", methods=["GET", "POST"])
+def forgot_password():
+    if request.method == "POST":
+        userdata = request.form
+        username = userdata["username"]
+        email = userdata["email"]
+        cur = mysql.connection.cursor()
+        value = cur.execute("SELECT username, email FROM user WHERE username=%s AND email=%s", (username, email))
+
+        if value > 0:
+            # User found, prepare to send email
+            try:
+                # Set up the SMTP server
+                server = smtplib.SMTP('smtp-mail.outlook.com', 587)
+                server.starttls()
+                server.login('laptopkawkaw@outlook.com', 'kawkawlaptop123')
+
+                # Create the email
+                msg = MIMEMultipart()
+                msg['From'] = 'laptopkawkaw@outlook.com'
+                msg['To'] = email
+                msg['Subject'] = "Password Reset"
+                body = "Here is your password reset link: localhost:5000/reset_password"
+                msg.attach(MIMEText(body, 'plain'))
+
+                # Send the email
+                server.send_message(msg)
+                del msg  # Clean up
+                
+                flash("Password reset link has been sent to your email.")
+            except Exception as e:
+                flash("An error occurred while sending the email.")
+                print(e)  # For debugging purposes
+            finally:
+                server.quit()
+        else:
+            flash("User not found.")
+        cur.close()
+    return render_template("forgot_password.html")
+
+#reset password
+@app.route("/reset_password", methods=["GET", "POST"])
+def reset_password():
+    if request.method == "POST":
+        userdata = request.form
+        username = userdata["username"]
+        password = userdata["password"]
+        confirm_password = userdata["confirm_password"]  # Get the confirm password field
+
+        # Check if passwords match
+        if password != confirm_password:
+            flash("Passwords do not match. Please try again.")
+            return render_template("reset_password.html")
+
+        # Proceed with password reset if passwords match
+        cur = mysql.connection.cursor()
+        cur.execute("UPDATE user SET password=%s WHERE username=%s", (password, username))
+        mysql.connection.commit()
+        flash("Password reset successful.")
+        cur.close()
+        return redirect("/")
+    return render_template("reset_password.html")
 
 #staff login
 @app.route("/staff/login", methods=["GET","POST"])
@@ -170,74 +237,7 @@ def laptop_filter():
     os = request.args.get('os', '')
 
     # Fetch laptops from the database using Flask-MySQL
-def laptop_filter():
-    search_query = request.args.get('search', '')
-    brand = request.args.get('brand', '')
-    min_price = request.args.get('min_price', '')
-    max_price = request.args.get('max_price', '')
-    memory = request.args.get('memory', '')
-    graphics = request.args.get('graphics', '')
-    storage = request.args.get('storage', '')
-    battery = request.args.get('battery', '')
-    power_supply = request.args.get('power_supply', '')
-    os = request.args.get('os', '')
-
-    # Fetch laptops from the database using Flask-MySQL
     cur = mysql.connection.cursor()
-    cur.execute("SELECT product_id, product_name, brand, price, memory, graphics, storage, battery, power_supply, os, dimensions FROM product")
-    all_laptops = cur.fetchall()
-
-    # Fetch distinct values for each filter option
-    cur.execute("SELECT DISTINCT brand FROM product")
-    brands = [row[0] for row in cur.fetchall()]
-
-    cur.execute("SELECT DISTINCT memory FROM product")
-    memories = [row[0] for row in cur.fetchall()]
-
-    cur.execute("SELECT DISTINCT graphics FROM product")
-    graphics_options = [row[0] for row in cur.fetchall()]
-
-    cur.execute("SELECT DISTINCT storage FROM product")
-    storages = [row[0] for row in cur.fetchall()]
-
-    cur.execute("SELECT DISTINCT battery FROM product")
-    batteries = [row[0] for row in cur.fetchall()]
-
-    cur.execute("SELECT DISTINCT power_supply FROM product")
-    power_supplies = [row[0] for row in cur.fetchall()]
-
-    cur.execute("SELECT DISTINCT os FROM product")
-    operating_systems = [row[0] for row in cur.fetchall()]
-
-    # Fetch min and max price from the database
-    cur.execute("SELECT MIN(price), MAX(price) FROM product")
-    min_price_db, max_price_db = cur.fetchone()
-
-    # Validate user input for price range
-    if min_price and max_price and float(min_price) > float(max_price):
-        message = "Max price must be greater than min price."
-        return render_template('laptop_search.html')
-
-    # Filter the laptops based on the criteria
-    filtered_laptops = [
-        laptop for laptop in all_laptops
-        if (search_query.lower() in laptop[1].lower()) and
-           (not brand or brand.lower() in laptop[2].lower()) and
-           (not min_price or laptop[3] >= float(min_price)) and
-           (not max_price or laptop[3] <= float(max_price)) and
-           (not memory or memory.lower() in laptop[4].lower()) and
-           (not graphics or graphics.lower() in laptop[5].lower()) and
-           (not storage or storage.lower() in laptop[6].lower()) and
-           (not battery or battery in str(laptop[7])) and
-           (not power_supply or power_supply in str(laptop[8])) and
-           (not os or os.lower() in laptop[9].lower())
-    ]
-
-    message = None
-    if not filtered_laptops:
-        message = "No laptops found matching the criteria."
-
-    return render_template('laptop_search.html', laptops=filtered_laptops, brands=brands, memories=memories, graphics_options=graphics_options, storages=storages, batteries=batteries, power_supplies=power_supplies, operating_systems=operating_systems, message=message, min_price=min_price_db, max_price=max_price_db)
     cur.execute("SELECT product_id, product_name, brand, price, memory, graphics, storage, battery, power_supply, os, dimensions FROM product")
     all_laptops = cur.fetchall()
 
