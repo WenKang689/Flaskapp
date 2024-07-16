@@ -183,13 +183,14 @@ DROP TABLE IF EXISTS `review`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `review` (
   `review_id` char(6) NOT NULL,
+  `product_id` char(6) DEFAULT NULL,
   `role` varchar(5) NOT NULL,
-  `username_or_stf_id` varchar(30) NOT NULL,
+  `role_id` varchar(30) NOT NULL,
   `review` varchar(255) DEFAULT NULL,
   `rating` int NOT NULL,
   PRIMARY KEY (`review_id`),
-  KEY `username` (`username_or_stf_id`),
-  CONSTRAINT `review_ibfk_1` FOREIGN KEY (`username_or_stf_id`) REFERENCES `user` (`username`) ON UPDATE CASCADE
+  KEY `product_id` (`product_id`),
+  CONSTRAINT `review_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -318,7 +319,7 @@ CREATE TABLE `user` (
 
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
-INSERT INTO `user` VALUES ('aaa','ccc','Chong Wen Kang','braynchongwenkang590@gmail.com','0126843432','2024-06-05',NULL,NULL,NULL),('wk','wk','sda','asd@gmail.com','asd','2024-07-13','asd','asd',NULL);
+INSERT INTO `user` VALUES ('aaa','asd','Chong Wen Kang','braynchongwenkang590@gmail.com','0126843432','2024-06-05',NULL,NULL,NULL),('sw','sss','sw','shynwei04@gmail.com','1323','2024-07-03','11, JALAN BEDARA','fe',NULL),('wk','fff','sda','braynchong590@gmail.com','asd','2024-07-13','asd','asd',NULL);
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -339,4 +340,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-07-15  0:44:39
+-- Dump completed on 2024-07-16 23:50:40
