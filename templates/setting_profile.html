@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Profile</title>
+    <script>
+        function togglePasswordVisibility() {
+            var passwordField = document.getElementById("password");
+            var toggleButton = document.getElementById("togglePassword");
+            if (passwordField.type === "password") {
+                passwordField.type = "text";
+                toggleButton.textContent = "Hide Password";
+            } else {
+                passwordField.type = "password";
+                toggleButton.textContent = "Show Password";
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Profile</h1>
+    <p>
+        <!-- Display Profile Picture -->
+        <img src="{{ profile.profile_pic }}" alt="Profile Picture" style="width:150px;height:150px;">
+    </p>
+    <p>Name: {{ profile.name }}</p>
+    <p>Username: {{ profile.username }}</p>
+    <p>Date of Birth: {{ profile.dob }}</p>
+    <p>Email: {{ profile.email }}</p>
+    <p>Password: 
+        <input type="password" id="password" value="{{ profile.password }}" readonly>
+        <button type="button" id="togglePassword" onclick="togglePasswordVisibility()">Show Password</button>
+    </p>
+    <p>Phone: {{ profile.phone }}</p>
+    <p>Occupation: {{ profile.occupation }}</p>
+    <p>Address: {{ profile.address }}</p>
+    
+    <a href="{{ url_for('edit_profile') }}">Edit Profile</a>
+</body>
+</html>

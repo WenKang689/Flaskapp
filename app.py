@@ -5,6 +5,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
+import boto3
 
 app= Flask(__name__)
 
@@ -17,6 +18,14 @@ app.config["MYSQL_DB"] = db["mysql_db"]
 app.secret_key = db["secret_key"]
 
 mysql = MySQL(app)
+
+#AWS S3 credentials and bucket configuration
+S3= yaml.load(open('s3.yaml'), Loader=yaml.FullLoader)
+S3_KEY = S3["S3_KEY"]
+S3_SECRET = S3['S3_SECRET']
+S3_BUCKET = S3['S3_BUCKET'] 
+S3_LOCATION = S3['S3_LOCATION']
+
 
 #login for all
 @app.route("/", methods=["GET","POST"])
@@ -219,12 +228,151 @@ def homepage():
 #C-setting/profile
 @app.route("/user/setting/profile", methods=["GET","POST"])
 def setting_profile():
-    return render_template("setting_profile.html")
+    if 'logged_in' in session:
+        username = session["username"]
+
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT username, password, name, email, phone, dob, address, occupation, prof_pic FROM user WHERE username = %s", (username,))
+        profile_data = cur.fetchone()
+        cur.close()
+
+        if profile_data:
+            profile = {
+                'username': profile_data[0],
+                'password': profile_data[1],
+                'name': profile_data[2],
+                'email': profile_data[3],
+                'phone': profile_data[4],
+                'dob': profile_data[5],
+                'address': profile_data[6],
+                'occupation': profile_data[7],
+                'profile_pic': profile_data[8]
+            }
+            # Pass the profile data to the template to view
+            return render_template('setting_profile.html', profile=profile)
+        else:
+            flash("User not found.", "danger")
+            return render_template('setting_profile.html', profile=profile)
+    else:
+        flash("Please log in to view this page.", "warning")
+        return render_template('login.html')
+
 
 #C-setting/profile/edit profile
 @app.route("/user/setting/profile/edit", methods=["GET","POST"])
-def setting_profile_edit():
-    return render_template("setting_profile_edit.html")
+def edit_profile():
+    current_username = session["username"]
+
+    if request.method == "POST":
+        # Handle update action
+        new_username = request.form['username']
+        password = request.form['password']
+        name = request.form['name']
+        email = request.form['email']
+        phone = request.form.get('phone', '')  # Optional fields can use .get to avoid KeyError
+        dob = request.form.get('dob', '')
+        address = request.form.get('address', '')
+        occupation = request.form.get('occupation', '')
+        profile_pic_url = None
+
+        # Handle profile picture upload
+        if 'profile_pic' in request.files and request.files['profile_pic'].filename != '':
+            profile_pic = request.files['profile_pic']
+
+            object_name = f"User Profile Picture/{new_username}"
+            try:
+                profile_pic_url = upload_file_to_s3(profile_pic, S3_BUCKET, object_name)
+            except Exception as e:
+                flash("Failed to upload profile picture. Please try again.", "danger")
+                return render_template('edit_profile.html')
+        else:
+            cur = mysql.connection.cursor()
+            cur.execute("SELECT prof_pic FROM user WHERE username = %s", (current_username,))
+            profile_pic_url = cur.fetchone()[0]
+
+        # Check if the updated username conflicts with existing usernames
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT username FROM user WHERE username = %s", (new_username,))
+        existing_user = cur.fetchone()
+        if existing_user and existing_user[0] != current_username: 
+            flash(f"Username '{new_username}' already exists. Please choose a different username.", "danger")
+            cur.close() 
+            return render_template('edit_profile.html')
+
+        # Update query for the user table
+        query = """
+        UPDATE user 
+        SET username = %s, password = %s, name = %s, email = %s, phone = %s, dob = %s, address = %s, occupation = %s, prof_pic = %s
+        WHERE username = %s
+        """
+        data = (new_username, password, name, email, phone, dob, address, occupation, profile_pic_url, current_username)
+
+        try:
+            cur.execute(query, data)
+            mysql.connection.commit()
+            flash("Profile updated successfully", "success")
+            # Update session username if it was changed
+            if new_username != current_username:
+                session['username'] = new_username
+            cur.execute("SELECT name, username, dob, email, password, phone, occupation, address, prof_pic FROM user WHERE username = %s", (current_username,))
+            profile_data = cur.fetchone()
+            cur.close()
+
+            if profile_data:
+                profile = {
+                    'name': profile_data[0],
+                    'username': profile_data[1],
+                    'dob': profile_data[2],
+                    'email': profile_data[3],
+                    'password': profile_data[4],
+                    'phone': profile_data[5],
+                    'occupation': profile_data[6],
+                    'address': profile_data[7],
+                    'profile_pic': profile_data[8]
+                }
+            return render_template('setting_profile.html',profile=profile)
+            
+        except Exception as e:
+            cur.close()
+            flash(f"An error occurred: {str(e)}", "danger")
+            return render_template('edit_profile.html')
+
+    cur = mysql.connection.cursor()
+    # Selecting user information to pre-fill the form
+    cur.execute("SELECT name, username, dob, email, password, phone, occupation, address, prof_pic FROM user WHERE username = %s", (current_username,))
+    profile_data = cur.fetchone()
+    cur.close()
+
+    if profile_data:
+        # Pass the profile data to the template to pre-fill the form
+        profile = {
+            'name': profile_data[0],
+            'username': profile_data[1],
+            'dob': profile_data[2],
+            'email': profile_data[3],
+            'password': profile_data[4],
+            'phone': profile_data[5],
+            'occupation': profile_data[6],
+            'address': profile_data[7],
+            'profile_pic': profile_data[8]
+        }
+        return render_template('edit_profile.html', profile=profile)
+    else:
+        flash("User not found.", "danger")
+        return redirect("user/setting/profile")
+
+def upload_file_to_s3(file_obj, bucket_name, object_name):
+    s3_client = boto3.client('s3', aws_access_key_id=S3_KEY, aws_secret_access_key=S3_SECRET)
+    try:
+        print(f"Uploading file: {object_name}")
+        s3_client.upload_fileobj(file_obj, bucket_name, object_name, ExtraArgs={'ContentType':'image/png'})
+        
+        object_url = f"https://{bucket_name}.s3.amazonaws.com/{object_name}"
+        print(f"File uploaded successfully: {object_url}")
+        return object_url
+    except Exception as e:
+        print(f"Error uploading file to S3: {str(e)}")
+        return None
 
 #C-setting/payment method
 @app.route("/user/setting/payment", methods=["GET", "POST"])
