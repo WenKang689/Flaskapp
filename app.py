@@ -226,15 +226,124 @@ def setting_profile():
 def setting_profile_edit():
     return render_template("setting_profile_edit.html")
 
-#C-setting/profile/payment method
-@app.route("/user/setting/payment", methods=["GET"])
+#C-setting/payment method
+@app.route("/user/setting/payment", methods=["GET", "POST"])
 def setting_payment():
-    return render_template("setting_payment.html")
 
-#C-setting/profile/edit payment method(add,delete)
-@app.route("/user/setting/payment/edit", methods=["GET","POST"])
+    username = session.get('username')
+
+    cur = mysql.connection.cursor()
+    
+    cur.execute("SELECT saved_card_id, username, pay_email, name_on_card, card_no, cvv, expiry_date FROM payment WHERE username = %s", [username])
+    payment_data = cur.fetchall()
+
+    payment_methods = []
+
+    if payment_data:
+        for row in payment_data:
+            payment_method = {
+                'saved_card_id': row[0],
+                'username': row[1],
+                'pay_email': row[2],
+                'name_on_card': row[3],
+                'card_no': row[4],
+                'cvv': row[5],
+                'expiry_date': row[6]
+            }
+            payment_methods.append(payment_method)
+        
+        # Pass the payment methods data to the template to view
+        if payment_methods:
+            return render_template('setting_payment_detail.html', payment_methods=payment_methods)
+        else:
+            flash("No payment methods found for the user.", "danger")
+            return redirect("/user/setting/payment")
+    
+    return render_template("setting_payment_detail.html", payment_methods=payment_methods)
+
+@app.route('/user/setting/payment/edit', methods=['GET','POST'])
 def setting_payment_edit():
+    current_username = session.get('username')
+    saved_card_id = generate_next_saved_card_id()
+
+    if request.method == "POST":
+        action = request.form.get('action')
+        
+        if action == "add":
+            render_template("setting_payment_edit.html")
+
+            cur = mysql.connection.cursor()
+
+            pay_email = request.form.get('pay_email','')
+            name_on_card = request.form.get('name_on_card','')
+            card_no = request.form.get('card_no','').replace(" ", "")  # Remove spaces from card number
+            cvv = request.form.get('cvv','')
+            expiry_date = request.form.get('expiry_date','')
+
+            # Input validation
+            errors = {
+                "pay_email": not is_valid_email(pay_email),
+                "card_no": not is_valid_card_number(card_no),
+                "cvv": not is_valid_cvv(cvv),
+                "expiry_date": not is_valid_expiry_date(expiry_date)
+            }
+
+            if any(errors.values()):
+                return render_template("setting_payment_edit.html", errors=errors, form_data=request.form)
+            else:
+                # Proceed with the database insert if all fields are valid
+                cur = mysql.connection.cursor()
+                cur.execute("INSERT INTO payment (saved_card_id, username, pay_email, name_on_card, card_no, cvv, expiry_date) VALUES (%s, %s, %s, %s, %s, %s, %s)", (saved_card_id, current_username, pay_email, name_on_card, card_no, cvv, expiry_date))
+                mysql.connection.commit()
+                flash("Payment method added successfully.", "success")
+                cur.close()
+                return redirect("/user/setting/payment")
+
+        elif action == "remove":
+            saved_card_id = request.form.get('saved_card_id')
+            cur = mysql.connection.cursor()
+            cur.execute("DELETE FROM payment WHERE saved_card_id = %s AND username = %s", (saved_card_id, current_username))
+            mysql.connection.commit()
+            flash("Payment method removed successfully.", "success")
+            cur.close()
+            return redirect("/user/setting/payment")
+        
+        else:
+            flash("Invalid action.", "danger")
+            return render_template("setting_payment_edit.html")
+    
     return render_template("setting_payment_edit.html")
+
+#generate next saved card id
+def generate_next_saved_card_id():
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT saved_card_id FROM payment ORDER BY saved_card_id DESC LIMIT 1")
+    last_id = cur.fetchone()
+    cur.close()
+    if last_id:
+        # Extract the numeric part of the ID and increment it
+        last_num = int(last_id[0][2:])  # Assuming ID format is PC000X
+        new_num = last_num + 1
+        new_id = f"PC{new_num:04d}"  # Keeps the leading zeros, making the numeric part 4 digits long
+    else:
+        # If there are no entries, start with PC0001
+        new_id = "PC0001"
+    return new_id
+
+def is_valid_email(email):
+    return "@" in email and "." in email.split('@')[-1]
+
+def is_valid_card_number(card_number):
+    return card_number.isdigit() and len(card_number) == 16
+
+def is_valid_cvv(cvv):
+    return cvv.isdigit() and len(cvv) == 3
+
+def is_valid_expiry_date(expiry_date):
+    if len(expiry_date) == 5 and expiry_date[2] == '/':
+        month, year = expiry_date.split('/')
+        return month.isdigit() and year.isdigit() and 1 <= int(month) <= 12
+    return False
 
 #C-setting/history(default purchase)
 @app.route("/user/setting/history/purchase", methods=["GET","POST"])

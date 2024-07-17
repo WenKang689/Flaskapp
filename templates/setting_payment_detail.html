@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Methods</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Your Payment Methods</h1>
+        {% if payment_methods %}
+            <div class="payment-methods">
+                {% for method in payment_methods %}
+                    <div class="payment-method">
+                        <p><strong>Payment Email:</strong> {{ method.pay_email }}</p>
+                        <p><strong>Name on Card:</strong> {{ method.name_on_card }}</p>
+                        <p><strong>Card Number:</strong> {{ method.card_no }}</p>
+                        <p><strong>CVV:</strong> {{ method.cvv }}</p>
+                        <p><strong>Expiry Date:</strong> {{ method.expiry_date }}</p>
+                        <form action="/user/setting/payment/edit" method="POST" onsubmit="return confirm('Are you sure you want to remove this payment method?');">
+                            <input type="hidden" name="action" value="remove">
+                            <input type="hidden" name="saved_card_id" value="{{ method.saved_card_id }}">
+                            <button type="submit">Remove</button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+            {% if payment_methods|length < 3 %}
+                <div class="add-payment-method">
+                    <form action="/user/setting/payment/edit" method="post">
+                        <input type="hidden" name="action" value="add">
+                        <button type="submit">Add a New Payment Method</button>
+                    </form>
+                </div>
+            {% else %}
+                <p class="text-danger">You have reached the maximum limit of 3 payment methods.</p>
+            {% endif %}
+        {% else %}
+            <div class="no-payment-methods">
+                <p>No payment methods found. Would you like to add one?</p>
+                <form action="/user/setting/payment/edit" method="post">
+                    <input type="hidden" name="action" value="add">
+                    <button type="submit">Add a New Payment Method</button>
+                </form>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
