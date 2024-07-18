@@ -21,7 +21,7 @@
     <h1>Profile</h1>
     <p>
         <!-- Display Profile Picture -->
-        <img src="{{ profile.profile_pic }}" alt="Profile Picture" style="width:150px;height:150px;">
+        <img src="{{ profile.profile_pic }}?v={{ version }}" alt="Profile Picture" style="width:150px;height:150px;">
     </p>
     <p>Name: {{ profile.name }}</p>
     <p>Username: {{ profile.username }}</p>

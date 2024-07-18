@@ -70,7 +70,7 @@
     <!-- Display Current Profile Picture -->
     <div id="current-profile-container">
         <h3>Profile Picture</h3>
-        <img id="current-profile-pic" src="{{ profile.profile_pic }}" alt="Current Profile Picture" onclick="openFileInput()" title="Click to change profile picture">
+        <img id="current-profile-pic" src="{{ profile.profile_pic }}?v={{ version }}" alt="Current Profile Picture" onclick="openFileInput()" title="Click to change profile picture">
     </div>
 
     <!-- Form for Updating Profile -->

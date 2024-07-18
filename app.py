@@ -6,6 +6,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 import boto3
+import os
 
 app= Flask(__name__)
 
@@ -330,7 +331,7 @@ def edit_profile():
                     'address': profile_data[7],
                     'profile_pic': profile_data[8]
                 }
-            return render_template('setting_profile.html',profile=profile)
+            return redirect("/user/setting/profile")
             
         except Exception as e:
             cur.close()
@@ -363,9 +364,10 @@ def edit_profile():
 
 def upload_file_to_s3(file_obj, bucket_name, object_name):
     s3_client = boto3.client('s3', aws_access_key_id=S3_KEY, aws_secret_access_key=S3_SECRET)
+
     try:
         print(f"Uploading file: {object_name}")
-        s3_client.upload_fileobj(file_obj, bucket_name, object_name, ExtraArgs={'ContentType':'image/png'})
+        s3_client.upload_fileobj(file_obj, bucket_name, object_name)
         
         object_url = f"https://{bucket_name}.s3.amazonaws.com/{object_name}"
         print(f"File uploaded successfully: {object_url}")
