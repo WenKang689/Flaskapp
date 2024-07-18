@@ -5,6 +5,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
+import boto3
 
 app= Flask(__name__)
 
@@ -17,6 +18,13 @@ app.config["MYSQL_DB"] = db["mysql_db"]
 app.secret_key = db["secret_key"]
 
 mysql = MySQL(app)
+
+#AWS S3 credentials and bucket configuration
+S3= yaml.load(open('s3.yaml'), Loader=yaml.FullLoader)
+S3_KEY = S3["S3_KEY"]
+S3_SECRET = S3['S3_SECRET']
+S3_BUCKET = S3['S3_BUCKET'] 
+S3_LOCATION = S3['S3_LOCATION']
 
 #login for all
 @app.route("/", methods=["GET","POST"])
