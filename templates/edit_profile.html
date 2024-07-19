@@ -70,11 +70,11 @@
     <!-- Display Current Profile Picture -->
     <div id="current-profile-container">
         <h3>Profile Picture</h3>
-        <img id="current-profile-pic" src="{{ profile.profile_pic }}?v={{ version }}" alt="Current Profile Picture" onclick="openFileInput()" title="Click to change profile picture">
+        <img id="current-profile-pic" src="{{ profile.profile_pic }}?v={{ timestamp }}" alt="Current Profile Picture" onclick="openFileInput()" title="Click to change profile picture">
     </div>
 
     <!-- Form for Updating Profile -->
-    <form method="post" action="{{ url_for('edit_profile') }}" enctype="multipart/form-data">
+    <form method="post" action="/user/setting/profile/edit" enctype="multipart/form-data">
         <input type="hidden" name="action" value="update">
         
         <label for="username">Username:</label>

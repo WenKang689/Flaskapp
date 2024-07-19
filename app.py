@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session, flash, redirect, url_for
+from flask import Flask, render_template, request, session, flash, redirect, url_for,make_response
 from flask_mysqldb import MySQL
 import yaml
 import smtplib
@@ -6,6 +6,8 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 import boto3
+from datetime import datetime, timezone
+import os
 
 app= Flask(__name__)
 
@@ -20,11 +22,9 @@ app.secret_key = db["secret_key"]
 mysql = MySQL(app)
 
 #AWS S3 credentials and bucket configuration
-S3= yaml.load(open('s3.yaml'), Loader=yaml.FullLoader)
-S3_KEY = S3["S3_KEY"]
-S3_SECRET = S3['S3_SECRET']
-S3_BUCKET = S3['S3_BUCKET'] 
-S3_LOCATION = S3['S3_LOCATION']
+S3= boto3.client('s3')
+S3_BUCKET = 'sourc-wk-sdp-project'
+S3_LOCATION = 'https://sourc-wk-sdp-project.s3.amazonaws.com/User+Profile+Picture/'
 
 
 #login for all
@@ -249,14 +249,18 @@ def setting_profile():
                 'profile_pic': profile_data[8]
             }
             # Pass the profile data to the template to view
-            return render_template('setting_profile.html', profile=profile)
+            timestamp = datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')
+            response = make_response(render_template('setting_profile.html', profile=profile,timestamp=timestamp))
         else:
             flash("User not found.", "danger")
-            return render_template('setting_profile.html', profile=profile)
+            response = make_response(render_template('setting_profile.html', profile=None))
+        
+        response.headers['Cache-Control'] = 'no-store'
+        return response
+    
     else:
         flash("Please log in to view this page.", "warning")
         return render_template('login.html')
-
 
 #C-setting/profile/edit profile
 @app.route("/user/setting/profile/edit", methods=["GET","POST"])
@@ -284,11 +288,12 @@ def edit_profile():
                 profile_pic_url = upload_file_to_s3(profile_pic, S3_BUCKET, object_name)
             except Exception as e:
                 flash("Failed to upload profile picture. Please try again.", "danger")
-                return render_template('edit_profile.html')
+                return redirect("/user/setting/profile/edit")
         else:
             cur = mysql.connection.cursor()
             cur.execute("SELECT prof_pic FROM user WHERE username = %s", (current_username,))
             profile_pic_url = cur.fetchone()[0]
+            cur.close()
 
         # Check if the updated username conflicts with existing usernames
         cur = mysql.connection.cursor()
@@ -297,7 +302,34 @@ def edit_profile():
         if existing_user and existing_user[0] != current_username: 
             flash(f"Username '{new_username}' already exists. Please choose a different username.", "danger")
             cur.close() 
-            return render_template('edit_profile.html')
+            return redirect("/user/setting/profile/edit")
+
+        # Validate input lengths
+        if len(new_username) > 30:
+            flash("Username must be 30 characters or fewer.", "danger")
+            return redirect("/user/setting/profile/edit")
+        if len(password) > 20:
+            flash("Password must be 20 characters or fewer.", "danger")
+            return redirect("/user/setting/profile/edit")
+        if len(name) > 30:
+            flash("Name must be 30 characters or fewer.", "danger")
+            return redirect("/user/setting/profile/edit")
+        if len(email) > 30:
+            flash("Email must be 30 characters or fewer.", "danger")
+            return redirect("/user/setting/profile/edit")
+        if len(phone) !=10 or not phone.isdigit():
+            flash("Phone number must be 10 digits only.", "danger")
+            return redirect("/user/setting/profile/edit")
+        # No need to check 'dob' as it's a date field and will always follow the date format
+        if len(address) > 255:
+            flash("Address must be 255 characters or fewer.", "danger")
+            return redirect("/user/setting/profile/edit")
+        if len(occupation) > 30:
+            flash("Occupation must be 30 characters or fewer.", "danger")
+            return redirect("/user/setting/profile/edit")
+        if len(profile_pic_url) > 255:
+            flash("Profile picture URL must be 255 characters or fewer.", "danger")
+            return redirect("/user/setting/profile/edit")
 
         # Update query for the user table
         query = """
@@ -307,35 +339,15 @@ def edit_profile():
         """
         data = (new_username, password, name, email, phone, dob, address, occupation, profile_pic_url, current_username)
 
-        try:
-            cur.execute(query, data)
-            mysql.connection.commit()
-            flash("Profile updated successfully", "success")
-            # Update session username if it was changed
-            if new_username != current_username:
-                session['username'] = new_username
-            cur.execute("SELECT name, username, dob, email, password, phone, occupation, address, prof_pic FROM user WHERE username = %s", (current_username,))
-            profile_data = cur.fetchone()
-            cur.close()
+        cur.execute(query, data)
+        mysql.connection.commit()
+        flash("Profile updated successfully", "success")
+        cur.close()
 
-            if profile_data:
-                profile = {
-                    'name': profile_data[0],
-                    'username': profile_data[1],
-                    'dob': profile_data[2],
-                    'email': profile_data[3],
-                    'password': profile_data[4],
-                    'phone': profile_data[5],
-                    'occupation': profile_data[6],
-                    'address': profile_data[7],
-                    'profile_pic': profile_data[8]
-                }
-            return redirect("/user/setting/profile")
-            
-        except Exception as e:
-            cur.close()
-            flash(f"An error occurred: {str(e)}", "danger")
-            return render_template('edit_profile.html')
+        # Update session username if it was changed
+        if new_username != current_username:
+            session['username'] = new_username
+        return redirect("/user/setting/profile")
 
     cur = mysql.connection.cursor()
     # Selecting user information to pre-fill the form
@@ -356,13 +368,16 @@ def edit_profile():
             'address': profile_data[7],
             'profile_pic': profile_data[8]
         }
-        return render_template('edit_profile.html', profile=profile)
+        timestamp = datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')
+        response = make_response(render_template('edit_profile.html', profile=profile,timestamp=timestamp))
     else:
         flash("User not found.", "danger")
-        return redirect("user/setting/profile")
+        return redirect("/user/setting/profile")
+    response.headers['Cache-Control'] = 'no-store'
+    return response
 
 def upload_file_to_s3(file_obj, bucket_name, object_name):
-    s3_client = boto3.client('s3', aws_access_key_id=S3_KEY, aws_secret_access_key=S3_SECRET)
+    s3_client = boto3.client('s3')
 
     try:
         print(f"Uploading file: {object_name}")
@@ -707,5 +722,9 @@ def manager_reports_yearly():
 def manager_feedback():
     return render_template("manager_feedback.html")
 
-if __name__=='__main__':
-    app.run(debug=True)
+if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+    debug_mode = False
+else:
+    debug_mode = True
+
+app.run(debug=debug_mode)
