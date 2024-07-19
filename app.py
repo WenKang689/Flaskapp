@@ -327,9 +327,6 @@ def edit_profile():
         if len(occupation) > 30:
             flash("Occupation must be 30 characters or fewer.", "danger")
             return redirect("/user/setting/profile/edit")
-        if len(profile_pic_url) > 255:
-            flash("Profile picture URL must be 255 characters or fewer.", "danger")
-            return redirect("/user/setting/profile/edit")
 
         # Update query for the user table
         query = """
