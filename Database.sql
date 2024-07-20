@@ -188,6 +188,7 @@ CREATE TABLE `review` (
   `role_id` varchar(30) NOT NULL,
   `review` varchar(255) DEFAULT NULL,
   `rating` int NOT NULL,
+  `review_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`review_id`),
   KEY `product_id` (`product_id`),
   CONSTRAINT `review_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE
@@ -214,6 +215,7 @@ CREATE TABLE `search_history` (
   `search_id` char(6) NOT NULL,
   `username` varchar(30) NOT NULL,
   `search_query` varchar(255) NOT NULL,
+  `search_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`search_id`),
   KEY `username` (`username`),
   CONSTRAINT `search_history_ibfk_1` FOREIGN KEY (`username`) REFERENCES `user` (`username`) ON UPDATE CASCADE
@@ -319,7 +321,7 @@ CREATE TABLE `user` (
 
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
-INSERT INTO `user` VALUES ('aaa','asd','Chong Wen Kang','braynchongwenkang590@gmail.com','0126843432','2024-06-05',NULL,NULL,NULL),('sw','sss','sw','shynwei04@gmail.com','1323','2024-07-03','11, JALAN BEDARA','fe',NULL),('wk','fff','sda','braynchong590@gmail.com','asd','2024-07-13','asd','asd',NULL);
+INSERT INTO `user` VALUES ('aaa','asd','Chong Wen Kang','braynchongwenkang590@gmail.com','0126843432','2024-06-05',NULL,NULL,NULL),('sw','sss','sw','shynwei04@gmail.com','1323','2024-07-03','11, JALAN BEDARA','fe',NULL),('wkwk','fff','wen kang','braynchong590@gmail.com','0166893432','2024-07-13','asd','asd','https://sourc-wk-sdp-project.s3.amazonaws.com/User Profile Picture/wkwk');
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -340,4 +342,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-07-16 23:50:40
+-- Dump completed on 2024-07-20 21:57:39
