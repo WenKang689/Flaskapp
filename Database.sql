@@ -1,5 +1,3 @@
-CREATE DATABASE  IF NOT EXISTS `flaskapp` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
-USE `flaskapp`;
 -- MySQL dump 10.13  Distrib 8.0.36, for Win64 (x86_64)
 --
 -- Host: localhost    Database: flaskapp
@@ -42,6 +40,33 @@ CREATE TABLE `cart` (
 LOCK TABLES `cart` WRITE;
 /*!40000 ALTER TABLE `cart` DISABLE KEYS */;
 /*!40000 ALTER TABLE `cart` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `feedback`
+--
+
+DROP TABLE IF EXISTS `feedback`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `feedback` (
+  `feedback_id` char(6) NOT NULL,
+  `stf_id` char(6) NOT NULL,
+  `feedback` varchar(255) NOT NULL,
+  `feedback_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`feedback_id`),
+  KEY `stf_id` (`stf_id`),
+  CONSTRAINT `feedback_ibfk_1` FOREIGN KEY (`stf_id`) REFERENCES `staff` (`stf_id`) ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `feedback`
+--
+
+LOCK TABLES `feedback` WRITE;
+/*!40000 ALTER TABLE `feedback` DISABLE KEYS */;
+/*!40000 ALTER TABLE `feedback` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -154,7 +179,7 @@ CREATE TABLE `purchase` (
   `pur_status` varchar(7) NOT NULL,
   `pur_quantity` int NOT NULL,
   `processed_by` char(6) NOT NULL,
-  PRIMARY KEY (`order_id`, `product_id`),
+  PRIMARY KEY (`order_id`,`product_id`),
   UNIQUE KEY `order_id` (`order_id`),
   KEY `username` (`username`),
   KEY `product_id` (`product_id`),
@@ -184,8 +209,7 @@ DROP TABLE IF EXISTS `review`;
 CREATE TABLE `review` (
   `review_id` char(6) NOT NULL,
   `product_id` char(6) DEFAULT NULL,
-  `role` varchar(5) NOT NULL,
-  `role_id` varchar(30) NOT NULL,
+  `username` varchar(30) DEFAULT NULL,
   `review` varchar(255) DEFAULT NULL,
   `rating` int NOT NULL,
   `review_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
@@ -342,4 +366,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-07-20 21:57:39
+-- Dump completed on 2024-07-22 21:19:43
