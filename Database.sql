@@ -208,6 +208,7 @@ DROP TABLE IF EXISTS `review`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `review` (
   `review_id` char(6) NOT NULL,
+  `order_id` char(6) DEFAULT NULL,
   `product_id` char(6) DEFAULT NULL,
   `username` varchar(30) DEFAULT NULL,
   `review` varchar(255) DEFAULT NULL,
@@ -366,4 +367,5 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-07-22 21:19:43
+-- Dump completed on 2024-07-22 23:13:38
+
