@@ -542,13 +542,28 @@ def laptop_filter():
     graphics = request.args.get('graphics', '')
     storage = request.args.get('storage', '')
     battery = request.args.get('battery', '')
-    power_supply = request.args.get('power_supply', '')
+    processor = request.args.get('processor', '')
     os = request.args.get('os', '')
+    min_weight = request.args.get('min_weight', '')
+    max_weight = request.args.get('max_weight', '')
 
-    # Fetch laptops from the database using Flask-MySQL
+    # Fetch laptops and their first picture from the database
     cur = mysql.connection.cursor()
-    cur.execute("SELECT product_id, product_name, brand, price, memory, graphics, storage, battery, power_supply, os, dimensions FROM product")
+    cur.execute("""
+        SELECT p.product_id, p.product_name, p.brand, p.price, p.memory, p.graphics, p.storage, p.battery, p.processor, p.os, p.weight, pic.pic_url
+        FROM product p
+        LEFT JOIN (
+            SELECT product_id, MIN(pic_url) as pic_url
+            FROM product_pic
+            GROUP BY product_id
+        ) pic ON p.product_id = pic.product_id
+    """)
     all_laptops = cur.fetchall()
+
+    # For debugging: print out the fetched laptops
+    print("Fetched laptops with pictures:")
+    for laptop in all_laptops:
+        print(laptop)
 
     # Fetch distinct values for each filter option
     cur.execute("SELECT DISTINCT brand FROM product")
@@ -566,8 +581,8 @@ def laptop_filter():
     cur.execute("SELECT DISTINCT battery FROM product")
     batteries = [row[0] for row in cur.fetchall()]
 
-    cur.execute("SELECT DISTINCT power_supply FROM product")
-    power_supplies = [row[0] for row in cur.fetchall()]
+    cur.execute("SELECT DISTINCT processor FROM product")
+    processors = [row[0] for row in cur.fetchall()]
 
     cur.execute("SELECT DISTINCT os FROM product")
     operating_systems = [row[0] for row in cur.fetchall()]
@@ -576,10 +591,17 @@ def laptop_filter():
     cur.execute("SELECT MIN(price), MAX(price) FROM product")
     min_price_db, max_price_db = cur.fetchone()
 
-    # Validate user input for price range
+    # Fetch min and max weight from the database
+    cur.execute("SELECT MIN(weight), MAX(weight) FROM product")
+    min_weight_db, max_weight_db = cur.fetchone()
+
+    # Validate user input for price and weight range
     if min_price and max_price and float(min_price) > float(max_price):
         message = "Max price must be greater than min price."
-        return render_template('laptop_search.html')
+        return render_template('laptop_search.html', message=message)
+    if min_weight and max_weight and float(min_weight) > float(max_weight):
+        message = "Max weight must be greater than min weight."
+        return render_template('laptop_search.html', message=message)
 
     # Filter the laptops based on the criteria
     filtered_laptops = [
@@ -592,16 +614,17 @@ def laptop_filter():
            (not graphics or graphics.lower() in laptop[5].lower()) and
            (not storage or storage.lower() in laptop[6].lower()) and
            (not battery or battery in str(laptop[7])) and
-           (not power_supply or power_supply in str(laptop[8])) and
-           (not os or os.lower() in laptop[9].lower())
+           (not processor or processor.lower() in laptop[8].lower()) and
+           (not os or os.lower() in laptop[9].lower()) and
+           (not min_weight or laptop[10] >= float(min_weight)) and
+           (not max_weight or laptop[10] <= float(max_weight))
     ]
 
     message = None
     if not filtered_laptops:
         message = "No laptops found matching the criteria."
 
-    return render_template('laptop_search.html', laptops=filtered_laptops, brands=brands, memories=memories, graphics_options=graphics_options, storages=storages, batteries=batteries, power_supplies=power_supplies, operating_systems=operating_systems, message=message, min_price=min_price_db, max_price=max_price_db)
-
+    return render_template('laptop_search.html', laptops=filtered_laptops, brands=brands, memories=memories, graphics_options=graphics_options, storages=storages, batteries=batteries, processors=processors, operating_systems=operating_systems, message=message, min_price=min_price_db, max_price=max_price_db, min_weight=min_weight_db, max_weight=max_weight_db)
 #C-laptop/detail
 @app.route("/laptop/<product_id>", methods=["GET","POST"])
 def laptop_detail():
