@@ -180,7 +180,6 @@ CREATE TABLE `purchase` (
   `pur_quantity` int NOT NULL,
   `processed_by` char(6) NOT NULL,
   PRIMARY KEY (`order_id`,`product_id`),
-  UNIQUE KEY `order_id` (`order_id`),
   KEY `username` (`username`),
   KEY `product_id` (`product_id`),
   KEY `processed_by` (`processed_by`),
