@@ -296,7 +296,7 @@ def cart_payment_success():
 def cart_payment_failed():
     return render_template("cart_payment_failed.html")
 
-#Admin section (Ying Xin)
+#Admin section (Zhi Xian)
 #A-home page
 @app.route("/admin/homepage", methods=["GET","POST"])
 def admin_homepage():
@@ -332,7 +332,7 @@ def admin_feedback_send():
 def admin_orders():
     return render_template("admin_orders.html")
 
-#Manager section (Zhi Xian)
+#Manager section (Ying Xin)
 #M-home page
 @app.route("/manager/homepage", methods=["GET","POST"])
 def manager_homepage():

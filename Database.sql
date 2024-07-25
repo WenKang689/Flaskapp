@@ -54,6 +54,7 @@ CREATE TABLE `feedback` (
   `stf_id` char(6) NOT NULL,
   `feedback` varchar(255) NOT NULL,
   `feedback_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `reply` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`feedback_id`),
   KEY `stf_id` (`stf_id`),
   CONSTRAINT `feedback_ibfk_1` FOREIGN KEY (`stf_id`) REFERENCES `staff` (`stf_id`) ON UPDATE CASCADE
@@ -180,6 +181,7 @@ CREATE TABLE `purchase` (
   `pur_quantity` int NOT NULL,
   `processed_by` char(6) NOT NULL,
   PRIMARY KEY (`order_id`,`product_id`),
+  UNIQUE KEY `order_id` (`order_id`),
   KEY `username` (`username`),
   KEY `product_id` (`product_id`),
   KEY `processed_by` (`processed_by`),
@@ -213,6 +215,7 @@ CREATE TABLE `review` (
   `review` varchar(255) DEFAULT NULL,
   `rating` int NOT NULL,
   `review_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `reply` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`review_id`),
   KEY `product_id` (`product_id`),
   CONSTRAINT `review_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE
@@ -366,4 +369,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-07-22 23:13:38
+-- Dump completed on 2024-07-25 20:54:43
