@@ -1,0 +1,5 @@
+mysql_host: 'localhost'
+mysql_user: 'root'
+mysql_password: 'pass'
+mysql_db: 'flaskapp'
+secret_key: 'd03811b6f39d7a1ef40400f3a96648b4'
