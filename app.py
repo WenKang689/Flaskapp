@@ -256,13 +256,8 @@ def recommend_survey_form():
 def recommend_auto():
     return render_template("recommend_auto.html")
 
-#C-laptop(all)
+#C-laptop/ (display all laptop + search result + filter)
 @app.route("/laptop", methods=["GET","POST"])
-def laptop():
-    return render_template("laptop.html")
-
-#C-laptop/search result(include filter)
-@app.route("/laptop/search", methods=["GET","POST"])
 def laptop_filter():
     return render_template("laptop_search.html")
 
