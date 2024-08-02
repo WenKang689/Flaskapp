@@ -682,7 +682,9 @@ def recommend_auto():
 
 #C-laptop/ (display all laptop + search result + filter)
 @app.route("/laptop", methods=["GET","POST"])
-def laptop_filter():
+def laptop():
+    username = session.get('username')
+
     search_query = request.args.get('search', '')
     brand = request.args.get('brand', '')
     min_price = request.args.get('min_price', '')
@@ -695,6 +697,23 @@ def laptop_filter():
     os = request.args.get('os', '')
     min_weight = request.args.get('min_weight', '')
     max_weight = request.args.get('max_weight', '')
+
+    # Generate a unique search_id
+    search_id = generate_next_search_id()
+
+    # Record the search history
+    # Ensure search_query is not empty before saving to the database
+    if search_query:
+        try:
+            cur = mysql.connection.cursor()
+            cur.execute("INSERT INTO search_history (search_id, username, search_query, search_time) VALUES (%s, %s, %s, %s)",
+                        (search_id, username, search_query, datetime.now()))
+            mysql.connection.commit()
+            cur.close()
+        except Exception as e:
+            mysql.connection.rollback()
+            flash(f"Failed to save search query: {str(e)}", "danger")
+
 
     # Fetch laptops and their first picture from the database
     cur = mysql.connection.cursor()
@@ -709,10 +728,6 @@ def laptop_filter():
     """)
     all_laptops = cur.fetchall()
 
-    # For debugging: print out the fetched laptops
-    print("Fetched laptops with pictures:")
-    for laptop in all_laptops:
-        print(laptop)
 
     # Fetch distinct values for each filter option
     cur.execute("SELECT DISTINCT brand FROM product")
@@ -747,10 +762,10 @@ def laptop_filter():
     # Validate user input for price and weight range
     if min_price and max_price and float(min_price) > float(max_price):
         message = "Max price must be greater than min price."
-        return render_template('laptop_search.html', message=message)
+        return render_template('laptop.html', message=message)
     if min_weight and max_weight and float(min_weight) > float(max_weight):
         message = "Max weight must be greater than min weight."
-        return render_template('laptop_search.html', message=message)
+        return render_template('laptop.html', message=message)
 
     # Filter the laptops based on the criteria
     filtered_laptops = [
@@ -773,7 +788,7 @@ def laptop_filter():
     if not filtered_laptops:
         message = "No laptops found matching the criteria."
 
-    return render_template('laptop_search.html', laptops=filtered_laptops, brands=brands, memories=memories, graphics_options=graphics_options, storages=storages, batteries=batteries, processors=processors, operating_systems=operating_systems, message=message, min_price=min_price_db, max_price=max_price_db, min_weight=min_weight_db, max_weight=max_weight_db)
+    return render_template('laptop.html', laptops=filtered_laptops, brands=brands, memories=memories, graphics_options=graphics_options, storages=storages, batteries=batteries, processors=processors, operating_systems=operating_systems, message=message, min_price=min_price_db, max_price=max_price_db, min_weight=min_weight_db, max_weight=max_weight_db)
 
 #C-laptop/detail
 @app.route("/laptop/<product_id>", methods=["GET","POST"])
