@@ -610,6 +610,23 @@ def setting_history_purchase():
         flash("An error occurred while retrieving purchase history. Please try again later.", "error")
         return redirect("/user/setting/history/purchase")
 
+#C-generate review id
+def generate_next_review_id():
+    cur = mysql.connection.cursor()
+    # Assuming 'saved_card_id' is stored in a table named 'saved_cards'
+    cur.execute("SELECT review_id FROM review ORDER BY review_id DESC LIMIT 1")
+    last_id = cur.fetchone()
+    cur.close()
+    if last_id:
+        # Extract the numeric part of the ID and increment it
+        last_num = int(last_id[0][2:])  # Assuming ID format is PC000X
+        new_num = last_num + 1
+        new_id = f"RV{new_num:04d}"  # Keeps the leading zeros, making the numeric part 4 digits long
+    else:
+        # If there are no entries, start with PC0001
+        new_id = "RV0001"
+    return new_id
+
 # Function to mask the username
 def mask_username(username):
     if len(username) <= 1:
