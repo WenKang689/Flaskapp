@@ -509,12 +509,149 @@ def is_valid_expiry_date(expiry_date):
 #C-setting/history(default purchase)
 @app.route("/user/setting/history/purchase", methods=["GET","POST"])
 def setting_history_purchase():
-    return render_template("setting_history_purchase.html")
+    username = session.get("username")
+    
+    cur = mysql.connection.cursor()
+
+    if request.method == "POST":
+        # Handle review submission
+        product_id = request.form.get("product_id")
+        order_id = request.form.get("order_id")
+        review_text = request.form.get("review")
+        rating = int(request.form.get("rating"))
+        current_time = datetime.now()
+        reply = None
+
+        # Check if review already exists
+        cur.execute("""
+            SELECT review_id FROM review
+            WHERE product_id = %s AND username = %s AND order_id = %s
+        """, (product_id, username, order_id))
+        existing_review = cur.fetchone()
+
+        if existing_review:
+            flash("You have already reviewed this product.", "warning")
+        else:
+            review_id = generate_next_review_id()
+            # Save review and rating to the database
+            cur.execute("""
+                INSERT INTO review (review_id, order_id, product_id, username, review, rating, review_time, reply)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """, (review_id, order_id, product_id, username, review_text, rating, current_time, reply))
+            mysql.connection.commit()
+            flash("Review submitted successfully.", "success")
+
+        cur.close()
+        return redirect("/user/setting/history/purchase")
+
+    try:
+        # Retrieve purchase history with product images
+        query = """
+        SELECT p.order_id, p.product_id, p.pur_date, p.pur_amount, p.pur_status, p.pur_quantity,
+               (SELECT pic_url FROM product_pic pic WHERE pic.product_id = p.product_id LIMIT 1) AS pic_url,
+               (SELECT product_name FROM product prod WHERE prod.product_id = p.product_id) AS product_name
+        FROM purchase p
+        WHERE p.username = %s
+        """
+        cur.execute(query, (username,))
+        purchase_history = cur.fetchall()
+
+        # Initialize the dictionary for existing reviews
+        existing_reviews = {}
+        for row in purchase_history:
+            order_id, product_id, pur_date, pur_amount, pur_status, pur_quantity, pic_url, product_name = row
+            cur.execute("""
+                SELECT review_id, review, rating, reply FROM review
+                WHERE product_id = %s AND username = %s AND order_id = %s
+            """, (product_id, username, order_id))
+            review = cur.fetchone()
+            if review:
+                existing_reviews[(order_id, product_id)] = {
+                    "review_id": review[0],
+                    "review": review[1],
+                    "rating": review[2],
+                }
+
+                if review[3] is not None:
+                    review["reply"] = review[3]
+                    existing_reviews[(order_id, product_id)] = review
+
+        cur.close()
+
+        # Organize purchase history by order_id
+        orders = {}
+        for row in purchase_history:
+            order_id, product_id, pur_date, pur_amount, pur_status, pur_quantity, pic_url, product_name = row
+            if order_id not in orders:
+                orders[order_id] = {
+                    'date': pur_date,
+                    'status': pur_status,
+                    'products': []
+                }
+            orders[order_id]['products'].append({
+                'product_id': product_id,
+                'name': product_name,
+                'amount': pur_amount,
+                'quantity': pur_quantity,
+                'pic_url': pic_url
+            })
+
+        
+        if not purchase_history:
+            return render_template("setting_history_purchase.html", purchase_history=[], message="No purchase history available.")
+        else:
+            return render_template('setting_history_purchase.html', orders=orders, existing_reviews=existing_reviews)
+
+    
+    except Exception as e:
+        cur.close()
+        # Handle the exception and possibly log it
+        print(f"An error occurred: {e}")
+        flash("An error occurred while retrieving purchase history. Please try again later.", "error")
+        return redirect("/user/setting/history/purchase")
+
+# Function to mask the username
+def mask_username(username):
+    if len(username) <= 1:
+        return '*'  # If the role_id is 1 character or fewer, show the first character
+    elif len(username) == 2:
+        return username[0] + '*'  # If the role_id is 2 characters, show the first character and mask the second
+    else:
+        return username[0] + '*' * (len(username) - 2) + username[-1]  # Mask all characters except first and last
 
 #C-setting/history/search history
 @app.route("/user/setting/history/search", methods=["GET","POST"])
 def setting_history_search():
-    return render_template("setting_history_search.html")
+    username = session.get('username')
+
+    try:
+        cur = mysql.connection.cursor()
+        query = "SELECT search_id, search_query, search_time FROM search_history WHERE username = %s ORDER BY search_time DESC"
+        cur.execute(query, (username,))
+        search_history = cur.fetchall()
+        cur.close()
+
+        return render_template('setting_search_history.html', search_history=search_history)
+    except Exception as e:
+        flash(f"Failed to retrieve search history: {str(e)}", "danger")
+        return redirect('/')
+    
+#generate search_id
+def generate_next_search_id():
+    cur = mysql.connection.cursor()
+    
+    cur.execute("SELECT search_id FROM search_history ORDER BY search_id DESC LIMIT 1")
+    last_id = cur.fetchone()
+    cur.close()
+    if last_id:
+        # Extract the numeric part of the ID and increment it
+        last_num = int(last_id[0][2:])  # Assuming ID format is SC000X
+        new_num = last_num + 1
+        new_id = f"SC{new_num:04d}"  # Keeps the leading zeros, making the numeric part 4 digits long
+    else:
+        # If there are no entries, start with SC0001
+        new_id = "SC0001"
+    return new_id
 
 #C-survey/fill in survey
 @app.route("/recommend/survey/form", methods=["GET","POST"])
@@ -620,10 +757,126 @@ def laptop_filter():
         message = "No laptops found matching the criteria."
 
     return render_template('laptop_search.html', laptops=filtered_laptops, brands=brands, memories=memories, graphics_options=graphics_options, storages=storages, batteries=batteries, processors=processors, operating_systems=operating_systems, message=message, min_price=min_price_db, max_price=max_price_db, min_weight=min_weight_db, max_weight=max_weight_db)
+
 #C-laptop/detail
 @app.route("/laptop/<product_id>", methods=["GET","POST"])
-def laptop_detail():
-    return render_template("laptop_detail.html")
+def laptop_detail(product_id):
+    
+    # Clean up the product_id
+    product_id = product_id.replace('<', '').replace('>', '').strip()
+    print(f"Processed product_id: {product_id}")  # Debug print
+
+    if request.method == "POST":
+        username = session.get('username')
+        if not username:
+            return redirect(url_for('login'))  # Redirect to login if user is not logged in
+
+        try:
+            quantity = int(request.form.get('quantity', 1))  # Default quantity is 1
+        except ValueError:
+            quantity = 1  # Fallback to default if conversion fails
+
+        action = request.form['action']
+
+        with mysql.connection.cursor() as cur:
+            try:
+                print(f"Inserting to cart: username={username}, product_id={product_id}, quantity={quantity}")
+
+                # Check if the same username and product_id exist in the cart
+                cur.execute("SELECT quantity FROM cart WHERE username = %s AND product_id = %s", (username, product_id))
+                existing_row = cur.fetchone()
+                
+                if existing_row:
+                    # Update the existing row with the new quantity
+                    new_quantity = existing_row[0] + quantity
+                    cur.execute("UPDATE cart SET quantity = %s WHERE username = %s AND product_id = %s", (new_quantity, username, product_id))
+                else:
+                    # Insert a new row
+                    cur.execute("INSERT INTO cart (username, product_id, quantity) VALUES (%s, %s, %s)", (username, product_id, quantity))
+                
+                mysql.connection.commit()
+
+                if action == 'add_to_cart':
+                    flash('Product added to cart.', 'success')
+                    return redirect(url_for('cart'))  # Redirect to cart page
+                elif action == 'buy_now':
+                    flash('Product added to cart. Redirecting to checkout...', 'success')
+                    return redirect(url_for('cart_checkout'))  # Redirect to checkout page
+
+
+            except MySQLdb.Error as e:
+                mysql.connection.rollback()
+                print(f"Error inserting into cart: {e}")
+                flash(f'Error: {str(e)}', 'danger')
+
+    # Fetch laptop details
+    with mysql.connection.cursor() as cur:
+        cur.execute("""
+            SELECT *
+            FROM product
+            WHERE product_id = %s
+        """, (product_id,))
+        product = cur.fetchone()
+
+        if not product:
+            return render_template("laptop_detail.html", message="Laptop not found.", product_details={})
+
+        # Fetch laptop images
+        cur.execute("SELECT pic_url FROM product_pic WHERE product_id = %s", (product_id,))
+        images = cur.fetchall()
+        
+
+        # Fetch reviews for the product based on product_id
+        cur.execute("""
+            SELECT product_id, username, review, rating, review_time, reply
+            FROM review 
+            WHERE product_id = %s
+        """, (product_id,))
+        reviews = cur.fetchall()
+
+        reviews_list = []
+
+
+    # Process and mask the role_id for each review
+    for row in reviews:
+        masked_username = mask_username(row[1])
+        review_data = {
+            'username': masked_username,
+            'review': row[2],
+            'rating': row[3],
+            'date': row[4]
+        }
+        if row[5] is not None:  # Only add the 'reply' field if it is not None
+            review_data['reply'] = row[5]
+        
+        reviews_list.append(review_data)
+
+    # Close cursor after fetching data
+    cur.close()
+
+    stock_status = "In Stock" if product[13] > 0 else "Out of Stock"
+
+    product_details = {
+        'product_id': product[0],
+        'product_name': product[1],
+        'brand': product[2],
+        'processor': product[3],
+        'graphics': product[4],
+        'dimensions': product[5],
+        'weight': product[6],
+        'os': product[7],
+        'memory': product[8],
+        'storage': product[9],
+        'power_supply': product[10],
+        'battery': product[11],
+        'price': product[12],
+        'stock_status': stock_status,
+        'images': [image[0] for image in images],
+        'reviews': reviews_list
+    }
+
+    # Pass laptop_details to the template
+    return render_template("laptop_detail.html", product_details=product_details)
 
 #C-cart(all)
 @app.route("/cart", methods=["GET","POST"])
