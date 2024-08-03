@@ -930,11 +930,6 @@ def cart_payment():
 def cart_payment_success():
     return render_template("cart_payment_success.html")
 
-#C-cart/payment failed
-@app.route("/cart/payment/failed", methods=["GET","POST"])
-def cart_payment_failed():
-    return render_template("cart_payment_failed.html")
-
 #Admin section (Zhi Xian)
 #A-home page
 @app.route("/admin/homepage", methods=["GET","POST"])
