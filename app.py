@@ -8,6 +8,7 @@ from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 import boto3
 from datetime import datetime, timezone
 import os
+import MySQLdb
 
 app= Flask(__name__)
 
@@ -25,7 +26,6 @@ mysql = MySQL(app)
 S3= boto3.client('s3')
 S3_BUCKET = 'sourc-wk-sdp-project'
 S3_LOCATION = 'https://sourc-wk-sdp-project.s3.amazonaws.com/User+Profile+Picture/'
-
 
 #login for all
 @app.route("/", methods=["GET","POST"])
@@ -222,7 +222,7 @@ def homepage():
         if request.method == 'POST':
             if request.form['action'] == 'search':
                 query = request.form['query']
-                return redirect("/laptop/search",query=query)
+                return redirect("/laptop",query=query)
         return render_template('homepage.html')
 
 #C-setting/profile
@@ -762,10 +762,10 @@ def laptop():
     # Validate user input for price and weight range
     if min_price and max_price and float(min_price) > float(max_price):
         message = "Max price must be greater than min price."
-        return render_template('laptop.html', message=message)
+        return render_template('laptop_detail.html', message=message)
     if min_weight and max_weight and float(min_weight) > float(max_weight):
         message = "Max weight must be greater than min weight."
-        return render_template('laptop.html', message=message)
+        return render_template('laptop_detail.html', message=message)
 
     # Filter the laptops based on the criteria
     filtered_laptops = [
@@ -788,7 +788,7 @@ def laptop():
     if not filtered_laptops:
         message = "No laptops found matching the criteria."
 
-    return render_template('laptop.html', laptops=filtered_laptops, brands=brands, memories=memories, graphics_options=graphics_options, storages=storages, batteries=batteries, processors=processors, operating_systems=operating_systems, message=message, min_price=min_price_db, max_price=max_price_db, min_weight=min_weight_db, max_weight=max_weight_db)
+    return render_template('laptop_search.html', laptops=filtered_laptops, brands=brands, memories=memories, graphics_options=graphics_options, storages=storages, batteries=batteries, processors=processors, operating_systems=operating_systems, message=message, min_price=min_price_db, max_price=max_price_db, min_weight=min_weight_db, max_weight=max_weight_db)
 
 #C-laptop/detail
 @app.route("/laptop/<product_id>", methods=["GET","POST"])
