@@ -276,11 +276,6 @@ def cart():
 def cart_checkout():
     return render_template("cart_checkout.html")
 
-#C-cart/payment
-@app.route("/cart/payment", methods=["GET","POST"])
-def cart_payment():
-    return render_template("cart_payment.html")
-
 #C-cart/payment success
 @app.route("/cart/payment/success", methods=["GET","POST"])
 def cart_payment_success():

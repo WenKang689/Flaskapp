@@ -1,3 +1,5 @@
+CREATE DATABASE  IF NOT EXISTS `flaskapp` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+USE `flaskapp`;
 -- MySQL dump 10.13  Distrib 8.0.36, for Win64 (x86_64)
 --
 -- Host: localhost    Database: flaskapp
@@ -179,15 +181,16 @@ CREATE TABLE `purchase` (
   `pur_amount` int NOT NULL,
   `pur_status` varchar(7) NOT NULL,
   `pur_quantity` int NOT NULL,
-  `processed_by` char(6) NOT NULL,
+  `processed_by` char(6) DEFAULT NULL,
+  `saved_card_id` char(6) NOT NULL,
   PRIMARY KEY (`order_id`,`product_id`),
   UNIQUE KEY `order_id` (`order_id`),
   KEY `username` (`username`),
   KEY `product_id` (`product_id`),
-  KEY `processed_by` (`processed_by`),
+  KEY `saved_card_id` (`saved_card_id`),
   CONSTRAINT `purchase_ibfk_1` FOREIGN KEY (`username`) REFERENCES `user` (`username`) ON UPDATE CASCADE,
   CONSTRAINT `purchase_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE,
-  CONSTRAINT `purchase_ibfk_3` FOREIGN KEY (`processed_by`) REFERENCES `staff` (`stf_id`)
+  CONSTRAINT `purchase_ibfk_3` FOREIGN KEY (`saved_card_id`) REFERENCES `payment` (`saved_card_id`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -369,4 +372,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-07-25 20:54:43
+-- Dump completed on 2024-08-04 23:33:19
