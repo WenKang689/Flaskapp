@@ -66,7 +66,7 @@
                     {% for product in details.products %}
                         <li class="product">
                             <p>Product Name: <a href="{{ url_for('laptop_detail', product_id=product.product_id) }}">{{ product.name }}</a></p>
-                            <p>Purchase Amount: ${{ product.amount }}</p>
+                            <p>Purchase Amount: RM {{ product.amount }}</p>
                             <p>Purchase Quantity: {{ product.quantity }}</p>
                             
                             {% if product.pic_url %}
@@ -80,8 +80,8 @@
                             {% if (order_id, product.product_id) in existing_reviews %}
                                 <p>Review: {{ existing_reviews[(order_id, product.product_id)]['review'] }}</p>
                                 <p>Rating: {{ existing_reviews[(order_id, product.product_id)]['rating'] }} / 5</p>
-                                {% if 'reply' in review %}
-                                    <p>Responses: {{ review.reply }}</p>
+                                {% if existing_reviews[(order_id, product.product_id)].reply %}
+                                    <p>Responses: {{ existing_reviews[(order_id, product.product_id)].reply }}</p>
                                 {% endif %}
                             {% else %}
                                 <br>

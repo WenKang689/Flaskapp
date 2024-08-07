@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session, flash, redirect, url_for,make_response
+from flask import Flask, render_template, request, session, flash, redirect, url_for
 from flask_mysqldb import MySQL
 import yaml
 import smtplib
@@ -221,8 +221,9 @@ def homepage():
         #Search bar
         if request.method == 'POST':
             if request.form['action'] == 'search':
-                query = request.form['query']
-                return redirect("/laptop",query=query)
+                search_query = request.form['query']
+                session['homepage_search_query'] = search_query
+                return redirect("/laptop",search_query=search_query)
         return render_template('homepage.html')
 
 #C-setting/profile
@@ -552,6 +553,7 @@ def setting_history_purchase():
                (SELECT product_name FROM product prod WHERE prod.product_id = p.product_id) AS product_name
         FROM purchase p
         WHERE p.username = %s
+        ORDER BY p.pur_date DESC
         """
         cur.execute(query, (username,))
         purchase_history = cur.fetchall()
@@ -570,12 +572,8 @@ def setting_history_purchase():
                     "review_id": review[0],
                     "review": review[1],
                     "rating": review[2],
+                    "reply": review[3]
                 }
-
-                if review[3] is not None:
-                    review["reply"] = review[3]
-                    existing_reviews[(order_id, product_id)] = review
-
         cur.close()
 
         # Organize purchase history by order_id
@@ -685,7 +683,10 @@ def recommend_auto():
 def laptop():
     username = session.get('username')
 
-    search_query = request.args.get('search', '')
+    search_query = session.get('homepage_search_query', '')
+    if not search_query:
+        search_query = request.args.get('search', '')
+        
     brand = request.args.get('brand', '')
     min_price = request.args.get('min_price', '')
     max_price = request.args.get('max_price', '')
@@ -697,6 +698,7 @@ def laptop():
     os = request.args.get('os', '')
     min_weight = request.args.get('min_weight', '')
     max_weight = request.args.get('max_weight', '')
+
 
     # Generate a unique search_id
     search_id = generate_next_search_id()
@@ -762,10 +764,10 @@ def laptop():
     # Validate user input for price and weight range
     if min_price and max_price and float(min_price) > float(max_price):
         message = "Max price must be greater than min price."
-        return render_template('laptop_detail.html', message=message)
+        return render_template('laptop.html', message=message)
     if min_weight and max_weight and float(min_weight) > float(max_weight):
         message = "Max weight must be greater than min weight."
-        return render_template('laptop_detail.html', message=message)
+        return render_template('laptop.html', message=message)
 
     # Filter the laptops based on the criteria
     filtered_laptops = [
@@ -790,6 +792,33 @@ def laptop():
 
     return render_template('laptop_search.html', laptops=filtered_laptops, brands=brands, memories=memories, graphics_options=graphics_options, storages=storages, batteries=batteries, processors=processors, operating_systems=operating_systems, message=message, min_price=min_price_db, max_price=max_price_db, min_weight=min_weight_db, max_weight=max_weight_db)
 
+#generate search_id
+def generate_next_search_id():
+    cur = mysql.connection.cursor()
+    
+    cur.execute("SELECT search_id FROM search_history ORDER BY search_id DESC LIMIT 1")
+    last_id = cur.fetchone()
+    cur.close()
+    if last_id:
+        # Extract the numeric part of the ID and increment it
+        last_num = int(last_id[0][2:])  # Assuming ID format is SC000X
+        new_num = last_num + 1
+        new_id = f"SC{new_num:04d}"  # Keeps the leading zeros, making the numeric part 4 digits long
+    else:
+        # If there are no entries, start with SC0001
+        new_id = "SC0001"
+    return new_id
+
+
+# Function to mask the username
+def mask_username(username):
+    if len(username) <= 1:
+        return '*'  # If the role_id is 1 character or fewer, show the first character
+    elif len(username) == 2:
+        return username[0] + '*'  # If the role_id is 2 characters, show the first character and mask the second
+    else:
+        return username[0] + '*' * (len(username) - 2) + username[-1]  # Mask all characters except first and last
+
 #C-laptop/detail
 @app.route("/laptop/<product_id>", methods=["GET","POST"])
 def laptop_detail(product_id):
@@ -812,8 +841,6 @@ def laptop_detail(product_id):
 
         with mysql.connection.cursor() as cur:
             try:
-                print(f"Inserting to cart: username={username}, product_id={product_id}, quantity={quantity}")
-
                 # Check if the same username and product_id exist in the cart
                 cur.execute("SELECT quantity FROM cart WHERE username = %s AND product_id = %s", (username, product_id))
                 existing_row = cur.fetchone()
@@ -833,8 +860,10 @@ def laptop_detail(product_id):
                     return redirect(url_for('cart'))  # Redirect to cart page
                 elif action == 'buy_now':
                     flash('Product added to cart. Redirecting to checkout...', 'success')
+                    # Set selected items in session
+                    session['selected_items'] = [(product_id, quantity)]
+                    session['selected_total_price'] = 0
                     return redirect(url_for('cart_checkout'))  # Redirect to checkout page
-
 
             except MySQLdb.Error as e:
                 mysql.connection.rollback()
@@ -913,17 +942,494 @@ def laptop_detail(product_id):
 #C-cart(all)
 @app.route("/cart", methods=["GET","POST"])
 def cart():
-    return render_template("cart.html")
+    username = session.get('username')
+    cart_items = []
+    cart_total_price = 0
+
+    if request.method == "POST":
+        action = request.form.get('action')
+        print("Form Data:", request.form)  # Debugging print
+
+
+        if action == "update":
+            for key, value in request.form.items():
+                if key.startswith('quantity_'):
+                    product_id = key.split('_')[1]
+                    print(f"Updating {product_id} to quantity {value}")
+                    try:
+                        quantity = int(value)
+                        if quantity > 0:
+                            with mysql.connection.cursor() as cur:
+                                # Check stock before updating
+                                cur.execute("""
+                                    SELECT stock
+                                    FROM product
+                                    WHERE product_id = %s
+                                """, (product_id,))
+                                stock = cur.fetchone()[0]
+
+                                if quantity <= stock:
+                                    cur.execute("""
+                                        UPDATE cart
+                                        SET quantity = %s
+                                        WHERE username = %s AND product_id = %s
+                                    """, (quantity, username, product_id))
+                                    mysql.connection.commit()
+                                else:
+                                    flash(f"Quantity for product {product_id} exceeds available stock.", 'error')
+                    except ValueError:
+                        print(f"Invalid quantity for {product_id}: {value}")
+
+
+        elif 'remove_product' in request.form:
+            product_id = request.form.get('remove_product')
+            with mysql.connection.cursor() as cur:
+                cur.execute("""
+                    DELETE FROM cart
+                    WHERE username = %s AND product_id = %s
+                """, (username, product_id))
+                mysql.connection.commit()
+                flash('Product removed from cart.', 'success')
+
+        elif action == 'checkout':
+            # Extract selected items from form data
+            selected_items = [key.split('_')[1] for key in request.form if key.startswith('select_')]
+            print("Selected items for checkout:", selected_items)  # Debug print
+
+            if not selected_items:
+                flash('No items selected for checkout.', 'warning')
+                return redirect(url_for('cart'))
+
+            # Fetch cart items for selected product IDs
+            cart_items = []
+            with mysql.connection.cursor() as cur:
+                for product_id in selected_items:
+                    cur.execute("""
+                        SELECT 
+                            p.product_id, 
+                            p.product_name, 
+                            p.price, 
+                            c.quantity,
+                            (SELECT pic_url FROM product_pic pp WHERE pp.product_id = p.product_id LIMIT 1) AS pic_url
+                        FROM cart c
+                        JOIN product p ON c.product_id = p.product_id
+                        WHERE c.username = %s AND c.product_id = %s
+                    """, (username, product_id))
+                    item = cur.fetchone()
+                    if item:
+                        cart_items.append(item)
+            print("Fetched cart items:", cart_items)  # Debug print
+
+           # Calculate the total price of selected items
+            cart_total_price = 0
+            for item in cart_items:
+                price = float(item[2])
+                quantity = int(item[3])
+                total_item_price = price * quantity
+                cart_total_price += total_item_price
+                print(f"Item: {item[1]}, Price: {price}, Quantity: {quantity}, Total: {total_item_price}")
+
+            print("Calculated total price:", cart_total_price)  # Debug print
+
+            # Store session data for checkout
+            session['selected_items'] = [(item[0], item[3]) for item in cart_items]  # Storing (product_id, quantity)
+            session['checkout_total_price'] = cart_total_price
+
+            # Perform stock check before proceeding
+            with mysql.connection.cursor() as cur:
+                stock_check_failed = False
+                for product_id, quantity in session['selected_items']:
+                    cur.execute("""
+                        SELECT quantity
+                        FROM cart
+                        WHERE username = %s AND product_id = %s
+                    """, (username, product_id))
+                    quantity_in_cart = cur.fetchone()[0]
+
+                    cur.execute("""
+                        SELECT stock
+                        FROM product
+                        WHERE product_id = %s
+                    """, (product_id,))
+                    stock = cur.fetchone()[0]
+
+                    if quantity_in_cart > stock:
+                        flash(f"Quantity for product {product_id} exceeds available stock.", 'error')
+                        stock_check_failed = True
+
+                if stock_check_failed:
+                    return redirect(url_for('cart'))  # Redirect to the cart page if stock validation fails
+
+            return redirect(url_for('cart_checkout'))  # Redirect to the checkout page if stock validation passes
+
+    # Re-fetch cart items to render updated cart
+    with mysql.connection.cursor() as cur:
+        cur.execute("""
+            SELECT 
+                c.product_id, 
+                p.product_name, 
+                p.price, 
+                c.quantity, 
+                (SELECT pic_url FROM product_pic pp WHERE pp.product_id = c.product_id LIMIT 1) AS pic_url,
+                (SELECT stock FROM product p WHERE p.product_id = c.product_id) AS stock
+            FROM cart c
+            JOIN product p ON c.product_id = p.product_id
+            WHERE c.username = %s
+        """, (username,))
+        cart_items = cur.fetchall()
+
+    item_count = len(cart_items)
+    cart_total_price = sum(item[2] * item[3] for item in cart_items if f'select_{item[0]}' in request.form)
+
+    return render_template("cart.html", cart_items=cart_items, cart_total_price=cart_total_price, item_count=item_count)
 
 #C-cart/checkout(choose payment method,address)
 @app.route("/cart/checkout", methods=["GET","POST"])
 def cart_checkout():
-    return render_template("cart_checkout.html")
+    username = session.get('username')
+    errors = {}
+    selected_items = session.get('selected_items', [])
+    checkout_total_price = 0
+    selected_items_details = []
+
+    if request.method == "POST":
+        order_id = generate_next_order_id()
+        ship_id = generate_next_ship_id()
+        saved_card_id = request.form.get('payment_method')
+
+        # Handle payment method insertion if 'new' is selected
+        if saved_card_id == 'new':
+            pay_email = request.form.get('pay_email', '')
+            name_on_card = request.form.get('name_on_card', '')
+            card_no = request.form.get('card_no', '').replace(" ", "")
+            cvv = request.form.get('cvv', '')
+            expiry_date = request.form.get('expiry_date', '')
+
+            errors.update({
+                "pay_email": not is_valid_email(pay_email),
+                "card_no": not is_valid_card_number(card_no),
+                "cvv": not is_valid_cvv(cvv),
+                "expiry_date": not is_valid_expiry_date(expiry_date)
+            })
+
+            if any(errors.values()):
+                print(f"Validation errors: {errors}")
+                return render_template("cart_checkout.html", errors=errors, form_data=request.form, selected_items=selected_items, checkout_total_price=checkout_total_price)
+
+            try:
+                with mysql.connection.cursor() as cur:
+                    new_saved_card_id = generate_next_saved_card_id()
+                    cur.execute("""
+                        INSERT INTO payment (saved_card_id, username, pay_email, name_on_card, card_no, cvv, expiry_date)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    """, (new_saved_card_id, username, pay_email, name_on_card, card_no, cvv, expiry_date))
+                    mysql.connection.commit()
+                    saved_card_id = new_saved_card_id
+            except Exception as e:
+                print(f"Error inserting into payment table: {e}")
+                mysql.connection.rollback()
+                return "Error processing payment details"
+            
+        # Calculate the total price for the selected items
+        with mysql.connection.cursor() as cur:
+            for product_id, quantity in selected_items:
+                cur.execute("""
+                    SELECT price
+                    FROM product
+                    WHERE product_id = %s
+                """, (product_id,))
+                result = cur.fetchone()
+                if result:
+                    price = result[0]
+                    checkout_total_price += price * quantity
+
+
+        for product_id, quantity in selected_items:
+            try:
+                with mysql.connection.cursor() as cur:
+                    # Fetch the quantity in the cart for this product
+                    cur.execute("""
+                        SELECT quantity
+                        FROM cart
+                        WHERE username = %s AND product_id = %s
+                    """, (username, product_id))
+                    result = cur.fetchone()
+
+                    if result:
+                        quantity_in_cart = result[0]
+
+                        # Validate the quantity in the cart
+                        if quantity_in_cart != quantity:
+                            flash(f"Quantity for product {product_id} in cart does not match the selected quantity.", 'error')
+                            return redirect(url_for('cart'))
+
+                        # Insert into the purchase table
+                        query = """
+                            INSERT INTO purchase 
+                            (order_id, username, product_id, pur_date, pur_amount, pur_status, pur_quantity, processed_by, saved_card_id)
+                            VALUES (%s, %s, %s, NOW(), %s, %s, %s, %s, %s)
+                        """
+                        params = (order_id, username, product_id, checkout_total_price, 'pending', quantity, None, saved_card_id)
+                        cur.execute(query, params)
+                        
+                        # Update stock
+                        query = """
+                            UPDATE product
+                            SET stock = stock - %s
+                            WHERE product_id = %s
+                        """
+                        cur.execute(query, (quantity, product_id))
+                        
+                    else:
+                        flash(f"Product {product_id} not found in the cart.", 'error')
+                        return redirect(url_for('cart'))
+                    
+                mysql.connection.commit()
+                print(f"Order {order_id} successfully inserted into purchase table.")
+            except Exception as e:
+                print(f"Error processing product {product_id}: {e}")
+                mysql.connection.rollback()
+                return "Error processing purchase"
+        
+        session['order_id'] = order_id
+
+        # Shipping details validation
+        dest_add = request.form.get('dest_add', '')
+        receiver_name = request.form.get('receiver_name', '')
+        receiver_phone = request.form.get('receiver_phone', '')
+
+        errors.update({
+            "dest_add": not (dest_add and dest_add.strip()),
+            "receiver_name": not (receiver_name and receiver_name.strip()),
+            "receiver_phone": not (receiver_phone and receiver_phone.strip())
+        })
+
+        if any(errors.values()):
+            print(f"Validation errors: {errors}")
+            return render_template("cart_checkout.html", errors=errors, form_data=request.form, selected_items=selected_items, checkout_total_price=checkout_total_price)
+
+        try:
+            with mysql.connection.cursor() as cur:
+                cur.execute("""
+                    INSERT INTO shipping (ship_id, order_id, dest_add, receiver_name, receiver_phone, ship_status, ship_time)
+                    VALUES (%s, %s, %s, %s, %s, %s, NOW())
+                """, (ship_id, order_id, dest_add, receiver_name, receiver_phone, 'pending'))
+                mysql.connection.commit()
+        except Exception as e:
+            print(f"Error inserting into shipping table: {e}")
+            mysql.connection.rollback()
+            return "Error processing shipping details"
+
+        # Remove items from cart
+        try:
+            with mysql.connection.cursor() as cur:
+                # Generate placeholders for the number of selected items
+                format_strings = ','.join(['%s'] * len(selected_items))
+                # Extract product IDs from selected_items
+                product_ids = [item[0] for item in selected_items]
+                
+                # Prepare and execute the delete statement
+                cur.execute(f"""
+                    DELETE FROM cart
+                    WHERE username = %s AND product_id IN ({format_strings})
+                """, (username, *product_ids))
+                
+                mysql.connection.commit()
+        except Exception as e:
+            print(f"Error removing items from cart: {e}")
+            mysql.connection.rollback()
+            return "Error removing items from cart"
+
+        session.pop('buy_now', None)
+        session.pop('selected_items', None)
+        flash("Checkout successful!", "success")
+        return redirect(url_for("cart_payment_success", order_id=order_id))
+
+    # Retrieve current payment methods
+    payment_methods = []
+    try:
+        with mysql.connection.cursor() as cur:
+            cur.execute("""
+                SELECT saved_card_id, card_no, expiry_date, pay_email
+                FROM payment
+                WHERE username = %s
+            """, (username,))
+            payment_methods = cur.fetchall()
+            print("Payment methods retrieved:", payment_methods)
+    except Exception as e:
+        print(f"Error fetching payment methods: {e}")
+
+    # Fetch details for selected items
+    if selected_items:
+        with mysql.connection.cursor() as cur:
+            for product_id, quantity in selected_items:
+                query = """
+                    SELECT 
+                        p.product_id, 
+                        p.product_name, 
+                        p.price, 
+                        pp.pic_url
+                    FROM product p
+                    LEFT JOIN product_pic pp ON pp.product_id = p.product_id
+                    WHERE p.product_id = %s
+                    LIMIT 1
+                """
+                
+                try:
+                    cur.execute(query, (product_id,))
+                    fetched_item = cur.fetchone()
+                    if fetched_item:
+                        # Ensure fetched_item has the correct number of elements
+                        if len(fetched_item) == 4:
+                            product_id, product_name, price, pic_url = fetched_item
+                            selected_items_details.append((product_id, product_name, float(price), quantity, pic_url))
+                            checkout_total_price += float(price) * quantity
+                        else:
+                            print(f"Unexpected number of values in fetched_item: {fetched_item}")
+                    else:
+                        print(f"No item found for product_id: {product_id}")
+                except Exception as e:
+                    print(f"Error fetching details for product {product_id}: {e}")
+
+    session['checkout_total_price'] = checkout_total_price
+
+    print("Selected Items Details:", selected_items_details)
+    print("Checkout Total Price:", checkout_total_price)
+
+    return render_template("cart_checkout.html", payment_methods=payment_methods, errors=errors, form_data=request.form, selected_items=selected_items_details, checkout_total_price=checkout_total_price)
+
+
+#generate ship_id
+def generate_next_ship_id():
+    cur = mysql.connection.cursor()
+    
+    cur.execute("SELECT ship_id FROM shipping ORDER BY ship_id DESC LIMIT 1")
+    last_id = cur.fetchone()
+    cur.close()
+    if last_id:
+        # Extract the numeric part of the ID and increment it
+        last_num = int(last_id[0][2:])  # Assuming ID format is SH000X
+        new_num = last_num + 1
+        new_id = f"SH{new_num:04d}"  # Keeps the leading zeros, making the numeric part 4 digits long
+    else:
+        # If there are no entries, start with SH0001
+        new_id = "SH0001"
+    return new_id
+
+#generate order_id
+def generate_next_order_id():
+    cur = mysql.connection.cursor()
+    
+    cur.execute("SELECT order_id FROM purchase ORDER BY order_id DESC LIMIT 1")
+    last_id = cur.fetchone()
+    cur.close()
+    if last_id:
+        # Extract the numeric part of the ID and increment it
+        last_num = int(last_id[0][2:])  # Assuming ID format is IN000X
+        new_num = last_num + 1
+        new_id = f"IN{new_num:04d}"  # Keeps the leading zeros, making the numeric part 4 digits long
+    else:
+        # If there are no entries, start with IN0001
+        new_id = "IN0001"
+    return new_id
+
+
+def get_product_price(product_id):
+    with mysql.connection.cursor() as cur:
+        cur.execute("SELECT price FROM product WHERE product_id = %s", (product_id,))
+        result = cur.fetchone()
+        return result[0] if result else 0
+    
+def get_payment_methods(username):
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM payment WHERE username = %s", (username,))
+    payment_methods = cur.fetchall()
+    cur.close()
+    return payment_methods
+
+def get_cart_quantity(username, product_id):
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT quantity FROM cart WHERE username = %s AND product_id = %s", (username, product_id))
+    result = cur.fetchone()
+    cur.close()
+    return result[0] if result else 0
 
 #C-cart/payment success
 @app.route("/cart/payment/success", methods=["GET","POST"])
 def cart_payment_success():
-    return render_template("cart_payment_success.html")
+    order_id = request.args.get('order_id') or session.get('order_id')
+    if not order_id:
+        return "No order ID found.", 400
+
+    try:
+        with mysql.connection.cursor() as cur:
+            # Fetch order summary
+            cur.execute("""
+                SELECT 
+                    MAX(pu.pur_date) AS order_date,
+                    MAX(s.dest_add) AS shipping_address,
+                    MAX(s.receiver_name) AS receiver_name,
+                    MAX(s.receiver_phone) AS receiver_phone,
+                    SUM(p.price * pu.pur_quantity) AS total_amount
+                FROM purchase pu
+                JOIN product p ON pu.product_id = p.product_id
+                JOIN shipping s ON pu.order_id = s.order_id
+                WHERE pu.order_id = %s
+                GROUP BY pu.order_id
+            """, (order_id,))
+            order_summary = cur.fetchone()
+
+            if not order_summary:
+                return "Order details not found.", 404
+
+            order_date, shipping_address, receiver_name, receiver_phone, total_amount = order_summary
+
+            # Fetch order details
+            cur.execute("""
+                SELECT 
+                    p.product_name, 
+                    p.price, 
+                    pu.pur_quantity AS quantity, 
+                    (p.price * pu.pur_quantity) AS total
+                FROM purchase pu
+                JOIN product p ON pu.product_id = p.product_id
+                WHERE pu.order_id = %s
+            """, (order_id,))
+            invoice_details = cur.fetchall()
+
+            # Fetch payment method details
+            cur.execute("""
+                SELECT 
+                    pm.card_no, 
+                    pm.expiry_date, 
+                    pm.pay_email
+                FROM payment pm
+                JOIN purchase pu ON pm.saved_card_id = pu.saved_card_id
+                WHERE pu.order_id = %s
+                LIMIT 1
+            """, (order_id,))
+            payment_method = cur.fetchone()
+
+            if not payment_method:
+                card_no, expiry_date, pay_email = "N/A", "N/A", "N/A"
+            else:
+                card_no, expiry_date, pay_email = payment_method
+
+    except Exception as e:
+        print(f"Error fetching invoice details: {e}")
+        return "Error fetching invoice details.", 500
+
+    return render_template("cart_payment_success.html", 
+                           order_id=order_id, 
+                           order_date=order_date,
+                           shipping_address=shipping_address,
+                           receiver_name=receiver_name,
+                           receiver_phone=receiver_phone,
+                           invoice_details=invoice_details,
+                           total_amount=total_amount,
+                           card_no=card_no,
+                           expiry_date=expiry_date,
+                           pay_email=pay_email)
 
 #Admin section (Zhi Xian)
 #A-home page
