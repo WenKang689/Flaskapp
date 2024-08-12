@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Account Removal</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .confirmation {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .cancel-button {
+            background-color: #6c757d;
+        }
+        .cancel-button:hover {
+            background-color: #5a6268;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="confirmation">
+        <h1>Confirm Account Removal</h1>
+        <p>Are you sure you want to remove this account?</p>
+
+        <table>
+            <tbody>
+                <tr>
+                    <th>ID</th>
+                    <td>{{ staff.stf_id }}</td>
+                </tr>
+                <tr>
+                    <th>Name</th>
+                    <td>{{ staff.stf_name }}</td>
+                </tr>
+                <tr>
+                    <th>Email</th>
+                    <td>{{ staff.stf_email }}</td>
+                </tr>
+                <tr>
+                    <th>Phone</th>
+                    <td>{{ staff.stf_phone }}</td>
+                </tr>
+                <tr>
+                    <th>Date of Birth</th>
+                    <td>{{ staff.stf_dob }}</td>
+                </tr>
+                <tr>
+                    <th>Address</th>
+                    <td>{{ staff.stf_address }}</td>
+                </tr>
+                <tr>
+                    <th>Emergency Contact</th>
+                    <td>{{ staff.stf_emer_contact }}</td>
+                </tr>
+                <tr>
+                    <th>Role</th>
+                    <td>{{ staff.stf_role }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <form method="POST" action="{{ url_for('manager_account_remove') }}">
+            <input type="hidden" name="stf_id" value="{{ staff.stf_id }}">
+            <button type="submit" name="action" value="Confirm">Confirm</button>
+            <button type="submit" name="action" value="Cancel" class="cancel-button">Cancel</button>
+        </form>
+    </div>
+
+</body>
+</html>
