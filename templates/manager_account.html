@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager - Manage Account</title>
+    <link rel="stylesheet" href="styles.css"> <!-- If you have a stylesheet -->
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/laptop_filter.html">Find a Laptop</a></li>
+            <li><a href="/manager/homepage">Manager Homepage</a></li>
+            <li><a href="/manager/account">Manage Account</a></li>
+            <li><a href="/manager/reports">Reports</a></li>
+            <li><a href="/manager/feedback">Manage Feedback</a></li>
+            <!-- Add more navigation links as needed -->
+        </ul>
+    </nav>
+    <style>
+        .staff-account-container {
+            display: block;
+            text-decoration: none;
+        }
+        .staff-account {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #000;
+            cursor: pointer;
+            align-items: center; /* Center items vertically */
+            text-decoration: none; /* Remove underline from links */
+            color: inherit; /* Inherit text color from parent */
+            position: relative; /* For absolute positioning of actions */
+        }
+        .staff-details {
+            flex: 1;
+        }
+        .staff-actions {
+            display: flex;
+            gap: 10px; /* Space between action buttons */
+            position: absolute; /* Position buttons absolutely */
+            right: 10px; /* Align buttons to the right */
+            top: 50%; /* Vertically center buttons */
+            transform: translateY(-50%); /* Adjust vertical alignment */
+        }
+        .staff-account:hover {
+            background-color: #f0f0f0;
+        }
+        .staff-actions button {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Manage Accounts</h1>
+    <li><a href="/manager/account/new">Add Account</a></li>
+    <div>
+        {% for staff in staff %}
+        <div class="staff-account" onclick="location.href='/manager/account/detail/{{ staff.stf_id }}'">
+            <div class="staff-details">
+                    <span>ID: {{ staff.stf_id }}</span> |
+                    <span>Name: {{ staff.stf_name }}</span> |
+                    <span>Role: {{ staff.stf_role }}</span>
+            </div>
+            <div class="staff-actions">
+                <form method="POST" action="/manager/account/remove" style="display:inline;">
+                    <input type="hidden" name="stf_id" value="{{ staff.stf_id }}">
+                    <button type="submit">Remove</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
