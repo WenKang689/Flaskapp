@@ -348,18 +348,22 @@
         
         <main>
             <!-- Product Image -->
-            <div class="product-gallery">
-                <div class="main-image-container">
-                    <button id="prev" class="nav-button">&lt;</button>
-                    <img id="main-image" src="{{ image_url }}" alt="{{ product_details.product_name }} picture">
-                    <button id="next" class="nav-button">&gt;</button>
+            {% if product_details.images %}
+                <div class="product-gallery">
+                    <div class="main-image-container">
+                        <button id="prev" class="nav-button">&lt;</button>
+                        <img id="main-image" src="{{ image_url }}" alt="{{ product_details.product_name }} picture">
+                        <button id="next" class="nav-button">&gt;</button>
+                    </div>
+                    <div class="thumbnail-container">
+                        {% for image_url in product_details.images %}
+                        <img class="thumbnail" src="{{ image_url }}" alt="Thumbnail {{ loop.index }}">
+                        {% endfor %}
+                    </div>
                 </div>
-                <div class="thumbnail-container">
-                    {% for image_url in product_details.images %}
-                    <img class="thumbnail" src="{{ image_url }}" alt="Thumbnail {{ loop.index }}">
-                    {% endfor %}
-                </div>
-            </div>
+            {% else %}
+                <p>No images available for this product.</p>
+            {% endif %}
 
             <!-- Product Info -->
             <div class="product-info">
@@ -378,19 +382,56 @@
                     <p>Power Supply: {{ product_details.power_supply }}</p>
                     <p>Battery: {{ product_details.battery }}</p>
                 </div>
-                <div class="controls">
-                    <div class="quantity">
-                        <button onclick="decreaseQuantity()">-</button>
-                        <input type="text" id="quantityInput" value="1">
-                        <button onclick="increaseQuantity()">+</button>
+
+                <form method="POST" action="/laptop/{{ product_details.product_id }}">
+                    <div class="controls">
+                        <label for="quantity">Quantity:</label>
+                        <div class="quantity">
+                            <input type="number" id="quantityInput" name="quantity" min="1" value="1">
+                        </div>
+                    {% if product_details.stock_status == "In Stock" %}
+                            <button id="addToCartButton" type="submit" name="action" value="add_to_cart">Add to Cart</button>
                     </div>
-                    <button id="addToCartButton" type="submit" name="action" value="add_to_cart">Add to Cart</button>
-                </div>
-                <button id="buyNowBtn" type="submit" name="action" value="buy_now">Buy Now</button>
+                        <button id="buyNowBtn" type="submit" name="action" value="buy_now">Buy Now</button>
+                    {% else %}
+                        <p class="out-of-stock">This product is out of stock.</p>
+                    {% endif %}
+                </form>
             </div>
         </main>
 
+        <!-- Product Reviews -->
+    <div style="padding: 30px 60px;">
+        <h2 style="font-family: Inter, sans-serif; margin-bottom: 20px;">Product Reviews</h2>
+        {% if product_details.reviews %}
+            <ul style="list-style-type: none; padding-left: 0;">
+                {% for review in product_details.reviews %}
+                    <li class="review" style="border-bottom: 1px solid #ddd; padding: 20px 0;">
+                        <strong style="font-size: 1.1em;">User: {{ review.username }}</strong><br>
+                        <div style="font-size: 1.2em; margin: 10px 0;">
+                            Rating:
+                            {% for i in range(1, 6) %}
+                                <span class="fa fa-star {% if i <= review.rating %}checked{% endif %}"></span>
+                            {% endfor %}
+                        </div>
+                        <p style="font-family: Inter, sans-serif; margin: 10px 0;">Review: {{ review.review }}</p>
+                        <p style="font-size: 0.9em; color: #555;">Date: {{ review.date }}</p>
+                        {% if 'reply' in review %}
+                            <p style="font-family: Inter, sans-serif; color: #333; background-color: #f9f9f9; padding: 10px; border-left: 3px solid #ccc;">
+                                Laptop Kaw Kaw's Response: {{ review.reply }}
+                            </p>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p style="font-family: Inter, sans-serif; font-size: 1.1em;">No reviews yet.</p>
+        {% endif %}
+    </div>
 
+
+    <!-- Swiper JS -->
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
     <script>
         //IMAGE SWIPING//
         document.addEventListener('DOMContentLoaded', () => {
