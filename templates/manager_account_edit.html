@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Account</title>
+</head>
+<body>
+    <h1>Edit Account</h1>
+    <form method="POST" action="{{ url_for('manager_account_edit', stf_id=admin['stf_id']) }}">
+        <label for="stf_name">Name:</label>
+        <input type="text" id="stf_name" name="stf_name" value="{{ admin['stf_name'] }}" required><br><br>
+
+        <label for="stf_email">Email:</label>
+        <input type="email" id="stf_email" name="stf_email" value="{{ admin['stf_email'] }}" required><br><br>
+
+        <label for="stf_phone">Phone:</label>
+        <input type="text" id="stf_phone" name="stf_phone" value="{{ admin['stf_phone'] }}" required><br><br>
+
+        <label for="stf_dob">Date of Birth:</label>
+        <input type="date" id="stf_dob" name="stf_dob" value="{{ admin['stf_dob'] }}" required><br><br>
+
+        <label for="stf_address">Address:</label>
+        <input type="text" id="stf_address" name="stf_address" value="{{ admin['stf_address'] }}" required><br><br>
+
+        <label for="stf_emer_contact">Emergency Contact:</label>
+        <input type="text" id="stf_emer_contact" name="stf_emer_contact" value="{{ admin['stf_emer_contact'] }}" required><br><br>
+
+        <label for="stf_role">Role:</label>
+        <input type="text" id="stf_role" name="stf_role" value="{{ admin['stf_role'] }}" required><br><br>
+
+        <button type="submit" name="action" value="Done">Done</button>
+        <button type="submit" name="action" value="Cancel">Cancel</button>
+    </form>
+</body>
+</html>
