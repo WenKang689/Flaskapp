@@ -2,40 +2,60 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Home - Laptop Finder</title>
-    <link rel="stylesheet" href="styles.css"> <!-- If you have a stylesheet -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager Homepage</title>
 </head>
 <body>
     <header>
         <h1>Welcome to Laptop Finder</h1>
-        <nav>
-            <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="/laptop_filter.html">Find a Laptop</a></li>
-                <li><a href="/manager/homepage">Manager Homepage</a></li>
-                <li><a href="/manager/account">Manage Account</a></li>
-                <li><a href="/manager/reports">Reports</a></li>
-                <li><a href="/manager/feedback">Manage Feedback</a></li>
-                <!-- Add more navigation links as needed -->
-            </ul>
-        </nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/manager/homepage">Find a Laptop</a></li>
+            <li><a href="/manager/account">Manage Account</a></li>
+            <li><a href="/manager/reports">Reports</a></li>
+            <li><a href="/manager/feedback">Manage Feedback</a></li>
+            <!-- Add more navigation links as needed -->
+        </ul>
     </header>
+
     <main>
         <section>
             <h2>Find the Perfect Laptop for You</h2>
             <p>Not sure which laptop suits your needs? Use our comprehensive laptop filtering tool to find the best match based on your preferences.</p>
-            <a href="/laptop_filter.html" class="button">Start Searching</a>
         </section>
-        <!-- Inserted Search Bar -->
+
         <section>
-            <form action="/laptop/search" method="get"> <!-- Assuming the search route is /search -->
-                <input type="text" name="query" placeholder="Search laptops...">
-                <button type="submit">Search</button>
+            <form action="/manager/homepage" method="post">
+                <input type="text" name="search_laptop" placeholder="Search for laptops..." required>
+                <input type="submit" name="action" value="Search">
             </form>
         </section>
-        <!-- Add more sections or content as needed -->
-        
+
+        <section>
+            <h2>Search Results:</h2>
+            {% if laptops %}
+                <ul>
+                    {% for laptop in laptops %}
+                        <li>
+                            <h3>{{ laptop.product_name }}</h3>
+                            <p><strong>Brand:</strong> {{ laptop.brand }}</p>
+                            <p><strong>Price:</strong> ${{ laptop.price }}</p>
+                            <p><strong>Memory:</strong> {{ laptop.memory }}</p>
+                            <p><strong>Processor:</strong> {{ laptop.processor }}</p>
+                            <p><strong>Graphics:</strong> {{ laptop.graphics }}</p>
+                            <p><strong>Storage:</strong> {{ laptop.storage }}</p>
+                            {% if laptop.pic_url %}
+                                <img src="{{ laptop.pic_url }}" alt="Laptop Image" style="max-width: 300px;">
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No laptops found matching your search criteria.</p>
+            {% endif %}
+        </section>
     </main>
+
     <footer>
         <p>&copy; 2023 Laptop Finder. All rights reserved.</p>
     </footer>
