@@ -2,7 +2,334 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 120px;
+            padding: 20px 0;
+            text-align: left;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-image: url('nav_background.png');
+            background-color: white;
+            background-size: cover;
+            background-position: center;
+            z-index: 2;
+        }
+
+        .navbar {
+            padding-right: 100px;
+            display: flex;
+            font-size: 40px;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .home-button {
+            position: fixed;
+            top: 20px;
+            left: 110px;
+            width: 300px;
+            display: flex;
+        }
+
+        .home-button img {
+            width: 70%;
+            height: auto;
+        }
+
+        .icons {
+            display: flex;
+            gap: 40px;
+            padding-top: 36px;
+        }
+
+        .icons a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .all_laptop_icon {
+            width: 130px;
+        }
+
+        .cart_icon {
+            width: 50px;
+            margin-top: -5px;
+        }
+
+        .profile_icon {
+            width: 41.83px;
+            margin-left: 10px;
+        }
+
+        .setting_icon {
+            width: 65px;
+            margin-top: -12px;
+        }
+
+        .container {
+            display: flex;
+            max-width: 1500px;
+            margin: 0 auto;
+            padding-top: 200px;
+        }
+
+        .sidebar {
+            width: 260px;
+            background-color: white;
+            padding: 20px;
+            margin-right: 20px;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 25px;
+            text-decoration: none;
+            font-size: 25px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+            margin-bottom: 10px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        .sidebar a:hover {
+            background-color: #f0f0f0;
+        }
+
+        .profilebtn {
+            color: white;
+            background-image: url('nav_background.png');
+            background-position: 90%;
+        }
+
+        .logoutbtn {
+            color: #5875DE;
+        }
+
+        .profile-content {
+            flex: 1;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .profile-header img {
+            border-radius: 50%;
+            margin-right: 100px;
+        }
+
+        .profile-header .profile-details {
+            display: flex;
+            flex-direction: column;
+            margin-left: 185px;
+        
+        }
+
+        .profile-header .profile-details div {
+            display: flex;
+            flex-direction: column;
+            margin: 20px 0;
+        }
+
+        .profile-header .profile-details label {
+            width: auto;
+            font-size: 14px;
+            margin-bottom: -10px;
+        }
+
+        .profile-header .profile-details p {
+            flex: none;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            width: 255%;
+        }
+
+        .profile-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 35px;
+        }
+
+        .profile-form label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .profile-form p, input,
+        .profile-form select {
+            width: 70%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .profile-form .full-width {
+            grid-column: span 2;
+        }
+
+        #password-desc{
+            font-size: 13px;
+            color: #666666;
+        }
+
+        .profile-form .password-container {
+            display: flex;
+            align-items: center;
+            width: 46.8%;
+        }
+
+        .profile-form .password-container input {
+            flex: 1;
+        }
+
+        .profile-form .password-container span {
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .edit-button {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            padding: 10px;
+            background-color: #9747FF;
+            color: white;
+            text-align: center;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+        }
+
+        .edit-button:hover {
+            background-color: #6a0dad;
+        }
+
+        #current-profile-pic {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            margin-top: 20px;
+            margin-left: 100px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation bar -->
+    <header>
+        <div class="navbar">
+            <div>
+                <a href="homepage.html" class="home-button">
+                    <img src="logobtn.png">
+                </a>
+            </div>
+
+            <div class="icons">
+                <a href="laptop.html" class="icon-link">
+                    <img src="header_all_laptop.png" alt="Icon" class="all_laptop_icon">
+                </a>
+                <a href="cart.html" class="icon-link">
+                    <img src="cart.png" alt="Icon" class="cart_icon">
+                </a>
+                <a href="setting_profile.html" class="icon-link">
+                    <img src="profile.png" alt="Icon" class="profile_icon">
+                </a>
+                <a href="setting.html" class="icon-link">
+                    <img src="setting.png" alt="Icon" class="setting_icon">
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="sidebar">
+                <a href="setting_profile.html" class="profilebtn">Profile</a>
+                <a href="#">Payment Details</a>
+                <a href="#">History</a>
+                <a href="#" class="logoutbtn">Log Out</a>
+            </div>
+            <div class="profile-content">
+                <div class="profile-header">
+                    <div id="current-profile-container">
+                        <img id="current-profile-pic" src="{{ profile.profile_pic }}?v={{ timestamp }}" alt="Profile Picture">
+                    </div>
+                    <div class="profile-details">
+                        <div>
+                            <label for="profileName">Profile Name</label>
+                            <p id="profileName">{{ profile.name }}</p>
+                        </div>
+                        <div>
+                            <label for="username">Username</label>
+                            <p id="username">{{ profile.username }}</p>
+                        </div>
+                    </div>
+                </div>
+                <form method="post" action="/user/setting/profile/edit" enctype="multipart/form-data">
+                    <input type="hidden" name="action" value="update">
+                    <div class="profile-form">
+                        <div>
+                            <label for="dob">Date of Birth</label>
+                            <p id="dob">{{ profile.dob }}</p>
+                        </div>
+                        <div>
+                            <label for="phone">Phone Number</label>
+                            <p id="phone">{{ profile.phone }}</p>
+                        </div>
+                        <div>
+                            <label for="email">Email</label>
+                            <p id="email">{{ profile.email }}</p>
+                        </div>
+                        <div>
+                            <label for="occupation">Occupation</label>
+                            <p id="occupation">{{ profile.occupation }}</p>
+                        </div>
+                        <div class="full-width">
+                            <label for="password">Password</label>
+                            <div class="password-container">
+                                <input type="password" id="password" value="{{ profile.password }}" readonly>
+                                <span id="togglePassword" onclick="togglePasswordVisibility()">Show Password</span>
+                            </div>
+                            <span id="password-desc">Use 8 or more characters with a mix of letters, numbers & symbols</span>
+                        </div>
+                        <div class="full-width">
+                            <label for="address">Address</label>
+                            <p id="address">{{ profile.address }}</p>
+                        </div>
+                    </div>
+
+                    <a href="{{ url_for('edit_profile') }}" class="edit-button">Edit Profile</a>
+                    
+                </form>
+            </div>
+        </div>
+    </main>
+
+
     <script>
         function togglePasswordVisibility() {
             var passwordField = document.getElementById("password");
@@ -16,25 +343,5 @@
             }
         }
     </script>
-</head>
-<body>
-    <h1>Profile</h1>
-    <p>
-        <!-- Display Profile Picture -->
-        <img src="{{ profile.profile_pic }}?v={{ timestamp }}" alt="Profile Picture" style="width:150px;height:150px;">
-    </p>
-    <p>Name: {{ profile.name }}</p>
-    <p>Username: {{ profile.username }}</p>
-    <p>Date of Birth: {{ profile.dob }}</p>
-    <p>Email: {{ profile.email }}</p>
-    <p>Password: 
-        <input type="password" id="password" value="{{ profile.password }}" readonly>
-        <button type="button" id="togglePassword" onclick="togglePasswordVisibility()">Show Password</button>
-    </p>
-    <p>Phone: {{ profile.phone }}</p>
-    <p>Occupation: {{ profile.occupation }}</p>
-    <p>Address: {{ profile.address }}</p>
-    
-    <a href="{{ url_for('edit_profile') }}">Edit Profile</a>
 </body>
 </html>

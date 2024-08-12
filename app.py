@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session, flash, redirect, url_for
+from flask import Flask, render_template, request, session, flash, redirect, url_for, make_response
 from flask_mysqldb import MySQL
 import yaml
 import smtplib

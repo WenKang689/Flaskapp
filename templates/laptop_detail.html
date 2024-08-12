@@ -2,123 +2,448 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{{ product_details.product_name }}</title>
-    <!-- Swiper CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
-    <!-- Font Awesome CSS for star icons -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        .swiper-container {
-            width: 100%;
-            height: 400px;
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
         }
+
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 120px;
+            padding: 20px 0;
+            text-align: left;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-image: url('nav_background.png');
+            background-color: white;
+            background-size: cover;
+            background-position: center;
+            z-index: 2;
+        }
+
+        .navbar {
+            padding-right: 100px;
+            display: flex;
+            font-size: 40px;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .home-button {
+            position: fixed;
+            top: 20px;
+            left: 110px;
+            width: 300px;
+            display: flex;
+        }
+
+        .home-button img {
+            width: 70%;
+            height: auto;
+        }
+
+        .icons {
+            display: flex;
+            gap: 40px;
+            padding-top: 36px;
+        }
+
+        .icons a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .all_laptop_icon {
+            width: 130px;
+        }
+
+        .cart_icon {
+            width: 50px;
+            margin-top: -5px;
+        }
+
+        .profile_icon {
+            width: 41.83px;
+            margin-left: 10px;
+        }
+
+        .setting_icon {
+            width: 65px;
+            margin-top: -12px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: white;
+            padding-top: 190px; /* Adjusted for header space */
+        }
+
+        .breadcrumb {
+            padding: 10px 30px;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .breadcrumb a {
+            text-decoration: none;
+            color: #3A3845;
+        }
+
+        main {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 80vh;
+            margin-left: 70px;
+        }
+
+        .product-gallery {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .main-image-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        #main-image {
+            width: 100%;
+            height: auto;
+        }
+
+        .nav-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            z-index: 1;
+        }
+
+        #prev {
+            left: 0;
+        }
+
+        #next {
+            right: 0;
+        }
+
+        .thumbnail-container {
+            margin-top: 10px;
+        }
+
+        .thumbnail {
+            width: 100px;
+            height: auto;
+            margin: 5px;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .thumbnail:hover,
+        .thumbnail.active {
+            border-color: #000;
+        }
+
+        .product-info {
+            flex: 1;
+            padding-left: 80px;
+        }
+
+        .product-info h1 {
+            font-size: 2em;
+            font-family: Inter;
+            margin-bottom: 10px;
+        }
+
+        .product-info .price {
+            font-size: 1.5em;
+            font-family: Inter;
+            margin-bottom: 10px;
+        }
+
+        .product-info .specs {
+            margin: 40px 0;
+        }
+
+        .product-info .specs p {
+            margin: 15px 0;
+            font-family: Inter;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+        }
+            
+        .product-info .quantity {
+            display: flex;
+            align-items: stretch;
+            border: 2px solid #ccc;
+            margin: 20px 0;
+        }
+
+        .quantity button, .quantity input {
+            display: block;
+            border: none;
+            background: none;
+            height: 30px;
+            line-height: 30px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .quantity input {
+            width: auto;
+            text-align: center;
+        }
+
+        #addToCartButton {
+            background-image: url('button_background.png');
+            color: white;
+            border: none;
+            padding: 10px 60px;
+            margin-left: 15px;
+            text-align: center;
+            display: inline-block;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #buyNowBtn {
+            border: none;
+            padding: 10px 184px;
+            text-align: center;
+            display: inline-block;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            border: 2px solid #ccc;
+            background-color: white;
+        }
+
+        button:hover {
+            background-color: #807F86;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0, 0, 0);
+            background-color: rgba(0, 0, 0, 0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        #confirmButton {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        #confirmButton:hover {
+            background-color: #45a049;
+        }
+
         .review {
             border-bottom: 1px solid #ccc;
             padding: 10px 0;
         }
+
         .rating {
             color: gold;
         }
+
         .fa-star {
             color: #ccc;
         }
+
         .fa-star.checked {
             color: #ffcc00;
         }
     </style>
 </head>
+
 <body>
-    <h1>{{ product_details.product_name }}</h1>
-    {% if product_details.images %}
-        <!-- Swiper -->
-        <div class="swiper-container">
-            <div class="swiper-wrapper">
-                {% for image_url in product_details.images %}
-                    <div class="swiper-slide">
-                        <img src="{{ image_url }}" alt="{{ product_details.product_name }} picture" style="width: 100%; height: 100%; object-fit: contain;">
-                    </div>
-                {% endfor %}
+    <!-- Navigation bar -->
+    <header>
+        <div class="navbar">
+            <div>
+                <a href="homepage.html" class="home-button">
+                    <img src="logobtn.png">
+                </a>
             </div>
-            <!-- Add Pagination -->
-            <div class="swiper-pagination"></div>
-            <!-- Add Navigation -->
-            <div class="swiper-button-next"></div>
-            <div class="swiper-button-prev"></div>
+
+            <div class="icons">
+                <a href="laptop.html" class="icon-link">
+                    <img src="header_all_laptop.png" alt="Icon" class="all_laptop_icon">
+                </a>
+                <a href="cart.html" class="icon-link">
+                    <img src="cart.png" alt="Icon" class="cart_icon">
+                </a>
+                <a href="setting_profile.html" class="icon-link">
+                    <img src="profile.png" alt="Icon" class="profile_icon">
+                </a>
+                <a href="setting.html" class="icon-link">
+                    <img src="setting.png" alt="Icon" class="setting_icon">
+                </a>
+            </div>
         </div>
-    {% else %}
-        <p>No images available for this product.</p>
-    {% endif %}
-    <!-- Display other product details -->
-    <p>Brand: {{ product_details.brand }}</p>
-    <p>Processor: {{ product_details.processor }}</p>
-    <p>Graphics: {{ product_details.graphics }}</p>
-    <p>Dimensions: {{ product_details.dimensions }}</p>
-    <p>Weight: {{ product_details.weight }}</p>
-    <p>OS: {{ product_details.os }}</p>
-    <p>Memory: {{ product_details.memory }}</p>
-    <p>Storage: {{ product_details.storage }}</p>
-    <p>Power Supply: {{ product_details.power_supply }}</p>
-    <p>Battery: {{ product_details.battery }}</p>
-    <p>Price: {{ product_details.price }}</p>
-    <p><span class="{{ 'out-of-stock' if product_details.stock_status == 'Out of Stock' else '' }}">{{ product_details.stock_status }}</span></p>
+    </header>
 
-    <form method="POST" action="/laptop/{{ product_details.product_id }}">
-        <label for="quantity">Quantity:</label>
-        <input type="number" id="quantity" name="quantity" min="1" value="1">
-        {% if product_details.stock_status == "In Stock" %}
-            <button type="submit" name="action" value="add_to_cart">Add to Cart</button>
-            <button type="submit" name="action" value="buy_now">Buy Now</button>
-        {% else %}
-            <p class="out-of-stock">This product is out of stock.</p>
-        {% endif %}
-    </form>
+    <!-- Main Part -->
+    <div class="container">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="homepage.html">Home</a> / <a href="cart.html">Shopping Cart</a> / <a>Product Page</a>
+        </div>
+        
+        <main>
+            <!-- Product Image -->
+            <div class="product-gallery">
+                <div class="main-image-container">
+                    <button id="prev" class="nav-button">&lt;</button>
+                    <img id="main-image" src="{{ image_url }}" alt="{{ product_details.product_name }} picture">
+                    <button id="next" class="nav-button">&gt;</button>
+                </div>
+                <div class="thumbnail-container">
+                    {% for image_url in product_details.images %}
+                    <img class="thumbnail" src="{{ image_url }}" alt="Thumbnail {{ loop.index }}">
+                    {% endfor %}
+                </div>
+            </div>
 
-    <!-- Product Reviews -->
-    <div>
-        <h2>Product Reviews</h2>
-        {% if product_details.reviews %}
-            <ul>
-                {% for review in product_details.reviews %}
-                    <li class="review">
-                        <strong>User: {{ review.username }}</strong><br>
-                        Rating: 
-                        {% for i in range(1, 6) %}
-                            <span class="fa fa-star {% if i <= review.rating %} checked {% endif %}"></span>
-                        {% endfor %}
-                        <br>
-                        Review: {{ review.review }}
-                        <br>
-                        Date: {{ review.date }}
-                        <br>
-                        {% if 'reply' in review %}
-                            <p>Laptop Kaw Kaw's Response: {{ review.reply }}</p>
-                        {% endif %}
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>No reviews yet.</p>
-        {% endif %}
-    </div>
+            <!-- Product Info -->
+            <div class="product-info">
+                <h1>{{ product_details.product_name }}</h1>
+                <p><span class="{{ 'out-of-stock' if product_details.stock_status == 'Out of Stock' else '' }}">{{ product_details.stock_status }}</span></p>
+                <p class="price">{{ product_details.price }}</p>
+                <div class="specs">
+                    <p>Brand: {{ product_details.brand }}</p>
+                    <p>Processor: {{ product_details.processor }}</p>
+                    <p>Graphics: {{ product_details.graphics }}</p>
+                    <p>Dimensions: {{ product_details.dimensions }}</p>
+                    <p>Weight: {{ product_details.weight }}</p>
+                    <p>OS: {{ product_details.os }}</p>
+                    <p>Memory: {{ product_details.memory }}</p>
+                    <p>Storage: {{ product_details.storage }}</p>
+                    <p>Power Supply: {{ product_details.power_supply }}</p>
+                    <p>Battery: {{ product_details.battery }}</p>
+                </div>
+                <div class="controls">
+                    <div class="quantity">
+                        <button onclick="decreaseQuantity()">-</button>
+                        <input type="text" id="quantityInput" value="1">
+                        <button onclick="increaseQuantity()">+</button>
+                    </div>
+                    <button id="addToCartButton" type="submit" name="action" value="add_to_cart">Add to Cart</button>
+                </div>
+                <button id="buyNowBtn" type="submit" name="action" value="buy_now">Buy Now</button>
+            </div>
+        </main>
 
-    <!-- Swiper JS -->
-    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
 
-    <!-- Swiper JS initialization -->
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            var swiper = new Swiper('.swiper-container', {
-                loop: true,
-                pagination: {
-                    el: '.swiper-pagination',
-                    clickable: true,
-                },
-                navigation: {
-                    nextEl: '.swiper-button-next',
-                    prevEl: '.swiper-button-prev',
-                },
+        //IMAGE SWIPING//
+        document.addEventListener('DOMContentLoaded', () => {
+            const mainImage = document.getElementById('main-image');
+            const thumbnails = document.querySelectorAll('.thumbnail');
+            const prevButton = document.getElementById('prev');
+            const nextButton = document.getElementById('next');
+
+            let currentIndex = 0;
+            const images = Array.from(thumbnails).map(thumbnail => thumbnail.src);
+
+            function updateMainImage(index) {
+                mainImage.src = images[index];
+                thumbnails.forEach(thumbnail => thumbnail.classList.remove('active'));
+                thumbnails[index].classList.add('active');
+            }
+
+            prevButton.addEventListener('click', () => {
+                currentIndex = (currentIndex > 0) ? currentIndex - 1 : images.length - 1;
+                updateMainImage(currentIndex);
             });
+
+            nextButton.addEventListener('click', () => {
+                currentIndex = (currentIndex < images.length - 1) ? currentIndex + 1 : 0;
+                updateMainImage(currentIndex);
+            });
+
+            thumbnails.forEach((thumbnail, index) => {
+                thumbnail.addEventListener('click', () => {
+                    currentIndex = index;
+                    updateMainImage(currentIndex);
+                });
+            });
+
+            // Initialize the first image
+            updateMainImage(currentIndex);
         });
+
+        //Quantity Button//
+        let quantity = 1;
+
+        function increaseQuantity() {
+            quantity++;
+            document.getElementById('quantityInput').value = quantity;
+        }
+
+        function decreaseQuantity() {
+            if (quantity > 1) {
+                quantity--;
+                document.getElementById('quantityInput').value = quantity;
+            }
+        }
     </script>
+
 </body>
 </html>
