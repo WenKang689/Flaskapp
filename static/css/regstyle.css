@@ -1,0 +1,126 @@
+body {
+    font-family: 'Nohy Medium', sans-serif;
+    background-image: url('../images/background.png');
+    background-size: cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.container {
+    background: rgba(236, 234, 234, 0.2);
+    border-radius: 10px;
+    padding: 10px;
+    width: 750px;
+    border: 0.5px solid white;
+}
+
+.form-container {
+    display: flex; 
+    align-items: center; 
+}
+
+.logo {
+    margin-right: 20px; 
+    width: 300px; 
+
+}
+
+.heading-container {
+    flex-grow: 1; 
+    text-align: right; 
+    padding-right:40px;
+    padding-bottom: 40px;
+    padding-top: 40px;
+    color: #fff5d0;
+}
+
+h1 {
+    margin: 0;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    width: 100%; 
+    gap: 5px;
+}
+
+label {
+    margin-bottom: 5px;
+}
+
+
+input {
+    width: 100%; 
+    max-width: 300px; 
+    margin-bottom: 5px;
+    padding: 10px;
+    background: rgba(236, 234, 234, 0.2);
+    border-radius: 5px;
+    box-sizing: border-box; 
+    border: 1px solid white;
+}
+
+.create-button {
+    background-color: rgb(185, 105, 231);
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.create-button:hover {
+    background-color: rgb(185, 105, 231);
+}
+
+
+table {
+    width: 100%;
+    border-collapse: separate;
+    margin-bottom: 15px;
+}
+
+td {
+    padding: 10px;
+    vertical-align: top;
+    margin:0;
+}
+
+label {
+    display: block;
+}
+
+input {
+    display: block; 
+    margin-bottom: 5px; 
+}
+
+small {
+    display: block; 
+    color: rgb(0, 0, 0); 
+}
+
+.flash-message { 
+    border: 1px solid #ccc; 
+    padding: 10px; 
+    margin: 10px 0;
+}
+
+.flash-success { 
+    background-color: #dff0d8; 
+}
+
+.flash-danger { 
+    background-color: #f2dede; 
+}
+
+.close-btn { 
+    position: absolute; 
+    top: 5px; 
+    right: 10px; 
+    cursor: pointer; 
+}

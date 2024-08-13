@@ -4,6 +4,206 @@
     <meta charset="UTF-8">
     <title>Checkout</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: white;
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 120px;
+            padding: 20px 0;
+            text-align: left;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-image: url('nav_background.png');
+            background-color: white;
+            background-size: cover;
+            background-position: center;
+            padding: 15px 0;
+            z-index: 2;
+        }
+
+        .navbar {
+            padding-right: 100px;
+            display: flex;
+            font-size: 40px;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .home-button {
+            position: fixed;
+            top: 20px;
+            left: 110px;
+            width: 300px;
+            display: flex;
+        }
+
+        .home-button img {
+            width: 70%;
+            height: auto;
+        }
+
+        .icons {
+            display: flex;
+            gap: 40px;
+            padding-top: 36px;
+        }
+
+        .icons a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .all_laptop_icon {
+            width: 130px;
+        }
+
+        .cart_icon {
+            width: 50px;
+            margin-top: -5px;
+        }
+
+        .profile_icon {
+            width: 41.83px;
+            margin-left: 10px;
+        }
+
+        .setting_icon {
+            width: 65px;
+            margin-top: -12px;
+        }
+
+        .container {
+            max-width: 1350px;
+            margin: auto;
+            margin-top: 150px;
+            padding: 20px;
+            background-color: #ffffff;
+        }
+
+        .breadcrumb {
+            padding: 10px 0px;
+            font-size: 14px;
+        }
+
+        .breadcrumb a {
+            text-decoration: none;
+            color: #3A3845;
+        }
+
+        h1, h2, h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 25px;
+        }
+
+        h2 {
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        h3 {
+            font-size: 20px;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            color: #007bff; /* Match the color with the links */
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        ul li {
+            display: flex;
+            align-items: flex-start;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        ul li img {
+            margin-right: 15px;
+            border: 1px solid #ddd;
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        ul li div { 
+            display: flex;
+            flex-direction: column;
+        }
+
+        ul li p {
+            margin: 10px 0;
+            color: #555;
+            font-weight: bold;
+        }
+
+        ul li p:first-child {
+            font-weight: bold;
+            color: #333;
+        }
+
+        ul li p:last-child {
+            margin-top: 20px;
+            font-weight: bold;
+            color: #38369A;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        select {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            color: #333;
+            box-sizing: border-box;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        select:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            padding: 15px;
+            background-color: #9747FF;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #6a0dad;
+        }
+
         .error {
             border-color: red;
         }
@@ -17,84 +217,118 @@
     </style>
 </head>
 <body>
-    <h1>Checkout</h1>
-    <form method="POST" action="{{ url_for('cart_checkout') }}" id="checkoutForm">
-        <h2>Selected Items</h2>
-        <ul>
-            {% for item in selected_items %}
-                <li>
-                    <img src="{{ item[4] }}" alt="{{ item[1] }}" style="width: 100px;">
-                    <p>Product Name: {{ item[1] }}</p>
-                    <p>Price: RM {{ item[2] }}</p>
-                    <p>Quantity: {{ item[3] }}</p>
-                    <p>Total: RM {{ (item[2] * item[3]) }}</p>
-                </li>
-            {% endfor %}
-        </ul>
+    <!-- Navigation bar -->
+    <header>
+        <div class="navbar">
+            <div>
+                <a href="homepage.html" class="home-button">
+                    <img src="logobtn.png">
+                </a>
+            </div>
 
-        <!-- Display total price -->
-        <h3>Total Price: RM {{ checkout_total_price }}</h3> <!-- Updated variable name -->
-        <input type="hidden" name="pur_amount" value="{{ checkout_total_price }}"> <!-- Updated variable name -->
-
-        <label for="dest_add">Address:</label>
-        <input type="text" id="dest_add" name="dest_add" value="{{ form_data.dest_add if form_data else '' }}" placeholder="Address">
-        <span class="error-message hidden" id="destAddError">Address is required.</span>
-        <br>
-
-        <label for="receiver_name">Receiver Name:</label>
-        <input type="text" id="receiver_name" name="receiver_name" value="{{ form_data.receiver_name if form_data else '' }}" placeholder="Receiver Name">
-        <span class="error-message hidden" id="receiverNameError">Receiver name is required.</span>
-        <br>
-
-        <label for="receiver_phone">Receiver Phone:</label>
-        <input type="text" id="receiver_phone" name="receiver_phone" value="{{ form_data.receiver_phone if form_data else '' }}" placeholder="Phone Number">
-        <span class="error-message hidden" id="receiverPhoneError">Phone number is required.</span>
-        <br>
-
-        <h2>Payment Details</h2>
-        {% if payment_methods %}
-            <label for="payment_method">Select Payment Method:</label>
-            <select id="payment_method" name="payment_method" required onchange="toggleNewPayment(this)">
-                {% for method in payment_methods %}
-                    <option value="{{ method[0] }}">
-                        {{ method[1][-4:] }} - {{ method[3] }} (Expires: {{ method[2] }})
-                    </option>
-                {% endfor %}
-                <option value="new">Add New Payment Method</option>
-            </select>
-        {% else %}
-            <input type="hidden" name="payment_method" value="new">
-        {% endif %}
-        
-        <div id="new_payment" style="display: {% if payment_methods %}none{% else %}block{% endif %}">
-            <label for="pay_email">Email:</label>
-            <input type="email" id="pay_email" name="pay_email" value="{{ form_data.pay_email if form_data else '' }}" placeholder="example@example.com">
-            <span class="error-message hidden" id="emailError">Invalid email address.</span>
-            <br>
-            
-            <label for="name_on_card">Name on Card:</label>
-            <input type="text" id="name_on_card" name="name_on_card" value="{{ form_data.name_on_card if form_data else '' }}" placeholder="Name on card">
-            <br>
-            
-            <label for="card_no">Card Number:</label>
-            <input type="text" id="card_no" name="card_no" value="{{ form_data.card_no if form_data else '' }}" placeholder="xxxx xxxx xxxx xxxx" maxlength="19">
-            <span class="error-message hidden" id="cardNoError">Card number must be 16 digits.</span>
-            <br>
-            
-            <label for="cvv">CVV:</label>
-            <input type="text" id="cvv" name="cvv" value="{{ form_data.cvv if form_data else '' }}" placeholder="3-digit CVV" maxlength="3">
-            <span class="error-message hidden" id="cvvError">CVV must be 3 digits.</span>
-            <br>
-            
-            <label for="expiry_date">Expiry Date (MM/YY):</label>
-            <input type="text" id="expiry_date" name="expiry_date" value="{{ form_data.expiry_date if form_data else '' }}" placeholder="MM/YY">
-            <span class="error-message hidden" id="expiryDateError">Expiry date must be in MM/YY format and not in the past.</span>
-            <br>
-                
+            <div class="icons">
+                <a href="laptop.html" class="icon-link">
+                    <img src="header_all_laptop.png" alt="Icon" class="all_laptop_icon">
+                </a>
+                <a href="cart.html" class="icon-link">
+                    <img src="cart.png" alt="Icon" class="cart_icon">
+                </a>
+                <a href="setting_profile.html" class="icon-link">
+                    <img src="profile.png" alt="Icon" class="profile_icon">
+                </a>
+                <a href="setting.html" class="icon-link">
+                    <img src="setting.png" alt="Icon" class="setting_icon">
+                </a>
+            </div>
         </div>
+    </header>
 
-        <button type="submit">Submit Order</button>
-    </form>
+
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="homepage.html">Home</a> / <a href="cart.html">Shopping Cart</a> / <a>Checkout</a>
+        </div>
+        <h1>Checkout</h1>
+        <form method="POST" action="{{ url_for('cart_checkout') }}" id="checkoutForm">
+            <h2>Selected Items</h2>
+            <ul>
+                {% for item in selected_items %}
+                    <li>
+                        <div>
+                            <img src="{{ item[4] }}" alt="{{ item[1] }}" style="width: 200px;">
+                            <p>Product Name: {{ item[1] }}</p>
+                            <p>Price: RM {{ item[2] }}</p>
+                            <p>Quantity: {{ item[3] }}</p>
+                            <p>Total: RM {{ (item[2] * item[3]) }}</p>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+
+            <!-- Display total price -->
+            <h3>Total Price: RM {{ checkout_total_price }}</h3> <!-- Updated variable name -->
+            <input type="hidden" name="pur_amount" value="{{ checkout_total_price }}"> <!-- Updated variable name -->
+
+            <label for="dest_add">Address:</label>
+            <input type="text" id="dest_add" name="dest_add" value="{{ form_data.dest_add if form_data else '' }}" placeholder="Address">
+            <span class="error-message hidden" id="destAddError">Address is required.</span>
+            <br>
+
+            <label for="receiver_name">Receiver Name:</label>
+            <input type="text" id="receiver_name" name="receiver_name" value="{{ form_data.receiver_name if form_data else '' }}" placeholder="Receiver Name">
+            <span class="error-message hidden" id="receiverNameError">Receiver name is required.</span>
+            <br>
+
+            <label for="receiver_phone">Receiver Phone:</label>
+            <input type="text" id="receiver_phone" name="receiver_phone" value="{{ form_data.receiver_phone if form_data else '' }}" placeholder="Phone Number">
+            <span class="error-message hidden" id="receiverPhoneError">Phone number is required.</span>
+            <br>
+
+            <h2>Payment Details</h2>
+            {% if payment_methods %}
+                <label for="payment_method">Select Payment Method:</label>
+                <select id="payment_method" name="payment_method" required onchange="toggleNewPayment(this)">
+                    {% for method in payment_methods %}
+                        <option value="{{ method[0] }}">
+                            {{ method[1][-4:] }} - {{ method[3] }} (Expires: {{ method[2] }})
+                        </option>
+                    {% endfor %}
+                    <option value="new">Add New Payment Method</option>
+                </select>
+            {% else %}
+                <input type="hidden" name="payment_method" value="new">
+            {% endif %}
+            
+            <div id="new_payment" style="display: {% if payment_methods %}none{% else %}block{% endif %}">
+                <label for="pay_email">Email:</label>
+                <input type="email" id="pay_email" name="pay_email" value="{{ form_data.pay_email if form_data else '' }}" placeholder="example@example.com">
+                <span class="error-message hidden" id="emailError">Invalid email address.</span>
+                <br>
+                
+                <label for="name_on_card">Name on Card:</label>
+                <input type="text" id="name_on_card" name="name_on_card" value="{{ form_data.name_on_card if form_data else '' }}" placeholder="Name on card">
+                <br>
+                
+                <label for="card_no">Card Number:</label>
+                <input type="text" id="card_no" name="card_no" value="{{ form_data.card_no if form_data else '' }}" placeholder="xxxx xxxx xxxx xxxx" maxlength="19">
+                <span class="error-message hidden" id="cardNoError">Card number must be 16 digits.</span>
+                <br>
+                
+                <label for="cvv">CVV:</label>
+                <input type="text" id="cvv" name="cvv" value="{{ form_data.cvv if form_data else '' }}" placeholder="3-digit CVV" maxlength="3">
+                <span class="error-message hidden" id="cvvError">CVV must be 3 digits.</span>
+                <br>
+                
+                <label for="expiry_date">Expiry Date (MM/YY):</label>
+                <input type="text" id="expiry_date" name="expiry_date" value="{{ form_data.expiry_date if form_data else '' }}" placeholder="MM/YY">
+                <span class="error-message hidden" id="expiryDateError">Expiry date must be in MM/YY format and not in the past.</span>
+                <br>
+                    
+            </div>
+
+            <button type="submit">Submit Order</button>
+        </form>
+    </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>

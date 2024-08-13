@@ -1,0 +1,95 @@
+body {
+    background-image: url('../images/background.png');
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: 'Noyh Medium', sans-serif;
+    background-size: cover; 
+    background-position: center; 
+    display: flex;
+
+}
+
+.card {
+    background-color: #ffffff; 
+    border-radius: 10px; 
+    width: 100%; 
+    max-width: 400px; 
+    position: flex;
+}
+
+.card-header {
+    background-color: #007BFF; 
+    color: white; 
+    padding: 15px; 
+    border-top-left-radius: 10px; 
+    border-top-right-radius: 10px; 
+}
+
+
+.form-group{
+    width: 90%;
+    padding: 10px;
+    margin: 0px ;
+    background: rgba(0, 0, 0, 0);
+    border-radius: 5px;
+    font-size: 16px;
+    border: 1px solid white;
+}
+
+
+.form-control {
+    width: 100%; 
+    padding: 10px; 
+    border: 1px solid #ccc; 
+    border-radius: 5px; 
+    box-sizing: border-box; 
+}
+
+.btn {
+    background-color: #007BFF; 
+    color: white; 
+    padding: 10px; 
+    border: none; 
+    border-radius: 5px; 
+    cursor: pointer; 
+    width: 100%; 
+    transition: background-color 0.3s; 
+}
+
+.btn:hover {
+    background-color: #0056b3; 
+}
+
+.flash-message { 
+    color: white; 
+    background-color: rgba(0, 0, 0, 0.5);
+    margin-top: 20px; 
+    padding: 10px; 
+    display: block; 
+    width: 17%; 
+    border-radius: 5px; 
+    position: relative; 
+}
+
+.flash-success {
+    background-color: #dff0d8; 
+    color: white; 
+}
+
+.flash-danger { 
+    background-color: #f2dede; 
+    color: white; 
+}
+
+.close-btn { 
+    position: absolute; 
+    top: 5px; 
+    right: 10px;
+    cursor: pointer; 
+    font-weight: bold; 
+    color: #ffffff; 
+    font-size: 1.2em;
+}
+
+

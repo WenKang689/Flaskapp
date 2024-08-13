@@ -1,0 +1,160 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Noyh Medium', sans-serif;
+    background-image: url('../images/background.png');
+    background-size: cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.login-container {
+    background: transparent; 
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border-color: #fdfdfd;
+    padding: 20px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2); 
+    width: 400px;
+    text-align: center;
+    border: 1px solid rgb(255, 255, 255);
+    
+}
+
+.tabs {
+    display: flex;
+    width: 100%;
+}
+
+.tab {
+    background: transparent;
+    color: #6200ea; 
+    padding: 20px; 
+    cursor: pointer; 
+    flex: 1; 
+    text-align: center;
+    transition: background 0.3s, transform 0.2s, border-color 0.3s; 
+    font-size:24px;
+    border: 0.5px solid white;
+
+}
+
+.tab.active {
+    background: transparent; 
+    background-color: rgb(255, 255, 255, 0.7);
+    color: #000000; 
+    font-size: 24px;
+
+}
+
+.logo {
+    position: absolute; 
+    top: 65px; 
+    left: 575px; 
+    width: 300.44px; 
+    height: 169px; 
+}
+
+
+
+h1 {
+    font-size: 24px;
+    margin: 10px 0;
+    color: #fdfdfd;
+    text-align: left;
+}
+
+.greetings {
+    color: #fdfdfd;
+    text-align: left;
+    font-weight: 100;
+}
+
+h2 {
+    font-size: 18px;
+    margin: 10px 0;
+    color: #fdfdfd;
+    text-align: left;
+    font-weight: 50;
+}
+
+h3 {
+    font-size: 18px;
+    margin: 10px 0;
+    color: #fdfdfd;
+    text-align: left;
+    font-weight: 50;
+}
+
+p {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+input {
+    width: 90%;
+    padding: 12px;
+    margin: 5px 0;
+    background: rgba(0, 0, 0, 0);
+    border-radius: 5px;
+    font-size: 16px;
+    border: 1px solid white;
+}
+
+input:focus {
+    border-color: #6200ea; 
+    outline: none;
+}
+
+.continue-btn {
+    background: #6200ea;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    font-size: 16px;
+    margin-top: 10px;
+}
+
+.signup {
+    margin-top: 15px;
+    font-size: 14px;
+    color:black;
+}
+
+.signup a {
+    color: #eb0a0a;
+    text-decoration: none;
+}
+
+.flash-message { 
+    border: 1px solid #ccc; padding: 10px; margin: 10px 0; 
+}
+
+.flash-success { 
+    background-color: #dff0d8; 
+}
+
+.flash-danger { 
+    background-color: #f2dede; 
+}
+
+.close-btn { 
+    position: absolute; top: 5px; right: 10px; cursor: pointer; 
+}
+
+.register{
+    color:white;
+
+}
+
+.confirmation {
+    color:white;
+    text-align: left;
+
+}

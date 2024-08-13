@@ -2,37 +2,347 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Cart</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart</title>
     <style>
-        .remove-button {
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: white;
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 120px;
+            padding: 20px 0;
+            text-align: left;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-image: url('nav_background.png');
+            background-color: white;
+            background-size: cover;
+            background-position: center;
+            padding: 15px 0;
+            z-index: 2;
+        }
+
+        .navbar {
+            padding-right: 100px;
+            display: flex;
+            font-size: 40px;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .home-button {
+            position: fixed;
+            top: 20px;
+            left: 110px;
+            width: 300px;
+            display: flex;
+        }
+
+        .home-button img {
+            width: 70%;
+            height: auto;
+        }
+
+        .icons {
+            display: flex;
+            gap: 40px;
+            padding-top: 36px;
+        }
+
+        .icons a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .all_laptop_icon {
+            width: 130px;
+        }
+
+        .cart_icon {
+            width: 50px;
+            margin-top: -5px;
+        }
+
+        .profile_icon {
+            width: 41.83px;
+            margin-left: 10px;
+        }
+
+        .setting_icon {
+            width: 65px;
+            margin-top: -12px;
+        }
+
+        .container {
+            max-width: 1350px;
+            margin: auto;
+            margin-top: 150px;
+            padding: 20px;
+            background-color: #ffffff;
+        }
+        
+        .breadcrumb {
+            padding: 10px 0px;
+            font-size: 14px;
+        }
+
+        .breadcrumb a {
+            text-decoration: none;
+            color: #3A3845;
+        }
+
+        .cart-summary {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .empty-cart-message {
+            color: gray;
+        }
+
+        table {
+            width: 100%;
+            border-spacing: 0;
+            border-collapse: collapse;
+        }
+
+        .cart-header {
+            background-image: url("button_background.png");
+            background-size: cover;
+            background-position: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .cart-header th {
+            list-style-type: none;
+            padding: 10px;
+
+        }
+
+        .cart-item {
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eaeaea;
+        }
+
+        .cart-item .select-all {
+            padding-left: 14px;
+        }
+
+        .cart-item .product-name {
+            text-decoration: none;
+            color: black;
+            padding-left: 20px;
+        }
+
+        .cart-item .product-name:hover {
+            text-decoration: underline;
+        }
+
+        .cart-item .price {
+            width: 100px;
+            text-align: center;
+        }
+
+        .cart-item .quantity {
+            align-items: center;
+        }
+
+        .cart-item .quantity input {
+            width: 150px;
+            padding: 5px;
+            margin-left: 25px;
+        }
+
+        .error-message {
+            color: red;
+            display: none;
+        }
+
+        .cart-item .subtotal {
+            width: 150px;
+            text-align: center;
+            color:red;
+        }
+
+        .cart-item .action {
+            text-align: center;
+        }
+
+        .cart-item .action .remove-button {
             background: none;
             border: none;
             color: red;
             font-size: 20px;
             cursor: pointer;
         }
-        .remove-button:hover {
+
+        .cart-item .action .remove-button:hover {
             color: darkred;
         }
-        .product-link {
-            text-decoration: none;
-            color: black;
+
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
         }
-        .product-link:hover {
-            text-decoration: underline;
+
+        .buttons button {
+            padding: 10px 30px;
+            border: none;
+            cursor: pointer;
+            color: white;
         }
-        .error-message {
-            color: red;
-            display: none;
+
+        .update-cart {
+            background: #666666;
+            margin-left: 1215px;
         }
+
+        .update-cart:hover {
+            background: #333333;
+        }
+
+        .cart-totals-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 50px;
+        }
+
+        .cart-totals {
+            width: 400px;
+            height: 120px;
+            padding: 20px;
+            background-image: url("button_background.png");
+            text-align: left;
+            color: white;
+        }
+
+        .cart-totals button {
+            height: 45px;
+            padding: 10px 134px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+       
         .checkout-disabled {
             background-color: gray;
             cursor: not-allowed;
         }
-        .empty-cart-message {
-            color: gray;
-        }
+        
     </style>
+</head>
+<body>
+    <!-- Navigation bar -->
+    <header>
+        <div class="navbar">
+            <div>
+                <a href="homepage.html" class="home-button">
+                    <img src="logo.png">
+                </a>
+            </div>
+
+            <div class="icons">
+                <a href="laptop.html" class="icon-link">
+                    <img src="header_all_laptop.png" alt="Icon" class="all_laptop_icon">
+                </a>
+                <a href="cart.html" class="icon-link">
+                    <img src="cart.png" alt="Icon" class="cart_icon">
+                </a>
+                <a href="setting_profile.html" class="icon-link">
+                    <img src="profile.png" alt="Icon" class="profile_icon">
+                </a>
+                <a href="setting.html" class="icon-link">
+                    <img src="setting.png" alt="Icon" class="setting_icon">
+                </a>
+            </div>
+        </div>
+    </header>
+
+    
+
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="homepage.html">Home</a> / <a href="cart.html">Shopping Cart</a>
+        </div>
+        <div class="cart-summary" id="cartSummary">Cart ({{ item_count }} items)</div>
+        {% if not cart_items %}
+        <p class="empty-cart-message">Your cart is empty. <a href="{{ url_for('laptop') }}">View laptops here</a>.</p>
+        {% else %}
+
+        <form method="POST" action="{{ url_for('cart') }}">
+            <table>
+                <thead class="cart-header">
+                    <tr>
+                        <th>
+                            <input type="checkbox" onclick="toggleSelectAll(this)">
+                            Select All
+                        </th>
+                        <th>Image</th>
+                        <th>Product Name</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Subtotal</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="cart-item">
+                    {% for item in cart_items %}
+                    <tr>
+                        <td class="select-all">
+                            <input type="checkbox" name="select_{{ item[0] }}" value="{{ item[0] }}" onclick="updateSelectedTotalPrice()">
+                        </td>
+                        <td>
+                            <a href="{{ url_for('laptop_detail', product_id=item[0]) }}">
+                                {% if item[4] %}
+                                <img src="{{ item[4] }}" alt="Product Image" width="50" height="50">
+                                {% else %}
+                                <img src="default_image_url" alt="Default Image" width="50" height="50">
+                                {% endif %}
+                            </a>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('laptop_detail', product_id=item[0]) }}" class="product-name">{{ item[1] }}</a>
+                        </td>
+                        <td class="price">{{ item[2] }}</td>
+                        <td class="quantity">
+                            <input type="number" name="quantity_{{ item[0] }}" value="{{ item[3] }}" min="1">
+                            <span id="stock_{{ item[0] }}" style="display:none;">{{ item[5] }}</span>
+                            <span id="error-message_{{ item[0] }}" class="error-message"></span>
+                        </td>
+                        <td class="subtotal">{{ item[2] * item[3] }}</td>
+                        <td class="action">
+                            <button type="submit" name="remove_product" value="{{ item[0] }}" class="remove-button">&times;</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="buttons">
+                <button class="update-cart" type="submit" name="action" value="update" disabled>Update Cart</button>
+            </div>
+
+            <div class="cart-totals-container">
+                <div class="cart-totals">
+                    <h2>Checkout Total: RM<span id="selectedTotalPrice">{{ selected_total_price }}</span></h2>
+                    <button type="submit" name="action" value="checkout" class="{{ not cart_items|length > 0 and 'checkout-disabled' }}">Proceed to Checkout</button>
+                </div>
+            </div>
+            <p id="checkoutMessage" style="color: red; display: none;">Please select at least one product to proceed with checkout.</p>
+        </form>
+    </div>
+
     <script>
         let originalQuantities = {};
 
@@ -108,68 +418,7 @@
                 checkbox.addEventListener('change', updateSelectedTotalPrice);
             });
         });
-    </script>
-</head>
-<body>
-    <h1>Cart ({{ item_count }} items)</h1>
-    {% if not cart_items %}
-    <p class="empty-cart-message">Your cart is empty. <a href="{{ url_for('laptop') }}">View laptops here</a>.</p>
-    {% else %}
-    <form method="POST" action="{{ url_for('cart') }}">
-        <table>
-            <thead>
-                <tr>
-                    <th>
-                        <input type="checkbox" onclick="toggleSelectAll(this)">
-                        Select All
-                    </th>
-                    <th>Image</th>
-                    <th>Product Name</th>
-                    <th>Price</th>
-                    <th>Quantity</th>
-                    <th>Subtotal</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in cart_items %}
-                <tr>
-                    <td>
-                        <input type="checkbox" name="select_{{ item[0] }}" value="{{ item[0] }}" onclick="updateSelectedTotalPrice()">
-                    </td>
-                    <td>
-                        <a href="{{ url_for('laptop_detail', product_id=item[0]) }}">
-                            {% if item[4] %}
-                            <img src="{{ item[4] }}" alt="Product Image" width="50" height="50">
-                            {% else %}
-                            <img src="default_image_url" alt="Default Image" width="50" height="50">
-                            {% endif %}
-                        </a>
-                    </td>
-                    <td>
-                        <a href="{{ url_for('laptop_detail', product_id=item[0]) }}" class="product-link">{{ item[1] }}</a>
-                    </td>
-                    <td class="price">{{ item[2] }}</td>
-                    <td>
-                        <input type="number" name="quantity_{{ item[0] }}" value="{{ item[3] }}" min="1">
-                        <span id="stock_{{ item[0] }}" style="display:none;">{{ item[5] }}</span>
-                        <span id="error-message_{{ item[0] }}" class="error-message"></span>
-                    </td>
-                    <td>{{ item[2] * item[3] }}</td>
-                    <td>
-                        <button type="submit" name="remove_product" value="{{ item[0] }}" class="remove-button">&times;</button>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <h2>Checkout Total: RM<span id="selectedTotalPrice">{{ selected_total_price }}</span></h2>
-        <button type="submit" name="action" value="update" disabled>Update Cart</button>
-        <button type="submit" name="action" value="checkout" class="{{ not cart_items|length > 0 and 'checkout-disabled' }}">Proceed to Checkout</button>
-        <p id="checkoutMessage" style="color: red; display: none;">Please select at least one product to proceed with checkout.</p>
-    </form>
 
-    <script>
         // Display checkout message if no products are selected
         document.querySelector('button[name="action"][value="checkout"]').addEventListener('click', function(event) {
             if (document.querySelectorAll('input[name^="select_"]:checked').length === 0) {

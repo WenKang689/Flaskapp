@@ -27,7 +27,7 @@ S3= boto3.client('s3')
 S3_BUCKET = 'sourc-wk-sdp-project'
 S3_LOCATION = 'https://sourc-wk-sdp-project.s3.amazonaws.com/User+Profile+Picture/'
 
-#login for all
+#login for all (html sent)
 @app.route("/", methods=["GET","POST"])
 def login():
     if request.method == "POST":
@@ -50,7 +50,7 @@ def login():
         cur.close()
     return render_template("login.html")
 
-#register
+#register (html sent)
 @app.route("/register", methods=["GET","POST"])
 def register():
     if request.method == "POST":
@@ -79,7 +79,7 @@ def register():
             return redirect("/")
     return render_template("register.html")
 
-#forgot password
+#forgot password (html sent)
 @app.route("/forgot_password", methods=["GET", "POST"])
 def forgot_password():
     if request.method == "POST":
@@ -226,7 +226,7 @@ def homepage():
                 return redirect("/laptop",search_query=search_query)
         return render_template('homepage.html')
 
-#C-setting/profile
+#C-setting/profile (html sent)
 @app.route("/user/setting/profile", methods=["GET","POST"])
 def setting_profile():
     if 'logged_in' in session:
@@ -263,7 +263,7 @@ def setting_profile():
         flash("Please log in to view this page.", "warning")
         return render_template('login.html')
 
-#C-setting/profile/edit profile
+#C-setting/profile/edit profile (html sent)
 @app.route("/user/setting/profile/edit", methods=["GET","POST"])
 def edit_profile():
     current_username = session["username"]
@@ -476,8 +476,7 @@ def setting_payment_edit():
     
     return render_template("setting_payment_edit.html")
 
-#generate next saved card id
-def generate_next_saved_card_id():
+def generate_next_saved_card_id(): #generate next saved card id
     cur = mysql.connection.cursor()
     cur.execute("SELECT saved_card_id FROM payment ORDER BY saved_card_id DESC LIMIT 1")
     last_id = cur.fetchone()
@@ -608,8 +607,7 @@ def setting_history_purchase():
         flash("An error occurred while retrieving purchase history. Please try again later.", "error")
         return redirect("/user/setting/history/purchase")
 
-#C-generate review id
-def generate_next_review_id():
+def generate_next_review_id(): #generate review id
     cur = mysql.connection.cursor()
     # Assuming 'saved_card_id' is stored in a table named 'saved_cards'
     cur.execute("SELECT review_id FROM review ORDER BY review_id DESC LIMIT 1")
@@ -625,8 +623,7 @@ def generate_next_review_id():
         new_id = "RV0001"
     return new_id
 
-# Function to mask the username
-def mask_username(username):
+def mask_username(username): # Function to mask the username
     if len(username) <= 1:
         return '*'  # If the role_id is 1 character or fewer, show the first character
     elif len(username) == 2:
@@ -651,8 +648,7 @@ def setting_history_search():
         flash(f"Failed to retrieve search history: {str(e)}", "danger")
         return redirect('/')
     
-#generate search_id
-def generate_next_search_id():
+def generate_next_search_id(): #generate search_id
     cur = mysql.connection.cursor()
     
     cur.execute("SELECT search_id FROM search_history ORDER BY search_id DESC LIMIT 1")
@@ -678,7 +674,7 @@ def recommend_survey_form():
 def recommend_auto():
     return render_template("recommend_auto.html")
 
-#C-laptop/ (display all laptop + search result + filter)
+#C-laptop (display all laptop + search result + filter) (html sent)
 @app.route("/laptop", methods=["GET","POST"])
 def laptop():
     username = session.get('username')
@@ -792,8 +788,7 @@ def laptop():
 
     return render_template('laptop_search.html', laptops=filtered_laptops, brands=brands, memories=memories, graphics_options=graphics_options, storages=storages, batteries=batteries, processors=processors, operating_systems=operating_systems, message=message, min_price=min_price_db, max_price=max_price_db, min_weight=min_weight_db, max_weight=max_weight_db)
 
-#generate search_id
-def generate_next_search_id():
+def generate_next_search_id(): #generate search_id
     cur = mysql.connection.cursor()
     
     cur.execute("SELECT search_id FROM search_history ORDER BY search_id DESC LIMIT 1")
@@ -809,9 +804,7 @@ def generate_next_search_id():
         new_id = "SC0001"
     return new_id
 
-
-# Function to mask the username
-def mask_username(username):
+def mask_username(username): # Function to mask the username
     if len(username) <= 1:
         return '*'  # If the role_id is 1 character or fewer, show the first character
     elif len(username) == 2:
@@ -819,7 +812,7 @@ def mask_username(username):
     else:
         return username[0] + '*' * (len(username) - 2) + username[-1]  # Mask all characters except first and last
 
-#C-laptop/detail
+#C-laptop/detail (html sent)
 @app.route("/laptop/<product_id>", methods=["GET","POST"])
 def laptop_detail(product_id):
     
@@ -939,7 +932,7 @@ def laptop_detail(product_id):
     # Pass laptop_details to the template
     return render_template("laptop_detail.html", product_details=product_details)
 
-#C-cart(all)
+#C-cart(all) (html sent)
 @app.route("/cart", methods=["GET","POST"])
 def cart():
     username = session.get('username')
@@ -1083,7 +1076,7 @@ def cart():
 
     return render_template("cart.html", cart_items=cart_items, cart_total_price=cart_total_price, item_count=item_count)
 
-#C-cart/checkout(choose payment method,address)
+#C-cart/checkout(choose payment method,address) (html sent)
 @app.route("/cart/checkout", methods=["GET","POST"])
 def cart_checkout():
     username = session.get('username')
@@ -1298,9 +1291,7 @@ def cart_checkout():
 
     return render_template("cart_checkout.html", payment_methods=payment_methods, errors=errors, form_data=request.form, selected_items=selected_items_details, checkout_total_price=checkout_total_price)
 
-
-#generate ship_id
-def generate_next_ship_id():
+def generate_next_ship_id(): #generate ship_id
     cur = mysql.connection.cursor()
     
     cur.execute("SELECT ship_id FROM shipping ORDER BY ship_id DESC LIMIT 1")
@@ -1316,8 +1307,7 @@ def generate_next_ship_id():
         new_id = "SH0001"
     return new_id
 
-#generate order_id
-def generate_next_order_id():
+def generate_next_order_id(): #generate order_id
     cur = mysql.connection.cursor()
     
     cur.execute("SELECT order_id FROM purchase ORDER BY order_id DESC LIMIT 1")
@@ -1332,7 +1322,6 @@ def generate_next_order_id():
         # If there are no entries, start with IN0001
         new_id = "IN0001"
     return new_id
-
 
 def get_product_price(product_id):
     with mysql.connection.cursor() as cur:
@@ -1354,7 +1343,7 @@ def get_cart_quantity(username, product_id):
     cur.close()
     return result[0] if result else 0
 
-#C-cart/payment success
+#C-cart/payment success (html sent)
 @app.route("/cart/payment/success", methods=["GET","POST"])
 def cart_payment_success():
     order_id = request.args.get('order_id') or session.get('order_id')
