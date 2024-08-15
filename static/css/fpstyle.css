@@ -10,40 +10,41 @@ body {
 
 }
 
-.card {
-    background-color: #ffffff; 
-    border-radius: 10px; 
-    width: 100%; 
-    max-width: 400px; 
-    position: flex;
+.container {
+    background: transparent; 
+    border-radius: 5px;
+    border-color: #fdfdfd;
+    padding: 20px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2); 
+    width: 300px;
+    text-align: left;
+    border: 1px solid rgb(255, 255, 255);
+    align-items: center;
+    position: absolute;
 }
 
 .card-header {
-    background-color: #007BFF; 
-    color: white; 
-    padding: 15px; 
-    border-top-left-radius: 10px; 
-    border-top-right-radius: 10px; 
+    border-bottom: 1px solid rgb(255, 255, 255);
+    width: 100%;
+    margin: 0;
+    box-sizing: border-box;
 }
 
 
-.form-group{
-    width: 90%;
-    padding: 10px;
-    margin: 0px ;
-    background: rgba(0, 0, 0, 0);
-    border-radius: 5px;
-    font-size: 16px;
-    border: 1px solid white;
+.form-group {
+    margin-bottom: 15px;
+    padding-top: 5px;
 }
 
 
 .form-control {
-    width: 100%; 
-    padding: 10px; 
-    border: 1px solid #ccc; 
-    border-radius: 5px; 
-    box-sizing: border-box; 
+    text-align: left;
+    display: block;
+    width: 100%;
+    padding: 5px;
+    box-sizing: border-box;
+    border-radius: 5px;
+    border-color: white;
 }
 
 .btn {
@@ -61,35 +62,36 @@ body {
     background-color: #0056b3; 
 }
 
+.flash-container{
+    position: relative;
+    width: auto;
+    top: 160px;
+}
+
 .flash-message { 
     color: white; 
     background-color: rgba(0, 0, 0, 0.5);
-    margin-top: 20px; 
+    margin: 20px 0;
     padding: 10px; 
     display: block; 
-    width: 17%; 
+    width: auto; 
     border-radius: 5px; 
-    position: relative; 
 }
 
 .flash-success {
     background-color: #dff0d8; 
-    color: white; 
 }
 
 .flash-danger { 
     background-color: #f2dede; 
-    color: white; 
 }
 
 .close-btn { 
     position: absolute; 
-    top: 5px; 
-    right: 10px;
+    top: 15px; 
+    right: 4px;
     cursor: pointer; 
     font-weight: bold; 
     color: #ffffff; 
     font-size: 1.2em;
 }
-
-

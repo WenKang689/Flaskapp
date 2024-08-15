@@ -11,7 +11,7 @@ body {
 }
 
 .login-container {
-    background: transparent; 
+    background: rgba(236, 234, 234, 0.2);
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
     border-color: #fdfdfd;
@@ -20,7 +20,7 @@ body {
     width: 400px;
     text-align: center;
     border: 1px solid rgb(255, 255, 255);
-    
+    position:relative;
 }
 
 .tabs {
@@ -30,7 +30,7 @@ body {
 
 .tab {
     background: transparent;
-    color: #6200ea; 
+    color: #000000; 
     padding: 20px; 
     cursor: pointer; 
     flex: 1; 
@@ -50,40 +50,36 @@ body {
 }
 
 .logo {
-    position: absolute; 
-    top: 65px; 
-    left: 575px; 
+    position: fixed; 
+    top: 95px; 
+    left:600px;
     width: 300.44px; 
     height: 169px; 
 }
 
-
-
 h1 {
     font-size: 24px;
     margin: 10px 0;
-    color: #fdfdfd;
     text-align: left;
+
 }
 
 .greetings {
-    color: #fdfdfd;
+    color:#000000;
     text-align: left;
     font-weight: 100;
 }
 
 h2 {
     font-size: 18px;
-    margin: 10px 0;
-    color: #fdfdfd;
+    margin: 5px 0;
     text-align: left;
     font-weight: 50;
 }
 
 h3 {
     font-size: 18px;
-    margin: 10px 0;
-    color: #fdfdfd;
+    margin: 5px 0;
     text-align: left;
     font-weight: 50;
 }
@@ -95,17 +91,17 @@ p {
 }
 
 input {
-    width: 90%;
-    padding: 12px;
-    margin: 5px 0;
-    background: rgba(0, 0, 0, 0);
+    width: 100%; 
+    margin-bottom: 5px;
+    padding: 10px;
+    background: rgba(236, 234, 234, 0.2);
     border-radius: 5px;
-    font-size: 16px;
+    box-sizing: border-box; 
     border: 1px solid white;
 }
 
 input:focus {
-    border-color: #6200ea; 
+    border-color: #000000; 
     outline: none;
 }
 
@@ -121,23 +117,48 @@ input:focus {
     margin-top: 10px;
 }
 
-.signup {
-    margin-top: 15px;
-    font-size: 14px;
+.register{
     color:black;
 }
 
-.signup a {
-    color: #eb0a0a;
-    text-decoration: none;
+.register a {
+    color: #022ec0;
+    font-size: 16px;
+}
+
+.btn {
+    background-color: rgb(185, 105, 231); 
+    color: white; 
+    padding: 10px; 
+    border: none; 
+    border-radius: 5px; 
+    cursor: pointer; 
+    width: 100%; 
+    transition: background-color 0.3s;
+    font-size: 18px;
+}
+
+.btnf {
+    background: none; 
+    border: none; 
+    color: #022ec0; 
+    text-decoration: underline; 
+    cursor: pointer; 
+    font-size: inherit; 
+    padding: 5px; 
+    display: block;
+    text-align: left;
+    font-size: 16px;
 }
 
 .flash-message { 
-    border: 1px solid #ccc; padding: 10px; margin: 10px 0; 
-}
-
-.flash-success { 
-    background-color: #dff0d8; 
+    border: 1px solid #ccc; 
+    padding: 10px; 
+    margin: 10px 0;
+    border-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color:white;
+    position: relative;
 }
 
 .flash-danger { 
@@ -145,16 +166,8 @@ input:focus {
 }
 
 .close-btn { 
-    position: absolute; top: 5px; right: 10px; cursor: pointer; 
-}
-
-.register{
-    color:white;
-
-}
-
-.confirmation {
-    color:white;
-    text-align: left;
-
+    position: absolute; 
+    top: 5px; 
+    right: 10px; 
+    cursor: pointer; 
 }

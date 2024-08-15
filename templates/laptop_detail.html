@@ -13,7 +13,6 @@
         }
 
         header {
-            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
@@ -21,8 +20,8 @@
             padding: 20px 0;
             text-align: left;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            background-image: url('nav_background.png');
-            background-color: white;
+            background-image: url('../static/images/nav_background.png');
+            background-color: rgb(255, 255, 255);
             background-size: cover;
             background-position: center;
             z-index: 2;
@@ -37,7 +36,7 @@
         }
 
         .home-button {
-            position: fixed;
+            position: absolute;
             top: 20px;
             left: 110px;
             width: 300px;
@@ -69,11 +68,6 @@
             margin-top: -5px;
         }
 
-        .profile_icon {
-            width: 41.83px;
-            margin-left: 10px;
-        }
-
         .setting_icon {
             width: 65px;
             margin-top: -12px;
@@ -84,7 +78,7 @@
             max-width: 1400px;
             margin: 0 auto;
             background-color: white;
-            padding-top: 190px; /* Adjusted for header space */
+            padding-top: 20px; /* Adjusted for header space */
         }
 
         .breadcrumb {
@@ -210,7 +204,7 @@
         }
 
         #addToCartButton {
-            background-image: url('button_background.png');
+            background-image: url('../static/images/nav_background.png');
             color: white;
             border: none;
             padding: 10px 60px;
@@ -224,7 +218,7 @@
 
         #buyNowBtn {
             border: none;
-            padding: 10px 184px;
+            padding: 10px 194px;
             text-align: center;
             display: inline-block;
             font-size: 16px;
@@ -314,7 +308,7 @@
     <header>
         <div class="navbar">
             <div>
-                <a href="homepage.html" class="home-button">
+                <a href="{{url_for('homepage')}}" class="home-button">
                     <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="logo">
                 </a>
             </div>
@@ -327,9 +321,6 @@
                     <img src="{{ url_for('static', filename='images/cart.png') }}" alt="Icon" class="cart_icon">
                 </a>
                 <a href="{{ url_for('setting_profile') }}" class="icon-link">
-                    <img src="{{ url_for('static', filename='images/profile.png') }}" alt="Icon" class="profile_icon">
-                </a>
-                <a href="{{ url_for('setting_profile') }}" class="icon-link">
                     <img src="{{ url_for('static', filename='images/setting.png') }}" alt="Icon" class="setting_icon">
                 </a>
             </div>
@@ -340,7 +331,7 @@
     <div class="container">
         <!-- Breadcrumb -->
         <div class="breadcrumb">
-            <a href="homepage.html">Home</a> / <a href="cart.html">Shopping Cart</a> / <a>Product Page</a>
+            <a href="{{ url_for('homepage') }}">Home</a> / <a href="{{ url_for('cart') }}">Shopping Cart</a> / <a>Product Page</a>
         </div>
         
         <main>
@@ -365,7 +356,7 @@
             <!-- Product Info -->
             <div class="product-info">
                 <h1>{{ product_details.product_name }}</h1>
-                <p><span class="{{ 'out-of-stock' if product_details.stock_status == 'Out of Stock' else '' }}">{{ product_details.stock_status }}</span></p>
+                <p><span class="{{ 'out-of-stock' if product_details.stock_status == 'Out of Stock' else '' }}" style="color: red;">{{ product_details.stock_status }}</span></p>
                 <p class="price">RM {{ product_details.price }}</p>
                 <div class="specs">
                     <p>Brand: {{ product_details.brand }}</p>
@@ -391,7 +382,7 @@
                     </div>
                         <button id="buyNowBtn" type="submit" name="action" value="buy_now">Buy Now</button>
                     {% else %}
-                        <p class="out-of-stock">This product is out of stock.</p>
+                        <p class="out-of-stock" style="color: red;">This product is out of stock.</p>
                     {% endif %}
                 </form>
             </div>

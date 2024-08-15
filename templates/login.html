@@ -28,14 +28,11 @@
             {% endwith %}
             <form method="post">
                 <h2>Username</h2>
-                <input type="username" name="username" required>
+                <input type="username" placeholder= "Kai" name="username" required>
                 <h3>Password</h3> 
-                <input type="password" name="password" required>
-                <p class="confirmation">Please enter correct password</p>
-                <button type="submit">Login</button>
-            </form>
-            <form action="/forgot_password" method="get">
-                <button type="submit">Forgot Password?</button>
+                <input type="password" placeholder="Please enter correct password" name="password" required>
+                <button type="submit" class="btnf" name="action" value="forgot_password">Forgot Password</button>
+                <button type="submit" class="btn" name="action" value="login">Login</button>
             </form>
             <p class="register">Don't have an Account? <a href="{{ url_for('register') }}">Sign up here</a></p>
         </div>

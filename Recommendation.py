@@ -3,8 +3,22 @@ import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import CountVectorizer
 import mysql.connector
+import logging
+
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
+
+# Define categories and associated keywords
+categories = {
+    'Productivity': ['onedrive', 'keynote', 'onenote', 'microsoft word', 'microsoft excel', 'microsoft powerpoint', 'calendar', 'numbers', 'pages', 'draw.io', 'canva', 'apspace'],
+    'Media': ['audacity', 'ffmpeg', 'media player', 'photo viewer', 'imovie', 'garageband', 'bandicam'],
+    'Development': ['visual studio code', 'netbeans', 'azure data studio', 'git', 'obs-studio', 'mysqlworkbench', 'swi-prolog', 'docker', 'rapidminer studio'],
+    'Utilities': ['teams', 'bonjour', 'windows defender', 'windows mail', 'putty', 'hp', 'wsl', '7-zip', 'dotnet', 'faceit', 'nzxt cam', 'streamlabs', 'testproject', 'winpcap'],
+    'Games': ['game', 'launcher', 'hoyoplay', 'steam', 'wildgames', 'riot vanguard', 'easyanticheat'],
+    'Other': []
+}
 
 # Function to fetch data from MySQL
 def fetch_data_from_mysql():
@@ -18,7 +32,7 @@ def fetch_data_from_mysql():
     connection = mysql.connector.connect(**config)
     query = """
     SELECT 
-        product_id, product_name, brand, processor, graphics,
+        product_id, product_name, brand, processor, graphics, 
         dimensions, weight, os, memory, storage, 
         power_supply, battery, price
     FROM product
@@ -124,6 +138,7 @@ def classify_laptop(processor, graphics, memory, storage, battery, weight):
         'memory_tier': memory_tier,
         'storage_tier': storage_tier,
         'battery_tier': battery_tier,
+    
         'weight_class': weight_class
     }
 
@@ -190,28 +205,62 @@ def get_specs_from_survey(data):
     
     return specs
 
+def get_recommendations(combined_query, cosine_sim, df):
+    query_vec = cv.transform([combined_query])
+    query_sim = cosine_similarity(query_vec, count_matrix)
+
+    # Get the indices of the most similar products
+    similar_laptops = list(enumerate(query_sim[0]))
+    similar_laptops = sorted(similar_laptops, key=lambda x: x[1], reverse=True)
+    
+    # Normalize similarity scores to a range of 1 to 100
+    min_sim = min(similarity for index, similarity in similar_laptops)
+    max_sim = max(similarity for index, similarity in similar_laptops)
+    
+    # Ensure no division by zero
+    if max_sim == min_sim:
+        normalized_scores = [(index, 100) for index, _ in similar_laptops]
+    else:
+        normalized_scores = [
+            (index, 1 + 99 * (similarity - min_sim) / (max_sim - min_sim))
+            for index, similarity in similar_laptops
+        ]
+    
+    # Collect top laptop names and their similarity scores
+    top_laptops = []
+    for idx, score in normalized_scores:
+        laptop_name = get_title_from_index(idx)
+        top_laptops.append((laptop_name, round(score)))
+        if len(top_laptops) == 5:
+            break
+    return top_laptops
+
 @app.route('/', methods=['GET'])
 def index():
-    return render_template('Survey.html')
+    return render_template('survey.html')
 
 @app.route('/recommend', methods=['POST'])
 def recommend():
     data = request.form
-    specs = get_specs_from_survey(data)
-    combined_query = " ".join(specs.values())
+    logger.info(f"Recommendation requested")
 
-    query_vector = cv.transform([combined_query])
-    cosine_scores = cosine_similarity(query_vector, count_matrix)
+    try:
+        logger.info("Processing survey input")
+        specs = get_specs_from_survey(data)
+        combined_query = combine_features(pd.Series(specs))
+        logger.info("Survey processing completed")
+    except KeyError as e:
+        logger.error(f"Missing survey data: {e}")
+        return render_template('error.html', error_message=f"Missing survey data: {e}")
 
-    similar_products = list(enumerate(cosine_scores[0]))
-    sorted_similar_products = sorted(similar_products, key=lambda x: x[1], reverse=True)[1:]
+    logger.info("Generating recommendations")
+    recommendations = get_recommendations(combined_query, cosine_sim, df)
 
-    recommendations = []
-    for element in sorted_similar_products:
-        recommendations.append(get_title_from_index(element[0]))
-        if len(recommendations) >= 5:
-            break
+    if not recommendations:
+        logger.warning("No similar laptops found")
+        return render_template('error.html', error_message="No similar laptops found.")
 
+    logger.info(f"Recommendations generated: {recommendations}")
     return render_template('recommendations.html', recommendations=recommendations)
 
 if __name__ == '__main__':

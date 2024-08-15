@@ -25,7 +25,7 @@
             <p>Already have an account? <a href="{{ url_for('login') }}">Log in</a></p>
         </div>
     </div>
-    <form action="{{ url_for('login') }}" method="get">
+    <form action="{{ url_for('register') }}" method="post">
         <table>
             <tr>
                 <td>
@@ -43,8 +43,8 @@
                     <input type="email" placeholder="e.g. chuahkaihong@gmail.com" name="email" required>
                 </td>
                 <td>
-                    <label for="profile-name">Profile Name</label>
-                    <input type="text" placeholder="e.g. Chuah Kai Hong" name="profile-name" required>
+                    <label for="name">Profile Name</label>
+                    <input type="text" placeholder="e.g. Chuah Kai Hong" name="name" required>
                 </td>
             </tr>
             <tr>

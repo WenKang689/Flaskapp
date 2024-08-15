@@ -14,7 +14,6 @@
         }
 
         header {
-            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
@@ -22,7 +21,7 @@
             padding: 20px 0;
             text-align: left;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            background-image: url('nav_background.png');
+            background-image: url('/static/images/nav_background.png');
             background-color: white;
             background-size: cover;
             background-position: center;
@@ -39,7 +38,7 @@
         }
 
         .home-button {
-            position: fixed;
+            position: absolute;
             top: 20px;
             left: 110px;
             width: 300px;
@@ -84,7 +83,6 @@
         .container {
             max-width: 1350px;
             margin: auto;
-            margin-top: 150px;
             padding: 20px;
             background-color: #ffffff;
         }
@@ -178,23 +176,23 @@
     <header>
         <div class="navbar">
             <div>
-                <a href="homepage.html" class="home-button">
-                    <img src="logobtn.png" alt="Home">
+                <a href="{{url_for('homepage')}}" class="home-button">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="logo">
                 </a>
             </div>
 
             <div class="icons">
-                <a href="laptop.html" class="icon-link">
-                    <img src="header_all_laptop.png" alt="Laptops" class="all_laptop_icon">
+                <a href="{{ url_for('laptop') }}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/header_all_laptop.png') }}" alt="Icon" class="all_laptop_icon">
                 </a>
-                <a href="cart.html" class="icon-link">
-                    <img src="cart.png" alt="Cart" class="cart_icon">
+                <a href="{{ url_for('cart') }}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/cart.png') }}" alt="Icon" class="cart_icon">
                 </a>
-                <a href="setting_profile.html" class="icon-link">
-                    <img src="profile.png" alt="Profile" class="profile_icon">
+                <a href="{{ url_for('setting_profile') }}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/profile.png') }}" alt="Icon" class="profile_icon">
                 </a>
-                <a href="setting.html" class="icon-link">
-                    <img src="setting.png" alt="Settings" class="setting_icon">
+                <a href="{{ url_for('setting_profile') }}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/setting.png') }}" alt="Icon" class="setting_icon">
                 </a>
             </div>
         </div>
@@ -203,7 +201,7 @@
     <!-- Main content -->
     <div class="container">
         <div class="breadcrumb">
-            <a href="homepage.html">Home</a> / <a href="cart.html">Shopping Cart</a> / <span>Checkout</span>
+            <a href="{{ url_for('homepage') }}">Home</a> / <a href="{{ url_for('cart') }}">Shopping Cart</a> / <span>Checkout</span>
         </div>
 
         <h1>Payment Successful</h1>

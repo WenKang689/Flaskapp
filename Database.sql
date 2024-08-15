@@ -99,6 +99,7 @@ CREATE TABLE `payment` (
 
 LOCK TABLES `payment` WRITE;
 /*!40000 ALTER TABLE `payment` DISABLE KEYS */;
+INSERT INTO `payment` VALUES ('PC0001','wkwk','rrg','8765433456765432','654','09/24','braynchongwenkang590@gmail.com');
 /*!40000 ALTER TABLE `payment` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -200,6 +201,7 @@ CREATE TABLE `purchase` (
 
 LOCK TABLES `purchase` WRITE;
 /*!40000 ALTER TABLE `purchase` DISABLE KEYS */;
+INSERT INTO `purchase` VALUES ('IN0001','wkwk','LP0001','2024-08-07 03:53:29',12000,'pending',1,NULL,'PC0001'),('IN0002','wkwk','LP0001','2024-08-07 04:04:40',12000,'pending',1,NULL,'PC0001'),('IN0003','wkwk','LP0001','2024-08-12 03:33:38',24000,'pending',2,NULL,'PC0001'),('IN0004','wkwk','LP0001','2024-08-14 03:49:59',12000,'pending',1,NULL,'PC0001'),('IN0005','wkwk','LP0001','2024-08-15 03:17:10',12000,'pending',1,NULL,'PC0001');
 /*!40000 ALTER TABLE `purchase` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -231,6 +233,7 @@ CREATE TABLE `review` (
 
 LOCK TABLES `review` WRITE;
 /*!40000 ALTER TABLE `review` DISABLE KEYS */;
+INSERT INTO `review` VALUES ('RV0001','IN0001','LP0001','wkwk','haha',5,'2024-08-07 03:54:01',NULL),('RV0002','IN0002','LP0001','wkwk','ninj',1,'2024-08-07 04:04:56',NULL);
 /*!40000 ALTER TABLE `review` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -258,6 +261,7 @@ CREATE TABLE `search_history` (
 
 LOCK TABLES `search_history` WRITE;
 /*!40000 ALTER TABLE `search_history` DISABLE KEYS */;
+INSERT INTO `search_history` VALUES ('SC0001','wkwk','f3f','2024-08-04 16:35:42'),('SC0002','wkwk','acer','2024-08-04 16:35:47'),('SC0003','wkwk','acer','2024-08-04 16:55:02'),('SC0004','wkwk','acer','2024-08-04 16:55:07'),('SC0005','wkwk','acer','2024-08-04 16:55:18'),('SC0006','wkwk','acer','2024-08-04 16:57:37'),('SC0007','wkwk','acer','2024-08-04 16:57:41'),('SC0008','wkwk','pre','2024-08-07 03:52:11');
 /*!40000 ALTER TABLE `search_history` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -289,6 +293,7 @@ CREATE TABLE `shipping` (
 
 LOCK TABLES `shipping` WRITE;
 /*!40000 ALTER TABLE `shipping` DISABLE KEYS */;
+INSERT INTO `shipping` VALUES ('SH0001','IN0001','geg','erg','0168953485','pending','2024-08-07 03:53:29'),('SH0002','IN0002','109-3-2 Jalan Pudu Ulu, Pudu Impian 1','Chong Wen Kang','0166893432','pending','2024-08-07 04:04:40'),('SH0003','IN0003','109-3-2 Jalan Pudu Ulu, Pudu Impian 1','Chong Wen Kang','0166893432','pending','2024-08-12 03:33:38'),('SH0004','IN0004','Lot Puchong, 13, Lorong Kenangan 2, Kampung Kenangan, 47100 Puchong, Selangor','Chong Wen Kang','0123882384','pending','2024-08-14 03:49:59'),('SH0005','IN0005','109-3-2 Jalan Pudu Ulu, Pudu Impian 1','Chong Wen Kang','0166893432','pending','2024-08-15 03:17:10');
 /*!40000 ALTER TABLE `shipping` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -351,8 +356,152 @@ CREATE TABLE `user` (
 
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
-INSERT INTO `user` VALUES ('aaa','asd','Chong Wen Kang','braynchongwenkang590@gmail.com','0126843432','2024-06-05',NULL,NULL,NULL),('sw','sss','sw','shynwei04@gmail.com','1323','2024-07-03','11, JALAN BEDARA','fe',NULL),('wkwk','fff','wen kang','braynchong590@gmail.com','0166893432','2024-07-13','asd','asd','https://sourc-wk-sdp-project.s3.amazonaws.com/User Profile Picture/wkwk');
+INSERT INTO `user` VALUES ('aaa','asd','Chong Wen Kang','braynchongwenkang590@gmail.com','0126843432','2024-06-05',NULL,NULL,NULL),('sw','sss','sw','shynwei04@gmail.com','1323','2024-07-03','11, JALAN BEDARA','fe',NULL),('timi','dfg6543@','wyt','timi04@gmail.com','0157463967','2000-09-22','Lot Puchong, 13, Lorong Kenangan 2, Kampung Kenangan, 47100 Puchong, Selangor','Student',NULL),('wkwk','wk','wen kang','braynchong590@gmail.com','0166893432','2024-07-13','asd','asd','https://sourc-wk-sdp-project.s3.amazonaws.com/User Profile Picture/wkwk');
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `user_recommendations`
+--
+
+DROP TABLE IF EXISTS `user_recommendations`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user_recommendations` (
+  `username` varchar(30) NOT NULL,
+  `product_id_1` char(6) DEFAULT NULL,
+  `score_1` decimal(5,2) DEFAULT NULL,
+  `product_id_2` char(6) DEFAULT NULL,
+  `score_2` decimal(5,2) DEFAULT NULL,
+  `product_id_3` char(6) DEFAULT NULL,
+  `score_3` decimal(5,2) DEFAULT NULL,
+  `product_id_4` char(6) DEFAULT NULL,
+  `score_4` decimal(5,2) DEFAULT NULL,
+  `product_id_5` char(6) DEFAULT NULL,
+  `score_5` decimal(5,2) DEFAULT NULL,
+  `product_id_6` char(6) DEFAULT NULL,
+  `score_6` decimal(5,2) DEFAULT NULL,
+  `product_id_7` char(6) DEFAULT NULL,
+  `score_7` decimal(5,2) DEFAULT NULL,
+  `product_id_8` char(6) DEFAULT NULL,
+  `score_8` decimal(5,2) DEFAULT NULL,
+  `product_id_9` char(6) DEFAULT NULL,
+  `score_9` decimal(5,2) DEFAULT NULL,
+  `product_id_10` char(6) DEFAULT NULL,
+  `score_10` decimal(5,2) DEFAULT NULL,
+  `product_id_11` char(6) DEFAULT NULL,
+  `score_11` decimal(5,2) DEFAULT NULL,
+  `product_id_12` char(6) DEFAULT NULL,
+  `score_12` decimal(5,2) DEFAULT NULL,
+  `product_id_13` char(6) DEFAULT NULL,
+  `score_13` decimal(5,2) DEFAULT NULL,
+  `product_id_14` char(6) DEFAULT NULL,
+  `score_14` decimal(5,2) DEFAULT NULL,
+  `product_id_15` char(6) DEFAULT NULL,
+  `score_15` decimal(5,2) DEFAULT NULL,
+  `product_id_16` char(6) DEFAULT NULL,
+  `score_16` decimal(5,2) DEFAULT NULL,
+  `product_id_17` char(6) DEFAULT NULL,
+  `score_17` decimal(5,2) DEFAULT NULL,
+  `product_id_18` char(6) DEFAULT NULL,
+  `score_18` decimal(5,2) DEFAULT NULL,
+  `product_id_19` char(6) DEFAULT NULL,
+  `score_19` decimal(5,2) DEFAULT NULL,
+  `product_id_20` char(6) DEFAULT NULL,
+  `score_20` decimal(5,2) DEFAULT NULL,
+  `product_id_21` char(6) DEFAULT NULL,
+  `score_21` decimal(5,2) DEFAULT NULL,
+  `product_id_22` char(6) DEFAULT NULL,
+  `score_22` decimal(5,2) DEFAULT NULL,
+  `product_id_23` char(6) DEFAULT NULL,
+  `score_23` decimal(5,2) DEFAULT NULL,
+  `product_id_24` char(6) DEFAULT NULL,
+  `score_24` decimal(5,2) DEFAULT NULL,
+  `product_id_25` char(6) DEFAULT NULL,
+  `score_25` decimal(5,2) DEFAULT NULL,
+  `product_id_26` char(6) DEFAULT NULL,
+  `score_26` decimal(5,2) DEFAULT NULL,
+  `product_id_27` char(6) DEFAULT NULL,
+  `score_27` decimal(5,2) DEFAULT NULL,
+  `product_id_28` char(6) DEFAULT NULL,
+  `score_28` decimal(5,2) DEFAULT NULL,
+  `product_id_29` char(6) DEFAULT NULL,
+  `score_29` decimal(5,2) DEFAULT NULL,
+  `product_id_30` char(6) DEFAULT NULL,
+  `score_30` decimal(5,2) DEFAULT NULL,
+  `last_updated` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`username`),
+  KEY `product_id_1` (`product_id_1`),
+  KEY `product_id_2` (`product_id_2`),
+  KEY `product_id_3` (`product_id_3`),
+  KEY `product_id_4` (`product_id_4`),
+  KEY `product_id_5` (`product_id_5`),
+  KEY `product_id_6` (`product_id_6`),
+  KEY `product_id_7` (`product_id_7`),
+  KEY `product_id_8` (`product_id_8`),
+  KEY `product_id_9` (`product_id_9`),
+  KEY `product_id_10` (`product_id_10`),
+  KEY `product_id_11` (`product_id_11`),
+  KEY `product_id_12` (`product_id_12`),
+  KEY `product_id_13` (`product_id_13`),
+  KEY `product_id_14` (`product_id_14`),
+  KEY `product_id_15` (`product_id_15`),
+  KEY `product_id_16` (`product_id_16`),
+  KEY `product_id_17` (`product_id_17`),
+  KEY `product_id_18` (`product_id_18`),
+  KEY `product_id_19` (`product_id_19`),
+  KEY `product_id_20` (`product_id_20`),
+  KEY `product_id_21` (`product_id_21`),
+  KEY `product_id_22` (`product_id_22`),
+  KEY `product_id_23` (`product_id_23`),
+  KEY `product_id_24` (`product_id_24`),
+  KEY `product_id_25` (`product_id_25`),
+  KEY `product_id_26` (`product_id_26`),
+  KEY `product_id_27` (`product_id_27`),
+  KEY `product_id_28` (`product_id_28`),
+  KEY `product_id_29` (`product_id_29`),
+  KEY `product_id_30` (`product_id_30`),
+  CONSTRAINT `user_recommendations_ibfk_1` FOREIGN KEY (`username`) REFERENCES `user` (`username`) ON UPDATE CASCADE,
+  CONSTRAINT `user_recommendations_ibfk_10` FOREIGN KEY (`product_id_9`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE,
+  CONSTRAINT `user_recommendations_ibfk_11` FOREIGN KEY (`product_id_10`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE,
+  CONSTRAINT `user_recommendations_ibfk_12` FOREIGN KEY (`product_id_11`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE,
+  CONSTRAINT `user_recommendations_ibfk_13` FOREIGN KEY (`product_id_12`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE,
+  CONSTRAINT `user_recommendations_ibfk_14` FOREIGN KEY (`product_id_13`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE,
+  CONSTRAINT `user_recommendations_ibfk_15` FOREIGN KEY (`product_id_14`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE,
+  CONSTRAINT `user_recommendations_ibfk_16` FOREIGN KEY (`product_id_15`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE,
+  CONSTRAINT `user_recommendations_ibfk_17` FOREIGN KEY (`product_id_16`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE,
+  CONSTRAINT `user_recommendations_ibfk_18` FOREIGN KEY (`product_id_17`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE,
+  CONSTRAINT `user_recommendations_ibfk_19` FOREIGN KEY (`product_id_18`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE,
+  CONSTRAINT `user_recommendations_ibfk_2` FOREIGN KEY (`product_id_1`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE,
+  CONSTRAINT `user_recommendations_ibfk_20` FOREIGN KEY (`product_id_19`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE,
+  CONSTRAINT `user_recommendations_ibfk_21` FOREIGN KEY (`product_id_20`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE,
+  CONSTRAINT `user_recommendations_ibfk_22` FOREIGN KEY (`product_id_21`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE,
+  CONSTRAINT `user_recommendations_ibfk_23` FOREIGN KEY (`product_id_22`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE,
+  CONSTRAINT `user_recommendations_ibfk_24` FOREIGN KEY (`product_id_23`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE,
+  CONSTRAINT `user_recommendations_ibfk_25` FOREIGN KEY (`product_id_24`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE,
+  CONSTRAINT `user_recommendations_ibfk_26` FOREIGN KEY (`product_id_25`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE,
+  CONSTRAINT `user_recommendations_ibfk_27` FOREIGN KEY (`product_id_26`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE,
+  CONSTRAINT `user_recommendations_ibfk_28` FOREIGN KEY (`product_id_27`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE,
+  CONSTRAINT `user_recommendations_ibfk_29` FOREIGN KEY (`product_id_28`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE,
+  CONSTRAINT `user_recommendations_ibfk_3` FOREIGN KEY (`product_id_2`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE,
+  CONSTRAINT `user_recommendations_ibfk_30` FOREIGN KEY (`product_id_29`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE,
+  CONSTRAINT `user_recommendations_ibfk_31` FOREIGN KEY (`product_id_30`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE,
+  CONSTRAINT `user_recommendations_ibfk_4` FOREIGN KEY (`product_id_3`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE,
+  CONSTRAINT `user_recommendations_ibfk_5` FOREIGN KEY (`product_id_4`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE,
+  CONSTRAINT `user_recommendations_ibfk_6` FOREIGN KEY (`product_id_5`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE,
+  CONSTRAINT `user_recommendations_ibfk_7` FOREIGN KEY (`product_id_6`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE,
+  CONSTRAINT `user_recommendations_ibfk_8` FOREIGN KEY (`product_id_7`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE,
+  CONSTRAINT `user_recommendations_ibfk_9` FOREIGN KEY (`product_id_8`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `user_recommendations`
+--
+
+LOCK TABLES `user_recommendations` WRITE;
+/*!40000 ALTER TABLE `user_recommendations` DISABLE KEYS */;
+/*!40000 ALTER TABLE `user_recommendations` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -372,5 +521,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-08-04 23:33:19
-
+-- Dump completed on 2024-08-15 11:48:53
