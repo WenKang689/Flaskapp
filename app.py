@@ -650,7 +650,7 @@ def create_report_table():
     cur = mysql.connection.cursor()
     create_table_query = """
             CREATE TABLE IF NOT EXISTS report (
-                rpt_id CHAR(6) PRIMARY KEY, 
+                order_id CHAR(8) PRIMARY KEY,
                 date_day DATE,
                 date_week DATE,
                 date_month DATE,
@@ -668,84 +668,77 @@ def create_report_table():
     mysql.connection.commit()
     cur.close()
 
-def generate_report_id():
-    create_report_table()  # Ensure the table is created before generating the ID
-    
-    cur = mysql.connection.cursor()
-    cur.execute("SELECT rpt_id FROM report ORDER BY rpt_id DESC LIMIT 1")
-    last_id = cur.fetchone()
-    cur.close()
+import datetime
 
-    if last_id:
-        # Extract the numeric part of the ID and increment it
-        last_num = int(last_id[0][2:])  # Assuming ID format is RP000X
-        new_num = last_num + 1
-        new_id = f"RP{new_num:04d}"  # Keeps the leading zeros, making the numeric part 4 digits long
-    else:
-        # If there are no entries, start with RP0001
-        new_id = "RP0001"
-    
-    return new_id
-
-import datetime  # Make sure this import is at the top of your script
-def populate_report_table():
+def update_report_table():
     cur = mysql.connection.cursor()
-    
-    # Calculate date values and other attributes
-    today = datetime.date.today()
-    start_of_week = today - datetime.timedelta(days=today.weekday())
-    start_of_month = today.replace(day=1)
-    start_of_year = today.replace(day=1, month=1)
-    
-    # Total Sales
-    cur.execute("SELECT SUM(pur_amount) FROM purchase")
-    total_sales = cur.fetchone()[0] or 0.00
-    
-    # Total Product Sold
-    cur.execute("SELECT SUM(pur_quantity) FROM purchase")
-    total_product_sold = cur.fetchone()[0] or 0
-    
-    # Total Orders
-    cur.execute("SELECT COUNT(DISTINCT order_id) FROM purchase")
-    total_orders = cur.fetchone()[0] or 0
-    
-    # Total Users
-    cur.execute("SELECT COUNT(*) FROM user")
-    total_users = cur.fetchone()[0] or 0
-    
-    # Previous Total Users (For new_user calculation)
-    cur.execute("SELECT total_user FROM report WHERE date_day = %s ORDER BY rpt_id DESC LIMIT 1", (today - datetime.timedelta(days=1),))
-    previous_row = cur.fetchone()
-    previous_total_users = previous_row[0] if previous_row else 0    
-    new_users = total_users - previous_total_users
-    
-    # Data for each product
+
+    # Create or ensure the existence of the user_tracking table
     cur.execute("""
-        SELECT p.product_id, p.product_name, SUM(pur_quantity) AS product_sold
-        FROM purchase pur
-        JOIN product p ON pur.product_id = p.product_id
-        GROUP BY p.product_id, p.product_name
+        CREATE TABLE IF NOT EXISTS user_tracking (
+            id INT PRIMARY KEY,
+            previous_total_user INT
+        )
     """)
-    product_data = cur.fetchall()
-    
-    # Generate the next rpt_id
-    rpt_id = generate_report_id()
-    
-    # Insert or update data in the report table
-    for product in product_data:
-        product_id, product_name, product_sold = product
-        
+
+    # Initialize the tracking table if it does not have an entry
+    cur.execute("INSERT IGNORE INTO user_tracking (id, previous_total_user) VALUES (1, 0)")
+
+    # Get current total number of users
+    cur.execute("SELECT COUNT(username) FROM user")
+    current_total_user = cur.fetchone()[0]
+
+    # Extract distinct pur_dates from the purchase table
+    cur.execute("SELECT DISTINCT DATE(pur_date) FROM purchase")
+    dates = cur.fetchall()
+
+    for date_tuple in dates:
+        pur_date = date_tuple[0]
+        if not pur_date:
+            continue
+
+        # Calculate date values
+        date_day = pur_date.strftime("%Y-%m-%d")
+        start_of_week = pur_date - datetime.timedelta(days=pur_date.weekday())
+        date_week = start_of_week.strftime("%Y-%m-%d")
+        date_month = pur_date.replace(day=1).strftime("%Y-%m-%d")
+        date_year = pur_date.replace(month=1, day=1).strftime("%Y-%m-%d")
+
+        # Aggregate sales and product_sold for the specific date
         cur.execute("""
-            INSERT INTO report (rpt_id, date_day, date_week, date_month, date_year, sales, product_sold, product_id, product_name, total_order, total_user, new_user)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            ON DUPLICATE KEY UPDATE
-                sales = VALUES(sales),
-                product_sold = VALUES(product_sold),
-                total_order = VALUES(total_order),
-                total_user = VALUES(total_user),
-                new_user = VALUES(new_user)
-        """, (rpt_id, today, start_of_week, start_of_month, start_of_year, total_sales, product_sold, product_id, product_name, total_orders, total_users, new_users))
-    
+            SELECT SUM(pur_amount), SUM(pur_quantity), product_id, order_id
+            FROM purchase
+            WHERE DATE(pur_date) = %s
+            GROUP BY product_id, order_id
+        """, [pur_date])
+        purchase_data = cur.fetchall()
+
+        for pur_amount, pur_quantity, product_id, order_id in purchase_data:
+            cur.execute("SELECT product_name FROM product WHERE product_id = %s", [product_id])
+            product_name = cur.fetchone()[0]
+
+            cur.execute("SELECT COUNT(order_id) FROM purchase WHERE DATE(pur_date) = %s", [pur_date])
+            total_orders = cur.fetchone()[0]
+
+            # Get previous total_user from user_tracking table
+            cur.execute("SELECT previous_total_user FROM user_tracking WHERE id = 1")
+            previous_total_user = cur.fetchone()[0]
+
+            # Calculate new_user based on previous_total_user
+            new_user = current_total_user - previous_total_user
+            
+            # Check if the record already exists in the report table
+            cur.execute("SELECT COUNT(*) FROM report WHERE order_id = %s", [order_id])
+            if cur.fetchone()[0] == 0:
+                # Insert new record if it does not exist
+                cur.execute("""
+                    INSERT INTO report (order_id, date_day, date_week, date_month, date_year, sales, product_sold, product_id, product_name, total_order, total_user, new_user)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (order_id, date_day, date_week, date_month, date_year, pur_amount, pur_quantity, product_id, product_name, total_orders, current_total_user, new_user))
+
+    # Update the user_tracking table with the new total_user
+    cur.execute("UPDATE user_tracking SET previous_total_user = %s WHERE id = 1", (current_total_user,))
+
     mysql.connection.commit()
     cur.close()
 
@@ -763,7 +756,7 @@ def manager_reports():
             return redirect("/manager/reports/yearly")
     
     create_report_table()
-    populate_report_table()
+    update_report_table()
 
     return render_template("manager_reports.html")
 
