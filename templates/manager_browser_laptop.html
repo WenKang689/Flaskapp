@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Laptop Search</title>
+</head>
+<body>
+    <h1>Laptop Search</h1>
+    <form method="get" action="{{ url_for('laptop') }}">
+        <!-- Search Bar -->
+        <label for="search">Search:</label>
+        <input type="text" id="search" name="search" value="{{ request.args.get('search', '') }}"><br>
+        
+        <button type="submit">Search</button>
+    </form> 
+
+    {% if laptops %}
+        <ul>
+            {% for laptop in laptops %}
+                <li>
+                    <h2>{{ laptop[1] }}</h2>
+                    <p>Price: ${{ laptop[3] }}</p>
+                    {% if laptop[4] %}
+                        <img src="{{ laptop[4] }}" alt="{{ laptop[1] }}" width="200">
+                    {% else %}
+                        <p>No image available</p>
+                    {% endif %}
+                    <br>
+                    <a href="{{ url_for('laptop_detail', product_id=laptop[0]) }}">View More</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+</body>
+</html>
