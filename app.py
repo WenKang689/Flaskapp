@@ -329,54 +329,797 @@ def admin_orders():
 
 #Manager section (Ying Xin)
 #M-home page
-@app.route("/manager/homepage", methods=["GET","POST"])
+@app.route("/manager/homepage", methods=["GET", "POST"])
 def manager_homepage():
+    if not session.get('logged_in'):
+        return redirect('/login')
+    
+    if request.method == "POST":
+        action = request.form.get("action")
+        if action == "Home":
+            return redirect("/")
+        elif action == "Browser Laptop":
+            if request.form['search'] == 'search':
+                search_query = request.form['query']
+                session['homepage_search_query'] = search_query
+                return redirect("/laptop",search_query=search_query)
+        elif action == "Manage account":
+            return redirect("/manager/account")
+        elif action == "Reports":
+            return redirect("/manager/reports")
+        elif action == "Manage feedback":
+            return redirect("/manager/feedback")
+
     return render_template("manager_homepage.html")
+    
 
 #M-laptop
-@app.route("/manager/laptop", methods=["GET","POST"])
-def manager_laptop():
-    return render_template("manager_laptop.html")
+@app.route("/laptop", methods=["GET","POST"])
+def laptop():
+    search_query = request.args.get('search', '')
+        
+    # Fetch laptops and their first picture from the database
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        SELECT p.product_id, p.product_name, p.brand, p.price, p.memory, p.graphics, p.storage, p.battery, p.processor, p.os, p.weight, pic.pic_url
+        FROM product p
+        LEFT JOIN (
+            SELECT product_id, MIN(pic_url) as pic_url
+            FROM product_pic
+            GROUP BY product_id
+        ) pic ON p.product_id = pic.product_id
+    """)
+    all_laptops = cur.fetchall()
+    cur.close()
+
+    return render_template('manager_browser_laptop.html', laptops=all_laptops, search_query=search_query)
 
 #M-laptop/detail
-@app.route("/manager/laptop/detail", methods=["GET","POST"])
-def manager_laptop_detail():
-    return render_template("manager_laptop_detail.html")
+# Function to mask the username
+def mask_username(username):
+    if len(username) <= 1:
+        return '*'  # If the role_id is 1 character or fewer, show the first character
+    elif len(username) == 2:
+        return username[0] + '*'  # If the role_id is 2 characters, show the first character and mask the second
+    else:
+        return username[0] + '*' * (len(username) - 2) + username[-1]  # Mask all characters except first and last
 
-#M-view account
+
+@app.route("/laptop/<product_id>", methods=["GET","POST"])
+def laptop_detail(product_id):
+    
+    # Clean up the product_id
+    product_id = product_id.replace('<', '').replace('>', '').strip()
+    print(f"Processed product_id: {product_id}")  # Debug print
+
+    # Fetch laptop details
+    with mysql.connection.cursor() as cur:
+        cur.execute("""
+            SELECT *
+            FROM product
+            WHERE product_id = %s
+        """, (product_id,))
+        product = cur.fetchone()
+
+        if not product:
+            return render_template("laptop_detail.html", message="Laptop not found.", product_details={})
+
+        # Fetch laptop images
+        cur.execute("SELECT pic_url FROM product_pic WHERE product_id = %s", (product_id,))
+        images = cur.fetchall()
+        
+
+        # Fetch reviews for the product based on product_id
+        cur.execute("""
+            SELECT product_id, username, review, rating, review_time, reply
+            FROM review 
+            WHERE product_id = %s
+        """, (product_id,))
+        reviews = cur.fetchall()
+
+    reviews_list = []
+    # Process and mask the role_id for each review
+    for row in reviews:
+        masked_username = mask_username(row[1])
+        review_data = {
+            'username': masked_username,
+            'review': row[2],
+            'rating': row[3],
+            'date': row[4]
+        }
+        if row[5] is not None:  # Only add the 'reply' field if it is not None
+            review_data['reply'] = row[5]
+            
+        reviews_list.append(review_data)
+
+    stock_status = "In Stock" if product[13] > 0 else "Out of Stock"
+
+    product_details = {
+        'product_id': product[0],
+        'product_name': product[1],
+        'brand': product[2],
+        'processor': product[3],
+        'graphics': product[4],
+        'dimensions': product[5],
+        'weight': product[6],
+        'os': product[7],
+        'memory': product[8],
+        'storage': product[9],
+        'power_supply': product[10],
+        'battery': product[11],
+        'price': product[12],
+        'stock_status': stock_status,
+        'images': [image[0] for image in images],
+        'reviews': reviews_list
+    }
+
+    # Pass laptop_details to the template
+    return render_template("manager_view_laptop", product_details=product_details)
+
+#M-manage account
 @app.route("/manager/account", methods=["GET","POST"])
 def manager_account():
-    return render_template("manager_account.html")
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT stf_id, stf_name, stf_role FROM staff WHERE stf_role='admin'")
+    staff= cur.fetchall()
+    cur.close()
 
-#M-view account/add new account
+    staff = [
+        {'stf_id': row[0], 'stf_name': row[1], 'stf_role': row[2]}
+        for row in staff
+    ]
+
+    #add button
+    if request.method == "POST":
+        action = request.form("action")
+        if action == "add":
+            return redirect ("/manager/account/new")
+        
+    #remove button
+    if request.method == "POST":
+        action = request.form("action")
+        if action == "remove":
+            return redirect ("/manager/account/remove")
+
+    return render_template("manager_account.html",staff=staff)
+    
+#M-view account
+@app.route("/manager/account/detail/<string:stf_id>", methods=["GET", "POST"])
+def manager_view_account(stf_id):
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM staff WHERE stf_id = %s", (stf_id,))
+    admin = cur.fetchone()
+    cur.close()
+
+    admin = {
+        'stf_id': admin[0],
+        'stf_name': admin[2],
+        'stf_email': admin[3],
+        'stf_phone': admin[4],
+        'stf_dob': admin[5],
+        'stf_address': admin[6],
+        'stf_emer_contact': admin[7],
+        'stf_role': admin[8],
+    }
+
+    if request.method == "POST":
+        action = request.form("action")
+        #edit button
+        if action == "edit":
+            return redirect ("/manager/account/edit")
+        #back button
+        if action == "Back to Manage Accounts":
+            return redirect ("/manager/account")
+
+    return render_template("manager_view_account.html", admin=admin)
+    
+#M-add new account
+def generate_stf_id():
+    cur = mysql.connection.cursor()
+    # Assuming 'saved_card_id' is stored in a table named 'saved_cards'
+    cur.execute("SELECT stf_id FROM staff ORDER BY stf_id DESC LIMIT 1")
+    last_id = cur.fetchone()
+    cur.close()
+    if last_id:
+        # Extract the numeric part of the ID and increment it
+        last_num = int(last_id[0][2:])  # Assuming ID format is PC000X
+        new_num = last_num + 1
+        new_id = f"ST{new_num:04d}"  # Keeps the leading zeros, making the numeric part 4 digits long
+    else:
+        # If there are no entries, start with PC0001
+        new_id = "ST0001"
+    return new_id
+
+from datetime import datetime
+
 @app.route("/manager/account/new", methods=["GET","POST"])
 def manager_account_new():
+    if request.method == "POST":
+        staffdata = request.form
+        stf_id = generate_stf_id()
+        stf_psw = staffdata.get("Password")
+        stf_name = staffdata.get("Name")
+        stf_email = staffdata.get("Email")
+        stf_phone = staffdata.get("Phone")
+        stf_dob = staffdata.get("dob")
+        stf_address = staffdata.get("Address")
+        stf_emer_contact = staffdata.get("Emergency Contact")
+        stf_role = staffdata.get("Role")
+        
+        if stf_dob:
+            try:
+                datetime.strptime(stf_dob, '%Y-%m-%d')  # Validate date format
+            except ValueError:
+                return "Invalid date format. Please use YYYY-MM-DD."
+        try: 
+            cur = mysql.connection.cursor()
+            cur.execute("INSERT INTO staff (stf_id, stf_psw, stf_name, stf_email, stf_phone, stf_dob, stf_address, stf_emer_contact, stf_role) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", 
+                    (stf_id, stf_psw, stf_name, stf_email, stf_phone, stf_dob, stf_address, stf_emer_contact, stf_role))
+            mysql.connection.commit()
+            cur.close()
+            print("Data inserted successfully.")
+        except Exception as e:
+            mysql.connection.rollback()  # Rollback in case of error
+            print(f"Error: {e}")
+            return "An error occurred, please try again."
+        
+        return redirect(url_for('manager_account'))
+    
     return render_template("manager_account_new.html")
 
+#M-edit account
+@app.route("/manager/account/edit/<string:stf_id>", methods=["GET", "POST"])
+def manager_account_edit(stf_id):
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM staff WHERE stf_id = %s", (stf_id,))
+    admin = cur.fetchone()
+    cur.close()
+
+    admin = {
+        'stf_id': admin[0],
+        'stf_name': admin[2],
+        'stf_email': admin[3],
+        'stf_phone': admin[4],
+        'stf_dob': admin[5],
+        'stf_address': admin[6],
+        'stf_emer_contact': admin[7],
+        'stf_role': admin[8],
+    }
+    if request.method == "POST":
+        editadmin = request.form
+        stf_name = editadmin.get("stf_name")
+        stf_email = editadmin.get("stf_email")
+        stf_phone = editadmin.get("stf_phone")
+        stf_dob = editadmin.get("stf_dob")
+        stf_address = editadmin.get("stf_address")
+        stf_emer_contact = editadmin.get("stf_emer_contact")
+        stf_role = editadmin.get("stf_role")
+
+        action = request.form.get("action")
+        #done button
+        if action == "Done":
+            cur = mysql.connection.cursor()
+            cur.execute("UPDATE staff SET stf_name = %s, stf_email = %s, stf_phone = %s, stf_dob = %s,stf_address = %s, stf_emer_contact = %s, stf_role = %s WHERE stf_id = %s"
+                        ,(stf_name, stf_email, stf_phone, stf_dob, stf_address, stf_emer_contact, stf_role, stf_id))
+            mysql.connection.commit()
+            cur.close()
+            return redirect(url_for('manager_view_account', stf_id=stf_id))
+        #cancel button
+        elif action == "Cancel":
+            return redirect (url_for("manager_view_account",stf_id=stf_id))
+    
+    return render_template("manager_account_edit.html",admin=admin)
+
+#M-remove account
+@app.route("/manager/account/remove", methods=["GET","POST"])
+def manager_account_remove():
+    if request.method == "POST":
+        stf_id = request.form.get("stf_id")
+        action = request.form.get("action")
+        #cancel button
+        if action == "Cancel":
+            return redirect ("/manager/account")
+        #confirm button
+        if action == "Confirm":
+            cur = mysql.connection.cursor()
+            cur.execute("DELETE FROM staff WHERE stf_id = %s", (stf_id,))
+            mysql.connection.commit()
+            cur.close()
+            return redirect ("/manager/account")
+    
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM staff WHERE stf_id = %s", (stf_id,))
+    staff = cur.fetchone()
+    cur.close()
+
+    staff = {
+        'stf_id': staff[0],
+        'stf_name': staff[2],
+        'stf_email': staff[3],
+        'stf_phone': staff[4],
+        'stf_dob': staff[5],
+        'stf_address': staff[6],
+        'stf_emer_contact': staff[7],
+        'stf_role': staff[8]
+    }
+
+    return render_template("manager_account_remove.html", staff=staff)
+
+#M-manage reports
+def create_report_table():
+    cur = mysql.connection.cursor()
+    create_table_query = """
+            CREATE TABLE IF NOT EXISTS report (
+                rpt_id CHAR(6) PRIMARY KEY, 
+                date_day DATE,
+                date_week DATE,
+                date_month DATE,
+                date_year DATE,
+                sales DECIMAL(10, 2),
+                product_sold INT,
+                product_id CHAR(6),
+                product_name VARCHAR(100),
+                total_order INT,
+                total_user INT,
+                new_user INT
+            )
+        """
+    cur.execute(create_table_query)
+    mysql.connection.commit()
+    cur.close()
+
+def generate_report_id():
+    create_report_table()  # Ensure the table is created before generating the ID
+    
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT rpt_id FROM report ORDER BY rpt_id DESC LIMIT 1")
+    last_id = cur.fetchone()
+    cur.close()
+
+    if last_id:
+        # Extract the numeric part of the ID and increment it
+        last_num = int(last_id[0][2:])  # Assuming ID format is RP000X
+        new_num = last_num + 1
+        new_id = f"RP{new_num:04d}"  # Keeps the leading zeros, making the numeric part 4 digits long
+    else:
+        # If there are no entries, start with RP0001
+        new_id = "RP0001"
+    
+    return new_id
+
+import datetime  # Make sure this import is at the top of your script
+def populate_report_table():
+    cur = mysql.connection.cursor()
+    
+    # Calculate date values and other attributes
+    today = datetime.date.today()
+    start_of_week = today - datetime.timedelta(days=today.weekday())
+    start_of_month = today.replace(day=1)
+    start_of_year = today.replace(day=1, month=1)
+    
+    # Total Sales
+    cur.execute("SELECT SUM(pur_amount) FROM purchase")
+    total_sales = cur.fetchone()[0] or 0.00
+    
+    # Total Product Sold
+    cur.execute("SELECT SUM(pur_quantity) FROM purchase")
+    total_product_sold = cur.fetchone()[0] or 0
+    
+    # Total Orders
+    cur.execute("SELECT COUNT(DISTINCT order_id) FROM purchase")
+    total_orders = cur.fetchone()[0] or 0
+    
+    # Total Users
+    cur.execute("SELECT COUNT(*) FROM user")
+    total_users = cur.fetchone()[0] or 0
+    
+    # Previous Total Users (For new_user calculation)
+    cur.execute("SELECT total_user FROM report WHERE date_day = %s ORDER BY rpt_id DESC LIMIT 1", (today - datetime.timedelta(days=1),))
+    previous_row = cur.fetchone()
+    previous_total_users = previous_row[0] if previous_row else 0    
+    new_users = total_users - previous_total_users
+    
+    # Data for each product
+    cur.execute("""
+        SELECT p.product_id, p.product_name, SUM(pur_quantity) AS product_sold
+        FROM purchase pur
+        JOIN product p ON pur.product_id = p.product_id
+        GROUP BY p.product_id, p.product_name
+    """)
+    product_data = cur.fetchall()
+    
+    # Generate the next rpt_id
+    rpt_id = generate_report_id()
+    
+    # Insert or update data in the report table
+    for product in product_data:
+        product_id, product_name, product_sold = product
+        
+        cur.execute("""
+            INSERT INTO report (rpt_id, date_day, date_week, date_month, date_year, sales, product_sold, product_id, product_name, total_order, total_user, new_user)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE
+                sales = VALUES(sales),
+                product_sold = VALUES(product_sold),
+                total_order = VALUES(total_order),
+                total_user = VALUES(total_user),
+                new_user = VALUES(new_user)
+        """, (rpt_id, today, start_of_week, start_of_month, start_of_year, total_sales, product_sold, product_id, product_name, total_orders, total_users, new_users))
+    
+    mysql.connection.commit()
+    cur.close()
+
+@app.route("/manager/reports", methods=["GET","POST"])
+def manager_reports():
+    if request.method == "POST":
+        action = request.form.get("action")
+        if action == "Daily":
+            return redirect("/manager/reports/daily")
+        elif action == "Weekly":
+            return redirect("/manager/reports/weekly")
+        elif action == "Monthly":
+            return redirect("/manager/reports/monthly")
+        elif action == "Yearly":
+            return redirect("/manager/reports/yearly")
+    
+    create_report_table()
+    populate_report_table()
+
+    return render_template("manager_reports.html")
+
 #M-reports/daily
-@app.route("/manager/reports/daily", methods=["GET","POST"])
+@app.route("/manager/reports/daily", methods=["GET", "POST"])
 def manager_reports_daily():
-    return render_template("manager_reports_daily.html")
+    # Get the date from the form or use today as default
+    selected_date = request.form.get("date") or datetime.now().strftime("%Y-%m-%d")
+    
+    cur = mysql.connection.cursor()
+    
+    # Fetch the top-selling product for the selected date
+    cur.execute("""
+        SELECT product_id, 
+               product_name, 
+               SUM(product_sold) AS total_product_sold
+        FROM report
+        WHERE date_day = %s
+        GROUP BY product_id, product_name
+        ORDER BY total_product_sold DESC
+        LIMIT 1
+    """, (selected_date,))
+    
+    top_product = cur.fetchone()  # Fetch one record for the top product
+    
+    # Fetch daily report data for the selected date
+    cur.execute("""
+        SELECT date_day, 
+               SUM(sales) AS total_sales, 
+               SUM(product_sold) AS total_product_sold, 
+               MAX(new_user) AS total_new_user,
+               COUNT(order_id) AS total_orders
+        FROM report
+        WHERE date_day = %s
+        GROUP BY date_day
+    """, (selected_date,))
+    
+    daily_report = cur.fetchall()
+
+    # Fetch all daily report data for chart
+    cur.execute("""
+        SELECT date_day, 
+               SUM(sales) AS total_sales, 
+               SUM(product_sold) AS total_product_sold, 
+               MAX(new_user) AS total_new_user,
+               COUNT(order_id) AS total_orders
+        FROM report
+        GROUP BY date_day
+        ORDER BY date_day
+    """)
+    
+    daily_chart = cur.fetchall()
+    cur.close()
+
+    return render_template("manager_reports_daily.html", 
+                           daily_report=daily_report, 
+                           selected_date=selected_date, 
+                           top_product=top_product,daily_chart=daily_chart)
 
 #M-reports/weekly
-@app.route("/manager/reports/weekly", methods=["GET","POST"])
+@app.route("/manager/reports/weekly", methods=["GET", "POST"])
 def manager_reports_weekly():
-    return render_template("manager_reports_weekly.html")
+    # Get the date from the form or use the start of the current week as default
+    selected_date = request.form.get("date") or datetime.now().strftime("%Y-%m-%d")
+    
+    cur = mysql.connection.cursor()
+
+    # Calculate the start of the week for the selected_date
+    selected_date_obj = datetime.strptime(selected_date, "%Y-%m-%d")
+    start_of_week = selected_date_obj - timedelta(days=selected_date_obj.weekday())
+    date_week = start_of_week.strftime("%Y-%m-%d")
+
+    # Fetch the top 3 selling products for the selected week
+    cur.execute("""
+        SELECT product_id, 
+               product_name, 
+               SUM(product_sold) AS total_product_sold
+        FROM report
+        WHERE date_week = %s
+        GROUP BY product_id, product_name
+        ORDER BY total_product_sold DESC
+        LIMIT 3
+    """, (date_week,))
+    
+    top_product = cur.fetchall()
+
+    # Fetch weekly report data for the selected week
+    cur.execute("""
+        SELECT date_week, 
+               SUM(sales) AS total_sales, 
+               SUM(product_sold) AS total_product_sold, 
+               SUM(new_user) AS total_new_user,
+               COUNT(order_id) AS total_orders
+        FROM report
+        WHERE date_week = %s
+        GROUP BY date_week
+    """, (date_week,))
+    
+    weekly_report = cur.fetchall()
+
+    # Fetch all weekly report data for chart
+    cur.execute("""
+        SELECT date_week, 
+               SUM(sales) AS total_sales, 
+               SUM(product_sold) AS total_product_sold, 
+               SUM(new_user) AS total_new_user,
+               COUNT(order_id) AS total_orders
+        FROM report
+        GROUP BY date_week
+        ORDER BY date_week
+    """)
+    
+    weekly_chart = cur.fetchall()
+    cur.close()
+
+    return render_template("manager_reports_weekly.html", weekly_report=weekly_report,date_week=date_week,top_product=top_product,weekly_chart=weekly_chart)
 
 #M-reports/monthly
-@app.route("/manager/reports/monthly", methods=["GET","POST"])
+@app.route("/manager/reports/monthly", methods=["GET", "POST"])
 def manager_reports_monthly():
-    return render_template("manager_reports_monthly.html")
+    selected_date = request.form.get("date") or datetime.now().strftime("%Y-%m-%d")
+    
+    cur = mysql.connection.cursor()
+
+    # Calculate the start of the month for the selected_date
+    selected_date_obj = datetime.strptime(selected_date, "%Y-%m-%d")
+    date_month = selected_date_obj.replace(day=1).strftime("%Y-%m-%d")
+
+    # Fetch the top 3 selling products for the selected month
+    cur.execute("""
+        SELECT product_id, 
+               product_name, 
+               SUM(product_sold) AS total_product_sold
+        FROM report
+        WHERE date_month = %s
+        GROUP BY product_id, product_name
+        ORDER BY total_product_sold DESC
+        LIMIT 3
+    """, (date_month,))
+    
+    top_product = cur.fetchall()
+
+    # Fetch monthly report data for the selected month
+    cur.execute("""
+        SELECT date_month, 
+               SUM(sales) AS total_sales, 
+               SUM(product_sold) AS total_product_sold, 
+               SUM(new_user) AS total_new_user,
+               COUNT(order_id) AS total_orders
+        FROM report
+        WHERE date_month = %s
+        GROUP BY date_month
+    """, (date_month,))
+    
+    monthly_report = cur.fetchall()
+
+    # Fetch all monthly report data for chart
+    cur.execute("""
+        SELECT date_month, 
+               SUM(sales) AS total_sales, 
+               SUM(product_sold) AS total_product_sold, 
+               SUM(new_user) AS total_new_user,
+               COUNT(order_id) AS total_orders
+        FROM report
+        GROUP BY date_month
+        ORDER BY date_month
+    """)
+    
+    monthly_chart = cur.fetchall()
+
+    # Calculate sales growth
+    sales_growth = []
+    for i in range(1, len(monthly_chart)):
+        current_sales = monthly_chart[i][1]
+        previous_sales = monthly_chart[i-1][1]
+        growth = ((current_sales - previous_sales) / previous_sales * 100) if previous_sales else None
+        sales_growth.append({
+            'date_month': monthly_chart[i][0],
+            'growth': growth
+        })
+    
+    cur.close()
+
+    return render_template("manager_reports_monthly.html", 
+                           monthly_report=monthly_report, 
+                           date_month=date_month,
+                           top_product=top_product, 
+                           monthly_chart=monthly_chart,
+                           sales_growth=sales_growth)
 
 #M-reports/yearly
 @app.route("/manager/reports/yearly", methods=["GET","POST"])
 def manager_reports_yearly():
-    return render_template("manager_reports_yearly.html")
+    selected_date = request.form.get("date") or datetime.now().strftime("%Y-%m-%d")
+    
+    cur = mysql.connection.cursor()
 
-#M-feedbacks
-@app.route("/manager/feedback", methods=["GET","POST"])
-def manager_feedback():
-    return render_template("manager_feedback.html")
+    # Calculate the start and end of the year for the selected_date
+    selected_date_obj = datetime.strptime(selected_date, "%Y-%m-%d")
+    date_year = selected_date_obj.replace(month=1, day=1).strftime("%Y-%m-%d")
+
+    # Fetch the top 3 selling products for the selected year
+    cur.execute("""
+        SELECT product_id, 
+               product_name, 
+               SUM(product_sold) AS total_product_sold
+        FROM report
+        WHERE date_year = %s
+        GROUP BY product_id, product_name
+        ORDER BY total_product_sold DESC
+        LIMIT 3
+    """, (date_year,))
+    
+    top_product = cur.fetchall()
+
+    # Fetch yearly report data for the selected year
+    cur.execute("""
+        SELECT date_year, 
+               SUM(sales) AS total_sales, 
+               SUM(product_sold) AS total_product_sold, 
+               SUM(new_user) AS total_new_user,
+               COUNT(order_id) AS total_orders
+        FROM report
+        WHERE date_year = %s
+        GROUP BY date_year
+    """, (date_year,))
+    
+    yearly_report = cur.fetchall()
+
+    # Fetch all yearly report data for chart
+    cur.execute("""
+        SELECT date_year, 
+               SUM(sales) AS total_sales, 
+               SUM(product_sold) AS total_product_sold, 
+               SUM(new_user) AS total_new_user,
+               COUNT(order_id) AS total_orders
+        FROM report
+        GROUP BY date_year
+        ORDER BY date_year
+    """)
+    
+    yearly_chart = cur.fetchall()
+
+    # Calculate sales growth
+    sales_growth = []
+    for i in range(1, len(yearly_chart)):
+        current_sales = yearly_chart[i][1]
+        previous_sales = yearly_chart[i-1][1]
+        growth = ((current_sales - previous_sales) / previous_sales * 100) if previous_sales else None
+        sales_growth.append({
+            'date_year': yearly_chart[i][0],
+            'growth': growth
+        })
+    
+    #calculate customer retention rate for the year
+    retention_rate = None
+    if len(yearly_chart) > 1:
+        start_year_users = yearly_chart[0][4]  # Users at the beginning of the year
+        end_year_users = yearly_chart[-1][4]   # Users at the end of the year
+        if start_year_users:
+            # Calculate the retention rate: ((end_users - new_users) / start_users) * 100
+            new_users_during_year = yearly_chart[-1][3] - yearly_chart[0][3]  # New users during the year
+            retention_rate = ((end_year_users - new_users_during_year) / start_year_users) * 100
+
+    cur.close()
+
+    return render_template("manager_reports_yearly.html", 
+                           yearly_report=yearly_report, 
+                           date_year=date_year,
+                           top_product=top_product, 
+                           yearly_chart=yearly_chart,
+                           sales_growth=sales_growth,retention_rate=retention_rate)
+
+#M-view feedbacks
+@app.route("/manager/feedback", methods=["GET"])
+def view_feedback():
+    if not session.get('logged_in'):
+        return redirect('/login')
+    
+    # Fetch feedback from the database
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        SELECT feedback_id, stf_id, feedback, feedback_time
+        FROM feedback
+    """)
+    feedback_list = cur.fetchall()
+    cur.close()
+
+    return render_template("manager_view_feedback.html", feedback_list=feedback_list)
+
+#M-reply feedback
+def generate_feedback_id():
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT feedback_id FROM feedback WHERE feedback_id LIKE 'RP%' ORDER BY feedback_id DESC LIMIT 1")
+    last_id = cur.fetchone()
+    cur.close()
+    if last_id:
+        # Extract the numeric part of the ID and increment it
+        last_num = int(last_id[0][2:])  # Assuming ID format is PC000X
+        new_num = last_num + 1
+        new_id = f"RP{new_num:04d}"  # Keeps the leading zeros, making the numeric part 4 digits long
+    else:
+        # If there are no entries, start with PC0001
+        new_id = "RP0001"
+    return new_id
+
+@app.route("/manager/reply_feedback", methods=["GET", "POST"])
+def reply_feedback():
+    if not session.get('logged_in'):
+        return redirect('/login')
+    
+    feedback_id = request.args.get('feedback_id')
+    if not feedback_id:
+        return redirect('/manager/feedback')
+    
+    if not feedback_id.startswith('FD'):
+        flash("Invalid feedback ID. You can only reply to feedback starting with 'FD'.", "error")
+        return redirect('/manager/feedback')
+
+    if request.method == 'POST':
+        reply = request.form['reply']
+        staff_id = session.get('staff_id')
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT stf_id FROM staff WHERE stf_id=%s", (staff_id,))
+        result = cur.fetchone()
+        cur.close()        
+        if result:
+            stf_id = result[0]
+        else:
+            flash("Staff ID not found. Please log in again.", "error")
+            return redirect('/login')
+        feedback_time = datetime.now()
+        new_feedback_id = generate_feedback_id()
+
+        # Insert the reply into the database
+        cur = mysql.connection.cursor()
+        cur.execute("""
+            INSERT INTO feedback (feedback_id, stf_id, feedback, feedback_time)
+            VALUES (%s, %s, %s, %s)
+        """, (new_feedback_id, stf_id, reply, feedback_time))
+        mysql.connection.commit()
+        cur.close()
+
+        return redirect('/manager/feedback')  # Redirect to the feedback list after submitting
+
+
+    # Fetch the specific feedback from the database
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        SELECT feedback_id, feedback, stf_id, feedback_time
+        FROM feedback
+        WHERE feedback_id = %s
+    """, (feedback_id,))
+    feedback = cur.fetchone()
+
+    return render_template("manager_reply_feedback.html", feedback=feedback)
 
 if __name__=='__main__':
     app.run(debug=True)
