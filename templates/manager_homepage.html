@@ -10,7 +10,7 @@
         <h1>Welcome to Laptop Finder</h1>
         <ul>
             <li><a href="/">Home</a></li>
-            <li><a href="/manager/homepage">Find a Laptop</a></li>
+            <li><a href="/manager/homepage">Browser Laptop</a></li>
             <li><a href="/manager/account">Manage Account</a></li>
             <li><a href="/manager/reports">Reports</a></li>
             <li><a href="/manager/feedback">Manage Feedback</a></li>
@@ -25,34 +25,10 @@
         </section>
 
         <section>
-            <form action="/manager/homepage" method="post">
-                <input type="text" name="search_laptop" placeholder="Search for laptops..." required>
-                <input type="submit" name="action" value="Search">
+            <form action="/laptop" method="get"> <!-- Assuming the search route is /search -->
+                <input type="text" name="query" placeholder="Search laptops...">
+                <button type="submit">Search</button>
             </form>
-        </section>
-
-        <section>
-            <h2>Search Results:</h2>
-            {% if laptops %}
-                <ul>
-                    {% for laptop in laptops %}
-                        <li>
-                            <h3>{{ laptop.product_name }}</h3>
-                            <p><strong>Brand:</strong> {{ laptop.brand }}</p>
-                            <p><strong>Price:</strong> ${{ laptop.price }}</p>
-                            <p><strong>Memory:</strong> {{ laptop.memory }}</p>
-                            <p><strong>Processor:</strong> {{ laptop.processor }}</p>
-                            <p><strong>Graphics:</strong> {{ laptop.graphics }}</p>
-                            <p><strong>Storage:</strong> {{ laptop.storage }}</p>
-                            {% if laptop.pic_url %}
-                                <img src="{{ laptop.pic_url }}" alt="Laptop Image" style="max-width: 300px;">
-                            {% endif %}
-                        </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p>No laptops found matching your search criteria.</p>
-            {% endif %}
         </section>
     </main>
 
