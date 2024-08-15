@@ -5,6 +5,9 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
+import pandas as pd
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.feature_extraction.text import CountVectorizer
 import boto3
 from datetime import datetime, timezone
 import os
@@ -239,10 +242,9 @@ def homepage():
     else:
         #Search bar
         if request.method == 'POST':
-            if request.form['action'] == 'search':
-                search_query = request.form['query']
-                session['homepage_search_query'] = search_query
-                return redirect("/laptop",search_query=search_query)
+            search_query = request.form['query']
+            session['homepage_search_query'] = search_query
+            return redirect("/laptop")
         return render_template('homepage.html')
 
 #C-setting/profile (html sent)
@@ -689,8 +691,225 @@ def generate_next_search_id(): #generate search_id
 
 #C-survey/fill in survey
 @app.route("/recommend/survey/form", methods=["GET","POST"])
-def recommend_survey_form():
-    return render_template("recommend_survey_form.html")
+def survey_form():
+    df = fetch_data()
+    df.columns = [
+    'Product ID', 'Product Name', 'Brand', 'Processor', 'Graphics', 
+    'Dimensions', 'Weight (g)', 'Operating System', 'Memory', 'Storage', 
+    'Power Supply', 'Battery', 'Price (MYR)'
+    ]
+    df["combined_features"] = df.apply(combine_features, axis=1)
+    cv = CountVectorizer()
+    count_matrix = cv.fit_transform(df["combined_features"])
+    # Computing the cosine similarity based on the count matrix
+    cosine_sim = cosine_similarity(count_matrix)
+    data = request.form
+    specs = get_specs_from_survey(data)
+    combined_query = combine_features(pd.Series(specs))
+
+
+    recommendations = get_recommendations(combined_query, cosine_sim, df)
+
+    if not recommendations:
+        return render_template('error.html', error_message="No similar laptops found.")
+
+    return render_template('recommendations.html', recommendations=recommendations)
+
+def fetch_data():
+    cur=mysql.connection.cursor()
+    query = """
+    SELECT 
+        product_id, product_name, brand, processor, graphics, 
+        dimensions, weight, os, memory, storage, 
+        power_supply, battery, price
+    FROM product
+    """
+    df = pd.read_sql(query, mysql.connection)
+    cur.close()
+    return df
+    
+# Function to combine features
+def combine_features(row):
+    return (
+        row['Brand'] + " " +
+        row['Processor'] + " " +
+        row['Graphics'] + " " +
+        row['Dimensions'] + " " +
+        row['Operating System'] + " " +
+        row['Memory'] + " " +
+        row['Storage'] + " " +
+        row['Power Supply'] + " " +
+        row['Battery']
+    )
+
+def classify_laptop(processor, graphics, memory, storage, battery, weight):
+    # Determine the performance tier based on processor
+    if 'i7' in processor or 'i9' in processor or 'Ryzen 7' in processor or 'Ryzen 9' in processor:
+        cpu_tier = 'high-end'
+    elif 'i5' in processor or 'Ryzen 5' in processor:
+        cpu_tier = 'mid-tier'
+    else:
+        cpu_tier = 'low-end'
+
+    # Determine the performance tier based on graphics
+    if 'RTX' in graphics and any(num in graphics for num in ['3000', '4000']):
+        gpu_tier = 'high-end'
+    elif 'GTX' in graphics or 'RTX 2000' in graphics:
+        gpu_tier = 'mid-tier'
+    else:
+        gpu_tier = 'low-end'
+
+    # Determine the performance tier based on memory
+    if memory >= 16:
+        memory_tier = 'high-end'
+    elif memory == 8:
+        memory_tier = 'mid-tier'
+    else:
+        memory_tier = 'low-end'
+
+    # Determine the performance tier based on storage
+    if storage >= 1024:
+        storage_tier = 'high-end'
+    elif storage == 512:
+        storage_tier = 'mid-tier'
+    else:
+        storage_tier = 'low-end'
+
+    # Determine the performance tier based on battery
+    if battery >= 70:
+        battery_tier = 'high-end'
+    elif battery >= 50:
+        battery_tier = 'mid-tier'
+    else:
+        battery_tier = 'low-end'
+
+    # Determine the portability based on weight
+    if weight < 1500:
+        weight_class = 'portable'
+    elif weight <= 2500:
+        weight_class = 'standard'
+    else:
+        weight_class = 'heavy'
+
+    return {
+        'cpu_tier': cpu_tier,
+        'gpu_tier': gpu_tier,
+        'memory_tier': memory_tier,
+        'storage_tier': storage_tier,
+        'battery_tier': battery_tier,
+    
+        'weight_class': weight_class
+    }
+
+def get_specs_from_survey(data):
+    specs = {
+        'Brand': '',
+        'Processor': '',
+        'Graphics': '',
+        'Dimensions': '',
+        'Operating System': '',
+        'Memory': '',
+        'Storage': '',
+        'Power Supply': '',
+        'Battery': ''
+    }
+
+    if data['primary_use'] == 'general-use':
+        specs.update({'Processor': 'i3', 'Graphics': 'Integrated', 'Memory': '4GB'})
+    
+    elif data['primary_use'] == 'education':
+        if data.get('education_activities') == 'writing':
+            specs.update({'Processor': 'i3', 'Graphics': 'Integrated', 'Memory': '4GB'})
+        elif data.get('education_activities') == 'programming':
+            if data.get('high-performance') == 'yes':
+                specs.update({'Processor': 'i7', 'Graphics': 'GTX 1660', 'Memory': '16GB'})
+            else:
+                specs.update({'Processor': 'i5', 'Graphics': 'Integrated', 'Memory': '8GB'})
+        elif data.get('education_activities') == 'design':
+            if data.get('high-performance') == 'yes':
+                specs.update({'Processor': 'i7', 'Graphics': 'RTX 2060', 'Memory': '16GB'})
+            else:
+                specs.update({'Processor': 'i5', 'Graphics': 'GTX 1050', 'Memory': '8GB'})
+    
+    elif data['primary_use'] == 'gaming':
+        if data.get('gaming_type') == 'high-end':
+            specs.update({'Processor': 'i7', 'Graphics': 'RTX 3080', 'Memory': '16GB'})
+        elif data.get('gaming_type') == 'mid-tier':
+            specs.update({'Processor': 'i5', 'Graphics': 'GTX 1660', 'Memory': '8GB'})
+        else:
+            specs.update({'Processor': 'i3', 'Graphics': 'Intel HD', 'Memory': '4GB'})
+    
+    elif data['primary_use'] == 'professional-work':
+        if data.get('professional_work') == 'graphic-design':
+            specs.update({'Processor': 'i7', 'Graphics': 'RTX 2060', 'Memory': '16GB'})
+        elif data.get('professional_work') == 'programming':
+            specs.update({'Processor': 'i5', 'Graphics': 'Integrated', 'Memory': '8GB'})
+        elif data.get('professional_work') == 'video-editing':
+            specs.update({'Processor': 'i7', 'Graphics': 'RTX 3080', 'Memory': '32GB'})
+    
+    if data['brand'] != 'no-preference':
+        specs['Brand'] = data['brand']
+    
+    if data['os'] != 'no-preference':
+        specs['Operating System'] = data['os']
+    
+    if data['price'] == 'budget':
+        specs['Price (MYR)'] = '<500'
+    elif data['price'] == 'mid-range':
+        specs['Price (MYR)'] = '500-1000'
+    elif data['price'] == 'high-end':
+        specs['Price (MYR)'] = '1000-2000'
+    elif data['price'] == 'premium':
+        specs['Price (MYR)'] = '>2000'
+    
+    return specs
+
+def get_recommendations(combined_query, cosine_sim, df):
+    cv = CountVectorizer()
+    count_matrix = cv.fit_transform(df["combined_features"])
+
+    query_vec = cv.transform([combined_query])
+    query_sim = cosine_similarity(query_vec, count_matrix)
+
+    # Get the indices of the most similar products
+    similar_laptops = list(enumerate(query_sim[0]))
+    similar_laptops = sorted(similar_laptops, key=lambda x: x[1], reverse=True)
+    
+    # Normalize similarity scores to a range of 1 to 100
+    min_sim = min(similarity for index, similarity in similar_laptops)
+    max_sim = max(similarity for index, similarity in similar_laptops)
+    
+    # Ensure no division by zero
+    if max_sim == min_sim:
+        normalized_scores = [(index, 100) for index, _ in similar_laptops]
+    else:
+        normalized_scores = [
+            (index, 1 + 99 * (similarity - min_sim) / (max_sim - min_sim))
+            for index, similarity in similar_laptops
+        ]
+    
+    # Collect top laptop names and their similarity scores
+    top_laptops = []
+    for idx, score in normalized_scores:
+        laptop_name = df[df.index == idx]["Product Name"].values[0]
+        top_laptops.append((laptop_name, round(score)))
+        if len(top_laptops) == 5:
+            break
+    return top_laptops
+
+def get_categories():
+    # Define categories and associated keywords
+    categories = {
+        'Productivity': ['onedrive', 'keynote', 'onenote', 'microsoft word', 'microsoft excel', 'microsoft powerpoint', 'calendar', 'numbers', 'pages', 'draw.io', 'canva', 'apspace'],
+        'Media': ['audacity', 'ffmpeg', 'media player', 'photo viewer', 'imovie', 'garageband', 'bandicam'],
+        'Development': ['visual studio code', 'netbeans', 'azure data studio', 'git', 'obs-studio', 'mysqlworkbench', 'swi-prolog', 'docker', 'rapidminer studio'],
+        'Utilities': ['teams', 'bonjour', 'windows defender', 'windows mail', 'putty', 'hp', 'wsl', '7-zip', 'dotnet', 'faceit', 'nzxt cam', 'streamlabs', 'testproject', 'winpcap'],
+        'Games': ['game', 'launcher', 'hoyoplay', 'steam', 'wildgames', 'riot vanguard', 'easyanticheat'],
+        'Other': []
+    }
+    return categories
+
+    
 
 #C-auto recommend page
 @app.route("/recommend/auto", methods=["GET","POST"])
@@ -710,16 +929,11 @@ def recommend_auto():
         if os.path.exists(directory):
             apps_in_dir = detect_top_level_apps(directory)
             for app in apps_in_dir:
-                category = categorize_app(app)
+                category = categorize_app(app,categories)
                 categorized_apps[category] += 1
-    
-    username = "user1"  # Replace with the actual username
-    
-    recommendations = recommend_laptops(categorized_apps)
-    save_recommendations_to_db(username, recommendations)
-    
-    print("Recommendations saved to database.")
-    return render_template("recommend_auto.html")
+
+    recommendations=recommend_laptops(categorized_apps)
+    return render_template("recommend_auto.html",recommendations=recommendations,enumerate=enumerate)
 
 def detect_top_level_apps(directory):
     apps = []
@@ -739,12 +953,9 @@ def detect_top_level_apps(directory):
                 
     except (PermissionError, OSError):
         print(f"Permission denied or OS error for {directory}. Skipping.")
-
     return apps
 
-def categorize_app(app_path):
-
-    categories=get_categories()
+def categorize_app(app,categories):
     # Define categories and associated keywords
     for category, apps in categories.items():
         if app.lower() in apps:
@@ -785,14 +996,13 @@ def recommend_laptops(category_counts):
     
     for laptop in laptops:
         basic_score = sum(category_counts.get(category, 0) * category_priority.get(category, 0) for category in categories)
-        
         score_adjustment = 0
-        if 'gaming' in laptop['product_name'].lower():
+        if 'gaming' in laptop[1].lower():
             score_adjustment += 10  
-        if 'productivity' in laptop['product_name'].lower():
+        if 'productivity' in laptop[1].lower():
             score_adjustment += 5 
         
-        price = laptop['price']
+        price = laptop[12]
         normalized_price = max(1, price / 1000)  
         final_score = basic_score + score_adjustment - normalized_price
         
@@ -801,15 +1011,46 @@ def recommend_laptops(category_counts):
     recommendations.sort(key=lambda x: x[1], reverse=True)
     
     # Normalize the scores between 1 and 100
-    max_score = recommendations[0][1]
-    min_score = recommendations[-1][1]
-    score_range = max_score - min_score
+    if recommendations:
+        max_score = recommendations[0][1]
+        min_score = recommendations[-1][1]
+        score_range = max_score - min_score
 
-    for i in range(len(recommendations)):
-        normalized_score = ((recommendations[i][1] - min_score) / score_range) * 99 + 1
-        recommendations[i] = (recommendations[i][0], normalized_score)
+        for i in range(len(recommendations)):
+            normalized_score = ((recommendations[i][1] - min_score) / score_range) * 99 + 1
+            recommendations[i] = (recommendations[i][0], normalized_score)
+        save_recommendations_to_db(session.get('username'),recommendations[:30])  # Return top 30 recommendations
+        return recommendations[:30]
+    else:
+        print("No recommendations found.")
+        recommendations=[]
+        return recommendations
+
+def save_recommendations_to_db(username,recommendations):
+    if not recommendations:
+        print("No recommendations to save.")
+        return
+
+    # Prepare the insert/update query
+    print(f"Recommendations: {recommendations}")
+    upsert_query = """
+    INSERT INTO recommendation (username, product_id, score)
+    VALUES (%s, %s, %s)
+    ON DUPLICATE KEY UPDATE score = VALUES(score)
+    """
     
-    return recommendations[:30]  # Return top 30 recommendations
+    values = [(username, laptop[0], score) for laptop, score in recommendations]
+    
+    try:
+        cur = mysql.connection.cursor()
+        cur.executemany(upsert_query, values)
+        mysql.connection.commit()
+        print("Recommendations saved to database.")
+    except Exception as e:
+        mysql.connection.rollback()
+        raise e
+    finally:
+        cur.close()
 
 def get_categories():
     # Define categories and associated keywords
@@ -822,89 +1063,6 @@ def get_categories():
         'Other': []
     }
     return categories
-
-def save_recommendations_to_db(username, recommendations):
-    # Prepare the insert/update query
-    # Assuming the upsert_query is defined somewhere above this code
-    upsert_query = """
-    INSERT INTO user_recommendations (
-        username, product_id_1, score_1, product_id_2, score_2, product_id_3, score_3, 
-        product_id_4, score_4, product_id_5, score_5, product_id_6, score_6, 
-        product_id_7, score_7, product_id_8, score_8, product_id_9, score_9, 
-        product_id_10, score_10, product_id_11, score_11, product_id_12, score_12, 
-        product_id_13, score_13, product_id_14, score_14, product_id_15, score_15, 
-        product_id_16, score_16, product_id_17, score_17, product_id_18, score_18, 
-        product_id_19, score_19, product_id_20, score_20, product_id_21, score_21, 
-        product_id_22, score_22, product_id_23, score_23, product_id_24, score_24, 
-        product_id_25, score_25, product_id_26, score_26, product_id_27, score_27, 
-        product_id_28, score_28, product_id_29, score_29, product_id_30, score_30, 
-        last_updated
-    ) VALUES (
-        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 
-        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 
-        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 
-        %s, NOW()
-    ) ON DUPLICATE KEY UPDATE 
-        product_id_1 = VALUES(product_id_1), score_1 = VALUES(score_1),
-        product_id_2 = VALUES(product_id_2), score_2 = VALUES(score_2),
-        product_id_3 = VALUES(product_id_3), score_3 = VALUES(score_3),
-        product_id_4 = VALUES(product_id_4), score_4 = VALUES(score_4),
-        product_id_5 = VALUES(product_id_5), score_5 = VALUES(score_5),
-        product_id_6 = VALUES(product_id_6), score_6 = VALUES(score_6),
-        product_id_7 = VALUES(product_id_7), score_7 = VALUES(score_7),
-        product_id_8 = VALUES(product_id_8), score_8 = VALUES(score_8),
-        product_id_9 = VALUES(product_id_9), score_9 = VALUES(score_9),
-        product_id_10 = VALUES(product_id_10), score_10 = VALUES(score_10),
-        product_id_11 = VALUES(product_id_11), score_11 = VALUES(score_11),
-        product_id_12 = VALUES(product_id_12), score_12 = VALUES(score_12),
-        product_id_13 = VALUES(product_id_13), score_13 = VALUES(score_13),
-        product_id_14 = VALUES(product_id_14), score_14 = VALUES(score_14),
-        product_id_15 = VALUES(product_id_15), score_15 = VALUES(score_15),
-        product_id_16 = VALUES(product_id_16), score_16 = VALUES(score_16),
-        product_id_17 = VALUES(product_id_17), score_17 = VALUES(score_17),
-        product_id_18 = VALUES(product_id_18), score_18 = VALUES(score_18),
-        product_id_19 = VALUES(product_id_19), score_19 = VALUES(score_19),
-        product_id_20 = VALUES(product_id_20), score_20 = VALUES(score_20),
-        product_id_21 = VALUES(product_id_21), score_21 = VALUES(score_21),
-        product_id_22 = VALUES(product_id_22), score_22 = VALUES(score_22),
-        product_id_23 = VALUES(product_id_23), score_23 = VALUES(score_23),
-        product_id_24 = VALUES(product_id_24), score_24 = VALUES(score_24),
-        product_id_25 = VALUES(product_id_25), score_25 = VALUES(score_25),
-        product_id_26 = VALUES(product_id_26), score_26 = VALUES(score_26),
-        product_id_27 = VALUES(product_id_27), score_27 = VALUES(score_27),
-        product_id_28 = VALUES(product_id_28), score_28 = VALUES(score_28),
-        product_id_29 = VALUES(product_id_29), score_29 = VALUES(score_29),
-        product_id_30 = VALUES(product_id_30), score_30 = VALUES(score_30),
-        last_updated = NOW()
-    """
-
-    # Prepare the values
-    values = [username]
-    for i in range(30):
-        if i < len(recommendations):
-            laptop, score = recommendations[i]
-            values.extend([laptop['product_id'], score])
-        else:
-            values.extend([None, None])
-
-    # Ensure we have the correct number of values
-    if len(values) != 61:
-        raise ValueError(f"Expected 61 values, but got {len(values)}")
-
-    try:
-        # Execute the upsert query
-        cur = mysql.connection.cursor()
-        cur.execute(upsert_query, tuple(values))
-        cur.commit()
-        print(f"Recommendations for {username} saved to database.")
-    except mysql.connector.Error as err:
-        print(f"Database error: {err}")
-        if cur:
-            cur.rollback()
-    except ValueError as err:
-        print(f"Value error: {err}")
-
-        print("Recommendations saved to database.")
 
 #C-laptop (display all laptop + search result + filter) (html sent)
 @app.route("/laptop", methods=["GET","POST"])

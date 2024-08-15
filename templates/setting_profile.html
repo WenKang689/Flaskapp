@@ -136,7 +136,6 @@
 
         .profile-header img {
             border-radius: 50%;
-            margin-right: 100px;
         }
 
         .profile-header .profile-details {
@@ -236,7 +235,8 @@
             height: 200px;
             border-radius: 50%;
             margin-top: 20px;
-            margin-left: 100px;
+            margin-left: 395px;
+            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -277,7 +277,10 @@
                     <div id="current-profile-container">
                         <img id="current-profile-pic" src="{{ profile.profile_pic }}?v={{ timestamp }}" alt="Profile Picture">
                     </div>
-                    <div class="profile-details">
+                </div>
+                <form method="post" action="/user/setting/profile/edit" enctype="multipart/form-data">
+                    <input type="hidden" name="action" value="update">
+                    <div class="profile-form">
                         <div>
                             <label for="Name">Name</label>
                             <p id="Name">{{ profile.name }}</p>
@@ -286,11 +289,6 @@
                             <label for="username">Username</label>
                             <p id="username">{{ profile.username }}</p>
                         </div>
-                    </div>
-                </div>
-                <form method="post" action="/user/setting/profile/edit" enctype="multipart/form-data">
-                    <input type="hidden" name="action" value="update">
-                    <div class="profile-form">
                         <div>
                             <label for="dob">Date of Birth</label>
                             <p id="dob">{{ profile.dob }}</p>

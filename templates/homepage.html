@@ -3,36 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <title>Home - Laptop Finder</title>
-    <link rel="stylesheet" href="styles.css"> <!-- If you have a stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/homestyle.css') }}">
 </head>
 <body>
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <span class="close-btn" onclick="this.parentElement.style.display='none';">&times;</span>  
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
     <header>
-        <h1>Welcome to Laptop Finder</h1>
-        <nav>
-            <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="/laptop">Find a Laptop</a></li>
-                <!-- Add more navigation links as needed -->
-            </ul>
-        </nav>
+        <div class="navbar">
+            <div>
+                <a href="{{ url_for('homepage') }}" class="home-button">
+                    <img src="{{ url_for('static', filename='images/logo_home.png') }}" alt="Logo" class="logo">
+                </a>
+            </div>
+
+                <div class="icons">
+                    <a href="{{ url_for('laptop') }}" class="icon-link">
+                        <img src="{{ url_for('static', filename='images/header_all_laptop.png') }}" alt="Icon" class="all_laptop_icon">
+                    </a>
+                    <a href="{{ url_for('cart') }}" class="icon-link">
+                        <img src="{{ url_for('static', filename='images/cart.png') }}" alt="Icon" class="cart_icon">
+                    </a>
+                    <a href="{{ url_for('setting_profile') }}" class="icon-link">
+                        <img src="{{ url_for('static', filename='images/setting.png') }}" alt="Icon" class="setting_icon">
+                    </a>
+                </div>
+        </div>
     </header>
-    <main>
-        <section>
-            <h2>Find the Perfect Laptop for You</h2>
-            <p>Not sure which laptop suits your needs? Use our comprehensive laptop filtering tool to find the best match based on your preferences.</p>
-            <a href="/laptop" class="button">Start Searching</a>
-        </section>
-        <!-- Inserted Search Bar -->
-        <section>
-            <form action="/laptop" method="get"> <!-- Assuming the search route is /search -->
-                <input type="text" name="query" placeholder="Search laptops...">
-                <button type="submit">Search</button>
-            </form>
-        </section>
-        <!-- Add more sections or content as needed -->
-    </main>
-    <footer>
-        <p>&copy; 2023 Laptop Finder. All rights reserved.</p>
-    </footer>
+
+<main>
+    <section class="hero">
+        <div class="hero-content">
+            <div class="slideshow-container">
+                <div class="slideshow-images">
+                    <img class="slide" src="{{url_for('static', filename='images/home_page_thumbnail-1.png')}}" alt="home_page_thumbnail">
+                    <img class="slide" src="{{url_for('static', filename='images/home_page_thumbnail-2.png')}}" alt="home_page_thumbnail">
+                </div>
+            </div>
+        </div>
+    </section>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const slideshowImages = document.querySelector('.slideshow-images');
+            const slides = document.querySelectorAll('.slide');
+            const totalSlides = slides.length;
+            let currentIndex = 0;
+    
+            function slide() {
+                currentIndex++;
+    
+                if (currentIndex >= totalSlides) {
+                    currentIndex = 0; // Reset to the first slide
+                }
+    
+                const slideWidth = slides[0].clientWidth; // Get the width of a single slide
+                slideshowImages.style.transition = 'transform 1s ease-in-out';
+                slideshowImages.style.transform = `translateX(-${slideWidth * currentIndex}px)`;
+    
+                // Optional: Reset transition for the first slide
+                if (currentIndex === 0) {
+                    setTimeout(() => {
+                        slideshowImages.style.transition = 'none';
+                        slideshowImages.style.transform = translateX(0); // Reset to the first slide
+                        setTimeout(() => {
+                            slideshowImages.style.transition = 'transform 1s ease-in-out'; // Reapply transition
+                        }, 20);
+                    }, 1000); // Delay matches the duration of the transition
+                }
+            }
+    
+            setInterval(slide, 5000); // Change slide every 5 seconds
+        });
+    </script>
+    <section class="search-bar">
+        <form action="{{ url_for('homepage') }}" method="POST">
+            <input type="text" name="query" placeholder="Search">
+            <button type="submit" value="search">Search</button>
+        </form>
+    </section>
+    <section class="recommendations">
+        <h2>Top 3 Recommendations</h2>
+        <div class="recommendation-list">
+            <!-- Recommendation items will go here -->
+        </div>
+        <button class="view-more" onclick="redirectToRecommend()">View More</button>
+        <script>
+            function redirectToRecommend() {
+                window.location.href = "{{ url_for('recommend_auto') }}";
+            }
+        </script>
+        <p>Not suitable? <a href="#">Click here to recommend again</a></p>
+    </section>
+</main>
+<footer>
+    <div class="footer-image-overlay"></div>
+    <nav>
+        <a href="{{ url_for('homepage') }}">Home</a>
+        <a href="{{ url_for('laptop') }}">Laptops</a>
+        <a href="{{ url_for('cart') }}">Cart</a>
+        <a href="{{ url_for('setting_profile') }}">Settings</a>
+    </nav>
+    <p>&copy; Copyright 2024 - LAPTOP KAW KAW</p>
+</footer>
 </body>
 </html>
