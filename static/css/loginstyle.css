@@ -1,13 +1,18 @@
 body {
     margin: 0;
     padding: 0;
-    font-family: 'Noyh Medium', sans-serif;
+    font-family: 'Roboto', sans-serif;
     background-image: url('../images/background.png');
     background-size: cover;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
+}
+
+.user-container{
+    position: absolute;
+    top: 0px;
 }
 
 .login-container {
@@ -21,6 +26,12 @@ body {
     text-align: center;
     border: 1px solid rgb(255, 255, 255);
     position:relative;
+}
+
+.login-container p {
+    color: #000000;
+    margin-bottom: 20px;
+
 }
 
 .tabs {
@@ -38,7 +49,7 @@ body {
     transition: background 0.3s, transform 0.2s, border-color 0.3s; 
     font-size:24px;
     border: 0.5px solid white;
-
+    text-decoration: none;
 }
 
 .tab.active {
@@ -50,12 +61,13 @@ body {
 }
 
 .logo {
-    position: fixed; 
-    top: 95px; 
-    left:600px;
+    position: relative; 
+    top: 55px; 
+    right:130px;
     width: 300.44px; 
     height: 169px; 
 }
+
 
 h1 {
     font-size: 24px;
@@ -122,8 +134,8 @@ input:focus {
 }
 
 .register a {
-    color: #022ec0;
-    font-size: 16px;
+    color: #a20fd2;
+    font-size: 14px;
 }
 
 .btn {
@@ -141,14 +153,15 @@ input:focus {
 .btnf {
     background: none; 
     border: none; 
-    color: #022ec0; 
+    color: #0057a8; 
     text-decoration: underline; 
     cursor: pointer; 
     font-size: inherit; 
     padding: 5px; 
     display: block;
     text-align: left;
-    font-size: 16px;
+    font-size: 14px;
+    margin-bottom: 20px;
 }
 
 .flash-message { 
