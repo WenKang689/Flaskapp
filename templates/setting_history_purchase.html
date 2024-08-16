@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Purchase History</title>
+    <style>
+        .review-form {
+            margin-top: 10px;
+        }
+        .popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        .popup-content {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            position: relative;
+        }
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+        }
+        .stars {
+            display: flex;
+            gap: 5px;
+            cursor: pointer;
+        }
+        .star {
+            font-size: 30px;
+            color: gray;
+        }
+        .star.selected {
+            color: gold;
+        }
+        .order {
+            margin-bottom: 20px;
+        }
+        .product {
+            margin-bottom: 15px;
+        }
+        .product img {
+            max-width: 200px;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Purchase History</h1>
+    {% if orders %}
+        {% for order_id, details in orders.items() %}
+            <div class="order">
+                <h2>Order ID: {{ order_id }}</h2>
+                <p>Purchase Date: {{ details.date }}</p>
+                <p>Order Status: {{ details.status }}</p>
+                <ul>
+                    {% for product in details.products %}
+                        <li class="product">
+                            <p>Product Name: <a href="{{ url_for('laptop_detail', product_id=product.product_id) }}">{{ product.name }}</a></p>
+                            <p>Purchase Amount: RM {{ product.amount }}</p>
+                            <p>Purchase Quantity: {{ product.quantity }}</p>
+                            
+                            {% if product.pic_url %}
+                                <a href="{{ url_for('laptop_detail', product_id=product.product_id) }}">
+                                    <img src="{{ product.pic_url }}" alt="Product Image" style="max-width: 300px; max-height: 200px;">
+                                </a>
+                            {% else %}
+                                <p>No image available</p>
+                            {% endif %}
+                            
+                            {% if (order_id, product.product_id) in existing_reviews %}
+                                <p>Review: {{ existing_reviews[(order_id, product.product_id)]['review'] }}</p>
+                                <p>Rating: {{ existing_reviews[(order_id, product.product_id)]['rating'] }} / 5</p>
+                                {% if existing_reviews[(order_id, product.product_id)].reply %}
+                                    <p>Responses: {{ existing_reviews[(order_id, product.product_id)].reply }}</p>
+                                {% endif %}
+                            {% else %}
+                                <br>
+                                <button class="review-btn" data-product-id="{{ product.product_id }}" data-order-id="{{ order_id }}">Give Review and Rating</button>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No purchase history available.</p>
+    {% endif %}
+
+    <div id="review-popup" class="popup">
+        <div class="popup-content">
+            <span class="close-btn" onclick="closePopup()">&times;</span>
+            <form action="{{ url_for('setting_history_purchase') }}" method="post" class="review-form">
+                <input type="hidden" id="product-id" name="product_id">
+                <input type="hidden" id="order-id" name="order_id">
+                <label for="review">Review:</label>
+                <input type="text" id="review" name="review" required>
+                <label for="rating">Rating:</label>
+                <div class="stars">
+                    <span class="star" data-value="1">&#9733;</span>
+                    <span class="star" data-value="2">&#9733;</span>
+                    <span class="star" data-value="3">&#9733;</span>
+                    <span class="star" data-value="4">&#9733;</span>
+                    <span class="star" data-value="5">&#9733;</span>
+                </div>
+                <input type="hidden" id="rating" name="rating" required>
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.review-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                document.getElementById('product-id').value = this.dataset.productId;
+                document.getElementById('order-id').value = this.dataset.orderId;
+                document.getElementById('review-popup').style.display = 'flex';
+            });
+        });
+
+        function closePopup() {
+            document.getElementById('review-popup').style.display = 'none';
+        }
+
+        document.querySelectorAll('.star').forEach(star => {
+            star.addEventListener('click', function() {
+                const rating = this.getAttribute('data-value');
+                document.getElementById('rating').value = rating;
+                updateStars(rating);
+            });
+        });
+
+        function updateStars(rating) {
+            document.querySelectorAll('.star').forEach(star => {
+                if (star.getAttribute('data-value') <= rating) {
+                    star.classList.add('selected');
+                } else {
+                    star.classList.remove('selected');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

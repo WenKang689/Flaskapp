@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Reviews</title>
+    <link rel="stylesheet" href="/static/styles.css"> <!-- Path to your CSS -->
+</head>
+<body>
+    <header>
+        <h1>Customer Reviews Management</h1>
+        <nav>
+            <ul>
+                <li><a href="/admin/homepage">Admin Home</a></li>
+                <li><a href="/admin/manage-laptops">Manage Laptops</a></li>
+                <li><a href="/admin/laptop">View and Browse Laptops</a></li>
+                <li><a href="/admin/reviews">Manage Reviews</a></li>
+                <li><a href="/admin/feedback/send">Send Feedback</a></li>
+                <li><a href="/admin/orders">Manage Orders</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section>
+            <h2>Unreplied Reviews</h2>
+            {% if reviews %}
+                <ul>
+                    {% for review in reviews %}
+                        <li>
+                            <p><strong>{{ review[7] }}</strong> by {{ review[2] }}</p> <!-- product_name and username -->
+                            <p>Rating: {{ review[4] }}/5</p> <!-- rating -->
+                            <p>Reviewed on: {{ review[5] }}</p> <!-- review_time -->
+                            <p>Review Comment:"{{ review[3] }}"</p> <!-- review text -->
+                            {% if review[6] %}
+                                <p><em>Your Reply:</em> {{ review[6] }}</p> <!-- reply -->
+                            {% else %}
+                                <form action="/admin/reviews" method="POST">
+                                    <textarea name="reply" placeholder="Write your reply here..." required></textarea>
+                                    <input type="hidden" name="review_id" value="{{ review[0] }}">
+                                    <button type="submit">Reply</button>
+                                </form>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No unreplied reviews. All reviews have been replied to.</p>
+            {% endif %}
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2023 Laptop Finder. All rights reserved.</p>
+    </footer>
+</body>
+</html>

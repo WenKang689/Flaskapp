@@ -23,10 +23,10 @@
     {% endwith %}
     <h1>Staff Login</h1>
     <form method="post">
-      <label for="username">Username:</label>
-      <input type="text" id="username" name="username" required><br>
-      <label for="password">Password:</label>
-      <input type="password" id="password" name="password" required><br>
+      <label for="stf_id">Staff ID:</label>
+      <input type="text" id="stf_id" name="stf_id" required><br>
+      <label for="stf_psw">Password:</label>
+      <input type="password" id="stf_psw" name="stf_psw" required><br>
       <button type="submit">Login</button>
     </form>
     <a href="{{ url_for('login') }}">User Login</a>

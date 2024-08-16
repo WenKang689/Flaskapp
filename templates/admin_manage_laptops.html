@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Manage Laptops</title>
+    <style>
+      .flash-message { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
+      .flash-success { background-color: #dff0d8; }
+      .flash-danger { background-color: #f2dede; }
+      .close-btn { position: absolute; top: 5px; right: 10px; cursor: pointer; }
+      .button { margin: 5px; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; }
+    </style>
+  </head>
+  <body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash-message flash-{{ category }}">
+            <span class="close-btn" onclick="this.parentElement.style.display='none';">&times;</span>  
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    
+    <h1>Manage Laptops</h1>
+    
+    <a href="/admin/homepage" class="button">Admin Homepage</a>
+    <a href="/admin/laptop/add" class="button">Add Laptop</a>
+    <a href="/admin/laptop/remove" class="button">Remove Laptop</a>
+    <a href="/admin/laptop/edit" class="button">Edit Laptop Details</a>
+    <a href="/admin/laptop/manage_quantity" class="button">Manage Quantity</a>
+    
+  </body>
+</html>

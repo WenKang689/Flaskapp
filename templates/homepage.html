@@ -3,9 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <title>Home - Laptop Finder</title>
-    <link rel="stylesheet" href="styles.css"> <!-- If you have a stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/homestyle.css') }}">
 </head>
 <body>
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <span class="close-btn" onclick="this.parentElement.style.display='none';">&times;</span>  
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
     <header>
         <h1>Welcome to Laptop Finder</h1>
         <nav>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Feedback</title>
+    <link rel="stylesheet" href="/static/styles.css"> <!-- Path to your CSS -->
+</head>
+<body>
+    <header>
+        <h1>Admin Feedback</h1>
+        <nav>
+            <ul>
+                <li><a href="/admin/homepage">Admin Home</a></li>
+                <li><a href="/admin/manage-laptops">Manage Laptops</a></li>
+                <li><a href="/admin/laptop">View and Browse Laptops</a></li>
+                <li><a href="/admin/reviews">Manage Reviews</a></li>
+                <li><a href="/admin/feedback/send">Send Feedback</a></li>
+                <li><a href="/admin/reports">View Reports</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section>
+            <h2>Send Feedback</h2>
+            <form action="/admin/feedback/send" method="POST">
+                <textarea name="feedback" placeholder="Write your feedback here..." required></textarea>
+                <button type="submit">Send Feedback</button>
+            </form>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2023 Laptop Finder. All rights reserved.</p>
+    </footer>
+</body>
+</html>

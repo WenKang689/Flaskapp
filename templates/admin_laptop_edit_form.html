@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Laptop - Admin Panel</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Edit Laptop Details</h1>
+        <nav>
+            <ul>
+                <li><a href="/admin/homepage">Admin Home</a></li>
+                <li><a href="/admin/manage-laptops">Manage Laptops</a></li>
+                <li><a href="/admin/laptop">View and Browse Laptops</a></li>
+                <li><a href="/admin/reviews">Manage Reviews</a></li>
+                <li><a href="/admin/feedback/send">Send Feedback</a></li>
+                <li><a href="/admin/orders">Manage Orders</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <form action="/admin/laptop/edit" method="POST">
+            <input type="hidden" name="product_id" value="{{ laptop['product_id'] }}">
+
+            <label for="product_name">Product Name:</label>
+            <input type="text" id="product_name" name="product_name" value="{{ laptop['product_name'] }}" required><br>
+
+            <label for="brand">Brand:</label>
+            <input type="text" id="brand" name="brand" value="{{ laptop['brand'] }}" required><br>
+
+            <label for="processor">Processor:</label>
+            <input type="text" id="processor" name="processor" value="{{ laptop['processor'] }}" required><br>
+
+            <label for="graphics">Graphics:</label>
+            <input type="text" id="graphics" name="graphics" value="{{ laptop['graphics'] }}" required><br>
+
+            <label for="dimensions">Dimensions:</label>
+            <input type="text" id="dimensions" name="dimensions" value="{{ laptop['dimensions'] }}" required><br>
+
+            <label for="weight">Weight:</label>
+            <input type="text" id="weight" name="weight" value="{{ laptop['weight'] }}" required><br>
+
+            <label for="os">Operating System:</label>
+            <input type="text" id="os" name="os" value="{{ laptop['os'] }}" required><br>
+
+            <label for="memory">Memory:</label>
+            <input type="text" id="memory" name="memory" value="{{ laptop['memory'] }}" required><br>
+
+            <label for="storage">Storage:</label>
+            <input type="text" id="storage" name="storage" value="{{ laptop['storage'] }}" required><br>
+
+            <label for="power_supply">Power Supply:</label>
+            <input type="text" id="power_supply" name="power_supply" value="{{ laptop['power_supply'] }}" required><br>
+
+            <label for="battery">Battery:</label>
+            <input type="text" id="battery" name="battery" value="{{ laptop['battery'] }}" required><br>
+
+            <label for="price">Price:</label>
+            <input type="number" id="price" name="price" step="0.01" value="{{ laptop['price'] }}" required><br>
+
+            <button type="submit">Update Laptop</button>
+        </form>
+    </main>
+    <footer>
+        <p>&copy; 2023 Laptop Finder. All rights reserved.</p>
+    </footer>
+</body>
+</html>

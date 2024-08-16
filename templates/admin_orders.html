@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Orders</title>
+    <link rel="stylesheet" href="/static/styles.css"> <!-- Path to your CSS -->
+</head>
+<body>
+    <header>
+        <h1>Manage Orders</h1>
+        <nav>
+            <ul>
+                <li><a href="/admin/homepage">Admin Home</a></li>
+                <li><a href="/admin/manage-laptops">Manage Laptops</a></li>
+                <li><a href="/admin/laptop">View and Browse Laptops</a></li>
+                <li><a href="/admin/reviews">Manage Reviews</a></li>
+                <li><a href="/admin/feedback/send">Send Feedback</a></li>
+                <li><a href="/admin/orders">Manage Orders</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section>
+            <h2>All Orders</h2>
+            {% if orders %}
+                <ul>
+                    {% for order in orders %}
+                        <li>
+                            <p><strong>Order ID:</strong> {{ order[0] }}</p>
+                            <p><strong>Username:</strong> {{ order[1] }}</p>
+                            <p><strong>Purchase Date:</strong> {{ order[2] }}</p>
+                            <p><strong>Total Amount:</strong> {{ order[3] }}</p>
+                            <p><strong>Status:</strong> {{ order[4] }}</p>
+                            <p><strong>Shipping Address:</strong> {{ order[5] }}</p>
+                            <p><strong>Receiver Name:</strong> {{ order[6] }}</p>
+                            <p><strong>Receiver Phone:</strong> {{ order[7] }}</p>
+                            <p><strong>Shipping Status:</strong> {{ order[8] }}</p>
+                            <p><strong>Shipping Time:</strong> {{ order[9] }}</p>
+                            <form action="/admin/orders" method="POST">
+                                <input type="hidden" name="order_id" value="{{ order[0] }}">
+                                <button type="submit">Cancel Order</button>
+                            </form>
+                        </li>
+                    {% endfor %}
+                </ul>
+
+                <!-- Pagination Controls -->
+                <div class="pagination">
+                    {% if current_page > 1 %}
+                        <a href="{{ url_for('admin_orders', page=current_page-1) }}">Previous</a>
+                    {% endif %}
+
+                    <span>Page {{ current_page }} of {{ total_pages }}</span>
+
+                    {% if current_page < total_pages %}
+                        <a href="{{ url_for('admin_orders', page=current_page+1) }}">Next</a>
+                    {% endif %}
+                </div>
+
+            {% else %}
+                <p>No orders found.</p>
+            {% endif %}
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2023 Laptop Finder. All rights reserved.</p>
+    </footer>
+</body>
+</html>
