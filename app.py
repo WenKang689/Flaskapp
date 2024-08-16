@@ -8,6 +8,9 @@ from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 import boto3
 from datetime import datetime, timezone
 import os
+import MySQLdb
+from flask import request, render_template, redirect, flash
+from math import ceil
 
 app= Flask(__name__)
 
@@ -18,6 +21,7 @@ app.config["MYSQL_USER"] = db["mysql_user"]
 app.config["MYSQL_PASSWORD"] = db["mysql_password"]
 app.config["MYSQL_DB"] = db["mysql_db"]
 app.secret_key = db["secret_key"]
+
 
 mysql = MySQL(app)
 
@@ -71,8 +75,10 @@ def register():
             cur.close()
             return redirect("/register")
         else:
-            cur.execute("INSERT INTO user VALUES(%s,%s,%s,%s,%s,%s,%s,%s,NULL)",(username,password,name,email,phone,dob,address,occupation))
-            mysql.connection.commit()
+            cur.execute(
+    "INSERT INTO user (username, password, name, email, phone, dob, address, occupation) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+    (username, password, name, email, phone, dob, address, occupation)
+)
             flash("Register Successful.")
             cur.close()
             return redirect("/")
@@ -181,70 +187,492 @@ def reset_password():
     return render_template("reset_password.html")
 
 #staff login
-@app.route("/staff/login", methods=["GET","POST"])
+@app.route("/staff/login", methods=["GET", "POST"])
 def staff_login():
     if request.method == "POST":
-        userdata=request.form
-        staff_id=userdata["stf_id"]
-        staff_psw=userdata["stf_psw"]
-        cur=mysql.connection.cursor()
-        value=cur.execute("SELECT stf_id, stf_psw, stf_role FROM user WHERE stf_id=%s",(staff_id,))
+        userdata = request.form
+        staff_id = userdata.get("stf_id")
+        staff_psw = userdata.get("stf_psw")
+        cur = mysql.connection.cursor()
+        value = cur.execute("SELECT stf_id, stf_psw, stf_role FROM staff WHERE stf_id=%s", (staff_id,))
 
-        if value>0:
-            data=cur.fetchone()
-            passw=data["stf_psw"]
-            role=data["stf_role"]
-            if staff_psw==passw:
-                if role=="Manager":
-                    session["logged_in"]=True
-                    session["staff_id"]=staff_id
-                    flash("Login Successful","success")
+        if value > 0:
+            data = cur.fetchone()
+            passw = data[1]
+            role = data[2]
+            if staff_psw == passw:
+                session["logged_in"] = True
+                session["staff_id"] = staff_id
+                if role == "manager":
+                    flash("Login Successful", "success")
                     return redirect("/manager/homepage")
-                elif role=="Admin":
-                    session["logged_in"]=True
-                    session["staff_id"]=staff_id
-                    flash("Login Successful","success")
+                elif role == "admin":
+                    flash("Login Successful", "success")
                     return redirect("/admin/homepage")
+            else:
+                flash("Invalid staff ID or password.")
         else:
-            flash("User not found.")
+            flash("Invalid staff ID or password.")
         cur.close()
     return render_template("staff_login.html")
+
 
 #Client Section (Timi)
 #C-home page
 @app.route('/homepage', methods=['GET', 'POST'])
 def homepage():
-    return render_template("homepage.html")
+    if not session.get('logged_in'):
+        return redirect('/login')
+    else:
+        #Search bar
+        if request.method == 'POST':
+            if request.form['action'] == 'search':
+                search_query = request.form['query']
+                session['homepage_search_query'] = search_query
+                return redirect("/laptop",search_query=search_query)
+        return render_template('homepage.html')
 
 #C-setting/profile
 @app.route("/user/setting/profile", methods=["GET","POST"])
 def setting_profile():
-    return render_template("setting_profile.html")
+    if 'logged_in' in session:
+        username = session["username"]
+
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT username, password, name, email, phone, dob, address, occupation, prof_pic FROM user WHERE username = %s", (username,))
+        profile_data = cur.fetchone()
+        cur.close()
+
+        if profile_data:
+            profile = {
+                'username': profile_data[0],
+                'password': profile_data[1],
+                'name': profile_data[2],
+                'email': profile_data[3],
+                'phone': profile_data[4],
+                'dob': profile_data[5],
+                'address': profile_data[6],
+                'occupation': profile_data[7],
+                'profile_pic': profile_data[8]
+            }
+            # Pass the profile data to the template to view
+            timestamp = datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')
+            response = make_response(render_template('setting_profile.html', profile=profile,timestamp=timestamp))
+        else:
+            flash("User not found.", "danger")
+            response = make_response(render_template('setting_profile.html', profile=None))
+        
+        response.headers['Cache-Control'] = 'no-store'
+        return response
+    
+    else:
+        flash("Please log in to view this page.", "warning")
+        return render_template('login.html')
 
 #C-setting/profile/edit profile
 @app.route("/user/setting/profile/edit", methods=["GET","POST"])
-def setting_profile_edit():
-    return render_template("setting_profile_edit.html")
+def edit_profile():
+    current_username = session["username"]
 
-#C-setting/profile/payment method
-@app.route("/user/setting/payment", methods=["GET"])
+    if request.method == "POST":
+        # Handle update action
+        new_username = request.form['username']
+        password = request.form['password']
+        name = request.form['name']
+        email = request.form['email']
+        phone = request.form.get('phone', '')  # Optional fields can use .get to avoid KeyError
+        dob = request.form.get('dob', '')
+        address = request.form.get('address', '')
+        occupation = request.form.get('occupation', '')
+        profile_pic_url = None
+
+        # Handle profile picture upload
+        if 'profile_pic' in request.files and request.files['profile_pic'].filename != '':
+            profile_pic = request.files['profile_pic']
+
+            object_name = f"User Profile Picture/{new_username}"
+            try:
+                profile_pic_url = upload_file_to_s3(profile_pic, S3_BUCKET, object_name)
+            except Exception as e:
+                flash("Failed to upload profile picture. Please try again.", "danger")
+                return redirect("/user/setting/profile/edit")
+        else:
+            cur = mysql.connection.cursor()
+            cur.execute("SELECT prof_pic FROM user WHERE username = %s", (current_username,))
+            profile_pic_url = cur.fetchone()[0]
+            cur.close()
+
+        # Check if the updated username conflicts with existing usernames
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT username FROM user WHERE username = %s", (new_username,))
+        existing_user = cur.fetchone()
+        if existing_user and existing_user[0] != current_username: 
+            flash(f"Username '{new_username}' already exists. Please choose a different username.", "danger")
+            cur.close() 
+            return redirect("/user/setting/profile/edit")
+
+        # Validate input lengths
+        if len(new_username) > 30:
+            flash("Username must be 30 characters or fewer.", "danger")
+            return redirect("/user/setting/profile/edit")
+        if len(password) > 20:
+            flash("Password must be 20 characters or fewer.", "danger")
+            return redirect("/user/setting/profile/edit")
+        if len(name) > 30:
+            flash("Name must be 30 characters or fewer.", "danger")
+            return redirect("/user/setting/profile/edit")
+        if len(email) > 30:
+            flash("Email must be 30 characters or fewer.", "danger")
+            return redirect("/user/setting/profile/edit")
+        if len(phone) !=10 or not phone.isdigit():
+            flash("Phone number must be 10 digits only.", "danger")
+            return redirect("/user/setting/profile/edit")
+        # No need to check 'dob' as it's a date field and will always follow the date format
+        if len(address) > 255:
+            flash("Address must be 255 characters or fewer.", "danger")
+            return redirect("/user/setting/profile/edit")
+        if len(occupation) > 30:
+            flash("Occupation must be 30 characters or fewer.", "danger")
+            return redirect("/user/setting/profile/edit")
+
+        # Update query for the user table
+        query = """
+        UPDATE user 
+        SET username = %s, password = %s, name = %s, email = %s, phone = %s, dob = %s, address = %s, occupation = %s, prof_pic = %s
+        WHERE username = %s
+        """
+        data = (new_username, password, name, email, phone, dob, address, occupation, profile_pic_url, current_username)
+
+        cur.execute(query, data)
+        mysql.connection.commit()
+        flash("Profile updated successfully", "success")
+        cur.close()
+
+        # Update session username if it was changed
+        if new_username != current_username:
+            session['username'] = new_username
+        return redirect("/user/setting/profile")
+
+    cur = mysql.connection.cursor()
+    # Selecting user information to pre-fill the form
+    cur.execute("SELECT name, username, dob, email, password, phone, occupation, address, prof_pic FROM user WHERE username = %s", (current_username,))
+    profile_data = cur.fetchone()
+    cur.close()
+
+    if profile_data:
+        # Pass the profile data to the template to pre-fill the form
+        profile = {
+            'name': profile_data[0],
+            'username': profile_data[1],
+            'dob': profile_data[2],
+            'email': profile_data[3],
+            'password': profile_data[4],
+            'phone': profile_data[5],
+            'occupation': profile_data[6],
+            'address': profile_data[7],
+            'profile_pic': profile_data[8]
+        }
+        timestamp = datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')
+        response = make_response(render_template('edit_profile.html', profile=profile,timestamp=timestamp))
+    else:
+        flash("User not found.", "danger")
+        return redirect("/user/setting/profile")
+    response.headers['Cache-Control'] = 'no-store'
+    return response
+
+def upload_file_to_s3(file_obj, bucket_name, object_name):
+    s3_client = boto3.client('s3')
+
+    try:
+        print(f"Uploading file: {object_name}")
+        s3_client.upload_fileobj(file_obj, bucket_name, object_name)
+        
+        object_url = f"https://{bucket_name}.s3.amazonaws.com/{object_name}"
+        print(f"File uploaded successfully: {object_url}")
+        return object_url
+    except Exception as e:
+        print(f"Error uploading file to S3: {str(e)}")
+        return None
+
+#C-setting/payment method
+@app.route("/user/setting/payment", methods=["GET", "POST"])
 def setting_payment():
-    return render_template("setting_payment.html")
 
-#C-setting/profile/edit payment method(add,delete)
-@app.route("/user/setting/payment/edit", methods=["GET","POST"])
+    username = session.get('username')
+
+    cur = mysql.connection.cursor()
+    
+    cur.execute("SELECT saved_card_id, username, pay_email, name_on_card, card_no, cvv, expiry_date FROM payment WHERE username = %s", [username])
+    payment_data = cur.fetchall()
+
+    payment_methods = []
+
+    if payment_data:
+        for row in payment_data:
+            payment_method = {
+                'saved_card_id': row[0],
+                'username': row[1],
+                'pay_email': row[2],
+                'name_on_card': row[3],
+                'card_no': row[4],
+                'cvv': row[5],
+                'expiry_date': row[6]
+            }
+            payment_methods.append(payment_method)
+        
+        # Pass the payment methods data to the template to view
+        if payment_methods:
+            return render_template('setting_payment_detail.html', payment_methods=payment_methods)
+        else:
+            flash("No payment methods found for the user.", "danger")
+            return redirect("/user/setting/payment")
+    
+    return render_template("setting_payment_detail.html", payment_methods=payment_methods)
+
+@app.route('/user/setting/payment/edit', methods=['GET','POST'])
 def setting_payment_edit():
+    current_username = session.get('username')
+    saved_card_id = generate_next_saved_card_id()
+
+    if request.method == "POST":
+        action = request.form.get('action')
+        
+        if action == "add":
+            render_template("setting_payment_edit.html")
+
+            cur = mysql.connection.cursor()
+
+            pay_email = request.form.get('pay_email','')
+            name_on_card = request.form.get('name_on_card','')
+            card_no = request.form.get('card_no','').replace(" ", "")  # Remove spaces from card number
+            cvv = request.form.get('cvv','')
+            expiry_date = request.form.get('expiry_date','')
+
+            # Input validation
+            errors = {
+                "pay_email": not is_valid_email(pay_email),
+                "card_no": not is_valid_card_number(card_no),
+                "cvv": not is_valid_cvv(cvv),
+                "expiry_date": not is_valid_expiry_date(expiry_date)
+            }
+
+            if any(errors.values()):
+                return render_template("setting_payment_edit.html", errors=errors, form_data=request.form)
+            else:
+                # Proceed with the database insert if all fields are valid
+                cur = mysql.connection.cursor()
+                cur.execute("INSERT INTO payment (saved_card_id, username, pay_email, name_on_card, card_no, cvv, expiry_date) VALUES (%s, %s, %s, %s, %s, %s, %s)", (saved_card_id, current_username, pay_email, name_on_card, card_no, cvv, expiry_date))
+                mysql.connection.commit()
+                flash("Payment method added successfully.", "success")
+                cur.close()
+                return redirect("/user/setting/payment")
+
+        elif action == "remove":
+            saved_card_id = request.form.get('saved_card_id')
+            cur = mysql.connection.cursor()
+            cur.execute("DELETE FROM payment WHERE saved_card_id = %s AND username = %s", (saved_card_id, current_username))
+            mysql.connection.commit()
+            flash("Payment method removed successfully.", "success")
+            cur.close()
+            return redirect("/user/setting/payment")
+        
+        else:
+            flash("Invalid action.", "danger")
+            return render_template("setting_payment_edit.html")
+    
     return render_template("setting_payment_edit.html")
+
+#generate next saved card id
+def generate_next_saved_card_id():
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT saved_card_id FROM payment ORDER BY saved_card_id DESC LIMIT 1")
+    last_id = cur.fetchone()
+    cur.close()
+    if last_id:
+        # Extract the numeric part of the ID and increment it
+        last_num = int(last_id[0][2:])  # Assuming ID format is PC000X
+        new_num = last_num + 1
+        new_id = f"PC{new_num:04d}"  # Keeps the leading zeros, making the numeric part 4 digits long
+    else:
+        # If there are no entries, start with PC0001
+        new_id = "PC0001"
+    return new_id
+
+def is_valid_email(email):
+    return "@" in email and "." in email.split('@')[-1]
+
+def is_valid_card_number(card_number):
+    return card_number.isdigit() and len(card_number) == 16
+
+def is_valid_cvv(cvv):
+    return cvv.isdigit() and len(cvv) == 3
+
+def is_valid_expiry_date(expiry_date):
+    if len(expiry_date) == 5 and expiry_date[2] == '/':
+        month, year = expiry_date.split('/')
+        return month.isdigit() and year.isdigit() and 1 <= int(month) <= 12
+    return False
 
 #C-setting/history(default purchase)
 @app.route("/user/setting/history/purchase", methods=["GET","POST"])
 def setting_history_purchase():
-    return render_template("setting_history_purchase.html")
+    username = session.get("username")
+    
+    cur = mysql.connection.cursor()
+
+    if request.method == "POST":
+        # Handle review submission
+        product_id = request.form.get("product_id")
+        order_id = request.form.get("order_id")
+        review_text = request.form.get("review")
+        rating = int(request.form.get("rating"))
+        current_time = datetime.now()
+        reply = None
+
+        # Check if review already exists
+        cur.execute("""
+            SELECT review_id FROM review
+            WHERE product_id = %s AND username = %s AND order_id = %s
+        """, (product_id, username, order_id))
+        existing_review = cur.fetchone()
+
+        if existing_review:
+            flash("You have already reviewed this product.", "warning")
+        else:
+            review_id = generate_next_review_id()
+            # Save review and rating to the database
+            cur.execute("""
+                INSERT INTO review (review_id, order_id, product_id, username, review, rating, review_time, reply)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """, (review_id, order_id, product_id, username, review_text, rating, current_time, reply))
+            mysql.connection.commit()
+            flash("Review submitted successfully.", "success")
+
+        cur.close()
+        return redirect("/user/setting/history/purchase")
+
+    try:
+        # Retrieve purchase history with product images
+        query = """
+        SELECT p.order_id, p.product_id, p.pur_date, p.pur_amount, p.pur_status, p.pur_quantity,
+               (SELECT pic_url FROM product_pic pic WHERE pic.product_id = p.product_id LIMIT 1) AS pic_url,
+               (SELECT product_name FROM product prod WHERE prod.product_id = p.product_id) AS product_name
+        FROM purchase p
+        WHERE p.username = %s
+        ORDER BY p.pur_date DESC
+        """
+        cur.execute(query, (username,))
+        purchase_history = cur.fetchall()
+
+        # Initialize the dictionary for existing reviews
+        existing_reviews = {}
+        for row in purchase_history:
+            order_id, product_id, pur_date, pur_amount, pur_status, pur_quantity, pic_url, product_name = row
+            cur.execute("""
+                SELECT review_id, review, rating, reply FROM review
+                WHERE product_id = %s AND username = %s AND order_id = %s
+            """, (product_id, username, order_id))
+            review = cur.fetchone()
+            if review:
+                existing_reviews[(order_id, product_id)] = {
+                    "review_id": review[0],
+                    "review": review[1],
+                    "rating": review[2],
+                    "reply": review[3]
+                }
+        cur.close()
+
+        # Organize purchase history by order_id
+        orders = {}
+        for row in purchase_history:
+            order_id, product_id, pur_date, pur_amount, pur_status, pur_quantity, pic_url, product_name = row
+            if order_id not in orders:
+                orders[order_id] = {
+                    'date': pur_date,
+                    'status': pur_status,
+                    'products': []
+                }
+            orders[order_id]['products'].append({
+                'product_id': product_id,
+                'name': product_name,
+                'amount': pur_amount,
+                'quantity': pur_quantity,
+                'pic_url': pic_url
+            })
+
+        
+        if not purchase_history:
+            return render_template("setting_history_purchase.html", purchase_history=[], message="No purchase history available.")
+        else:
+            return render_template('setting_history_purchase.html', orders=orders, existing_reviews=existing_reviews)
+
+    
+    except Exception as e:
+        cur.close()
+        # Handle the exception and possibly log it
+        print(f"An error occurred: {e}")
+        flash("An error occurred while retrieving purchase history. Please try again later.", "error")
+        return redirect("/user/setting/history/purchase")
+
+#C-generate review id
+def generate_next_review_id():
+    cur = mysql.connection.cursor()
+    # Assuming 'saved_card_id' is stored in a table named 'saved_cards'
+    cur.execute("SELECT review_id FROM review ORDER BY review_id DESC LIMIT 1")
+    last_id = cur.fetchone()
+    cur.close()
+    if last_id:
+        # Extract the numeric part of the ID and increment it
+        last_num = int(last_id[0][2:])  # Assuming ID format is PC000X
+        new_num = last_num + 1
+        new_id = f"RV{new_num:04d}"  # Keeps the leading zeros, making the numeric part 4 digits long
+    else:
+        # If there are no entries, start with PC0001
+        new_id = "RV0001"
+    return new_id
+
+# Function to mask the username
+def mask_username(username):
+    if len(username) <= 1:
+        return '*'  # If the role_id is 1 character or fewer, show the first character
+    elif len(username) == 2:
+        return username[0] + '*'  # If the role_id is 2 characters, show the first character and mask the second
+    else:
+        return username[0] + '*' * (len(username) - 2) + username[-1]  # Mask all characters except first and last
 
 #C-setting/history/search history
 @app.route("/user/setting/history/search", methods=["GET","POST"])
 def setting_history_search():
-    return render_template("setting_history_search.html")
+    username = session.get('username')
+
+    try:
+        cur = mysql.connection.cursor()
+        query = "SELECT search_id, search_query, search_time FROM search_history WHERE username = %s ORDER BY search_time DESC"
+        cur.execute(query, (username,))
+        search_history = cur.fetchall()
+        cur.close()
+
+        return render_template('setting_search_history.html', search_history=search_history)
+    except Exception as e:
+        flash(f"Failed to retrieve search history: {str(e)}", "danger")
+        return redirect('/')
+    
+#generate search_id
+def generate_next_search_id():
+    cur = mysql.connection.cursor()
+    
+    cur.execute("SELECT search_id FROM search_history ORDER BY search_id DESC LIMIT 1")
+    last_id = cur.fetchone()
+    cur.close()
+    if last_id:
+        # Extract the numeric part of the ID and increment it
+        last_num = int(last_id[0][2:])  # Assuming ID format is SC000X
+        new_num = last_num + 1
+        new_id = f"SC{new_num:04d}"  # Keeps the leading zeros, making the numeric part 4 digits long
+    else:
+        # If there are no entries, start with SC0001
+        new_id = "SC0001"
+    return new_id
 
 #C-survey/fill in survey
 @app.route("/recommend/survey/form", methods=["GET","POST"])
@@ -258,74 +686,1294 @@ def recommend_auto():
 
 #C-laptop/ (display all laptop + search result + filter)
 @app.route("/laptop", methods=["GET","POST"])
-def laptop_filter():
-    return render_template("laptop_search.html")
+def laptop():
+    username = session.get('username')
+
+    search_query = session.get('homepage_search_query', '')
+    if not search_query:
+        search_query = request.args.get('search', '')
+        
+    brand = request.args.get('brand', '')
+    min_price = request.args.get('min_price', '')
+    max_price = request.args.get('max_price', '')
+    memory = request.args.get('memory', '')
+    graphics = request.args.get('graphics', '')
+    storage = request.args.get('storage', '')
+    battery = request.args.get('battery', '')
+    processor = request.args.get('processor', '')
+    os = request.args.get('os', '')
+    min_weight = request.args.get('min_weight', '')
+    max_weight = request.args.get('max_weight', '')
+
+
+    # Generate a unique search_id
+    search_id = generate_next_search_id()
+
+    # Record the search history
+    # Ensure search_query is not empty before saving to the database
+    if search_query:
+        try:
+            cur = mysql.connection.cursor()
+            cur.execute("INSERT INTO search_history (search_id, username, search_query, search_time) VALUES (%s, %s, %s, %s)",
+                        (search_id, username, search_query, datetime.now()))
+            mysql.connection.commit()
+            cur.close()
+        except Exception as e:
+            mysql.connection.rollback()
+            flash(f"Failed to save search query: {str(e)}", "danger")
+
+
+    # Fetch laptops and their first picture from the database
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        SELECT p.product_id, p.product_name, p.brand, p.price, p.memory, p.graphics, p.storage, p.battery, p.processor, p.os, p.weight, pic.pic_url
+        FROM product p
+        LEFT JOIN (
+            SELECT product_id, MIN(pic_url) as pic_url
+            FROM product_pic
+            GROUP BY product_id
+        ) pic ON p.product_id = pic.product_id
+    """)
+    all_laptops = cur.fetchall()
+
+
+    # Fetch distinct values for each filter option
+    cur.execute("SELECT DISTINCT brand FROM product")
+    brands = [row[0] for row in cur.fetchall()]
+
+    cur.execute("SELECT DISTINCT memory FROM product")
+    memories = [row[0] for row in cur.fetchall()]
+
+    cur.execute("SELECT DISTINCT graphics FROM product")
+    graphics_options = [row[0] for row in cur.fetchall()]
+
+    cur.execute("SELECT DISTINCT storage FROM product")
+    storages = [row[0] for row in cur.fetchall()]
+
+    cur.execute("SELECT DISTINCT battery FROM product")
+    batteries = [row[0] for row in cur.fetchall()]
+
+    cur.execute("SELECT DISTINCT processor FROM product")
+    processors = [row[0] for row in cur.fetchall()]
+
+    cur.execute("SELECT DISTINCT os FROM product")
+    operating_systems = [row[0] for row in cur.fetchall()]
+
+    # Fetch min and max price from the database
+    cur.execute("SELECT MIN(price), MAX(price) FROM product")
+    min_price_db, max_price_db = cur.fetchone()
+
+    # Fetch min and max weight from the database
+    cur.execute("SELECT MIN(weight), MAX(weight) FROM product")
+    min_weight_db, max_weight_db = cur.fetchone()
+
+    # Validate user input for price and weight range
+    if min_price and max_price and float(min_price) > float(max_price):
+        message = "Max price must be greater than min price."
+        return render_template('laptop.html', message=message)
+    if min_weight and max_weight and float(min_weight) > float(max_weight):
+        message = "Max weight must be greater than min weight."
+        return render_template('laptop.html', message=message)
+
+    # Filter the laptops based on the criteria
+    filtered_laptops = [
+        laptop for laptop in all_laptops
+        if (search_query.lower() in laptop[1].lower()) and
+           (not brand or brand.lower() in laptop[2].lower()) and
+           (not min_price or laptop[3] >= float(min_price)) and
+           (not max_price or laptop[3] <= float(max_price)) and
+           (not memory or memory.lower() in laptop[4].lower()) and
+           (not graphics or graphics.lower() in laptop[5].lower()) and
+           (not storage or storage.lower() in laptop[6].lower()) and
+           (not battery or battery in str(laptop[7])) and
+           (not processor or processor.lower() in laptop[8].lower()) and
+           (not os or os.lower() in laptop[9].lower()) and
+           (not min_weight or laptop[10] >= float(min_weight)) and
+           (not max_weight or laptop[10] <= float(max_weight))
+    ]
+
+    message = None
+    if not filtered_laptops:
+        message = "No laptops found matching the criteria."
+
+    return render_template('laptop_search.html', laptops=filtered_laptops, brands=brands, memories=memories, graphics_options=graphics_options, storages=storages, batteries=batteries, processors=processors, operating_systems=operating_systems, message=message, min_price=min_price_db, max_price=max_price_db, min_weight=min_weight_db, max_weight=max_weight_db)
+
+#generate search_id
+def generate_next_search_id():
+    cur = mysql.connection.cursor()
+    
+    last_id = cur.fetchone()
+    cur.close()
+    if last_id:
+        # Extract the numeric part of the ID and increment it
+        last_num = int(last_id[0][2:])  # Assuming ID format is SC000X
+        new_num = last_num + 1
+        new_id = f"SC{new_num:04d}"  # Keeps the leading zeros, making the numeric part 4 digits long
+    else:
+        # If there are no entries, start with SC0001
+        new_id = "SC0001"
+    return new_id
+
+
+# Function to mask the username
+def mask_username(username):
+    if len(username) <= 1:
+        return '*'  # If the role_id is 1 character or fewer, show the first character
+    elif len(username) == 2:
+        return username[0] + '*'  # If the role_id is 2 characters, show the first character and mask the second
+    else:
+        return username[0] + '*' * (len(username) - 2) + username[-1]  # Mask all characters except first and last
 
 #C-laptop/detail
 @app.route("/laptop/<product_id>", methods=["GET","POST"])
-def laptop_detail():
-    return render_template("laptop_detail.html")
+def laptop_detail(product_id):
+    
+    # Clean up the product_id
+    product_id = product_id.replace('<', '').replace('>', '').strip()
+    print(f"Processed product_id: {product_id}")  # Debug print
+
+    if request.method == "POST":
+        username = session.get('username')
+        if not username:
+            return redirect(url_for('login'))  # Redirect to login if user is not logged in
+
+        try:
+            quantity = int(request.form.get('quantity', 1))  # Default quantity is 1
+        except ValueError:
+            quantity = 1  # Fallback to default if conversion fails
+
+        action = request.form['action']
+
+        with mysql.connection.cursor() as cur:
+            try:
+                # Check if the same username and product_id exist in the cart
+                cur.execute("SELECT quantity FROM cart WHERE username = %s AND product_id = %s", (username, product_id))
+                existing_row = cur.fetchone()
+                
+                if existing_row:
+                    # Update the existing row with the new quantity
+                    new_quantity = existing_row[0] + quantity
+                    cur.execute("UPDATE cart SET quantity = %s WHERE username = %s AND product_id = %s", (new_quantity, username, product_id))
+                else:
+                    # Insert a new row
+                    cur.execute("INSERT INTO cart (username, product_id, quantity) VALUES (%s, %s, %s)", (username, product_id, quantity))
+                
+                mysql.connection.commit()
+
+                if action == 'add_to_cart':
+                    flash('Product added to cart.', 'success')
+                    return redirect(url_for('cart'))  # Redirect to cart page
+                elif action == 'buy_now':
+                    flash('Product added to cart. Redirecting to checkout...', 'success')
+                    # Set selected items in session
+                    session['selected_items'] = [(product_id, quantity)]
+                    session['selected_total_price'] = 0
+                    return redirect(url_for('cart_checkout'))  # Redirect to checkout page
+
+            except MySQLdb.Error as e:
+                mysql.connection.rollback()
+                print(f"Error inserting into cart: {e}")
+                flash(f'Error: {str(e)}', 'danger')
+
+    # Fetch laptop details
+    with mysql.connection.cursor() as cur:
+        cur.execute("""
+            SELECT *
+            FROM product
+            WHERE product_id = %s
+        """, (product_id,))
+        product = cur.fetchone()
+
+        if not product:
+            return render_template("laptop_detail.html", message="Laptop not found.", product_details={})
+
+        # Fetch laptop images
+        cur.execute("SELECT image_url FROM product_pic WHERE product_id = %s", (product_id,))
+        images = cur.fetchall()
+        
+
+        # Fetch reviews for the product based on product_id
+        cur.execute("""
+            SELECT product_id, username, review, rating, review_time, reply
+            FROM review 
+            WHERE product_id = %s
+        """, (product_id,))
+        reviews = cur.fetchall()
+
+        reviews_list = []
+
+
+    # Process and mask the role_id for each review
+    for row in reviews:
+        masked_username = mask_username(row[1])
+        review_data = {
+            'username': masked_username,
+            'review': row[2],
+            'rating': row[3],
+            'date': row[4]
+        }
+        if row[5] is not None:  # Only add the 'reply' field if it is not None
+            review_data['reply'] = row[5]
+        
+        reviews_list.append(review_data)
+
+    # Close cursor after fetching data
+    cur.close()
+
+    stock_status = "In Stock" if product[13] > 0 else "Out of Stock"
+
+    product_details = {
+        'product_id': product[0],
+        'product_name': product[1],
+        'brand': product[2],
+        'processor': product[3],
+        'graphics': product[4],
+        'dimensions': product[5],
+        'weight': product[6],
+        'os': product[7],
+        'memory': product[8],
+        'storage': product[9],
+        'power_supply': product[10],
+        'battery': product[11],
+        'price': product[12],
+        'stock_status': stock_status,
+        'images': [image[0] for image in images],
+        'reviews': reviews_list
+    }
+
+    # Pass laptop_details to the template
+    return render_template("laptop_detail.html", product_details=product_details)
 
 #C-cart(all)
 @app.route("/cart", methods=["GET","POST"])
 def cart():
-    return render_template("cart.html")
+    username = session.get('username')
+    cart_items = []
+    cart_total_price = 0
+
+    if request.method == "POST":
+        action = request.form.get('action')
+        print("Form Data:", request.form)  # Debugging print
+
+
+        if action == "update":
+            for key, value in request.form.items():
+                if key.startswith('quantity_'):
+                    product_id = key.split('_')[1]
+                    print(f"Updating {product_id} to quantity {value}")
+                    try:
+                        quantity = int(value)
+                        if quantity > 0:
+                            with mysql.connection.cursor() as cur:
+                                # Check stock before updating
+                                cur.execute("""
+                                    SELECT stock
+                                    FROM product
+                                    WHERE product_id = %s
+                                """, (product_id,))
+                                stock = cur.fetchone()[0]
+
+                                if quantity <= stock:
+                                    cur.execute("""
+                                        UPDATE cart
+                                        SET quantity = %s
+                                        WHERE username = %s AND product_id = %s
+                                    """, (quantity, username, product_id))
+                                    mysql.connection.commit()
+                                else:
+                                    flash(f"Quantity for product {product_id} exceeds available stock.", 'error')
+                    except ValueError:
+                        print(f"Invalid quantity for {product_id}: {value}")
+
+
+        elif 'remove_product' in request.form:
+            product_id = request.form.get('remove_product')
+            with mysql.connection.cursor() as cur:
+                cur.execute("""
+                    DELETE FROM cart
+                    WHERE username = %s AND product_id = %s
+                """, (username, product_id))
+                mysql.connection.commit()
+                flash('Product removed from cart.', 'success')
+
+        elif action == 'checkout':
+            # Extract selected items from form data
+            selected_items = [key.split('_')[1] for key in request.form if key.startswith('select_')]
+            print("Selected items for checkout:", selected_items)  # Debug print
+
+            if not selected_items:
+                flash('No items selected for checkout.', 'warning')
+                return redirect(url_for('cart'))
+
+            # Fetch cart items for selected product IDs
+            cart_items = []
+            with mysql.connection.cursor() as cur:
+                for product_id in selected_items:
+                    cur.execute("""
+                        SELECT 
+                            p.product_id, 
+                            p.product_name, 
+                            p.price, 
+                            c.quantity,
+                            (SELECT pic_url FROM product_pic pp WHERE pp.product_id = p.product_id LIMIT 1) AS pic_url
+                        FROM cart c
+                        JOIN product p ON c.product_id = p.product_id
+                        WHERE c.username = %s AND c.product_id = %s
+                    """, (username, product_id))
+                    item = cur.fetchone()
+                    if item:
+                        cart_items.append(item)
+            print("Fetched cart items:", cart_items)  # Debug print
+
+           # Calculate the total price of selected items
+            cart_total_price = 0
+            for item in cart_items:
+                price = float(item[2])
+                quantity = int(item[3])
+                total_item_price = price * quantity
+                cart_total_price += total_item_price
+                print(f"Item: {item[1]}, Price: {price}, Quantity: {quantity}, Total: {total_item_price}")
+
+            print("Calculated total price:", cart_total_price)  # Debug print
+
+            # Store session data for checkout
+            session['selected_items'] = [(item[0], item[3]) for item in cart_items]  # Storing (product_id, quantity)
+            session['checkout_total_price'] = cart_total_price
+
+            # Perform stock check before proceeding
+            with mysql.connection.cursor() as cur:
+                stock_check_failed = False
+                for product_id, quantity in session['selected_items']:
+                    cur.execute("""
+                        SELECT quantity
+                        FROM cart
+                        WHERE username = %s AND product_id = %s
+                    """, (username, product_id))
+                    quantity_in_cart = cur.fetchone()[0]
+
+                    cur.execute("""
+                        SELECT stock
+                        FROM product
+                        WHERE product_id = %s
+                    """, (product_id,))
+                    stock = cur.fetchone()[0]
+
+                    if quantity_in_cart > stock:
+                        flash(f"Quantity for product {product_id} exceeds available stock.", 'error')
+                        stock_check_failed = True
+
+                if stock_check_failed:
+                    return redirect(url_for('cart'))  # Redirect to the cart page if stock validation fails
+
+            return redirect(url_for('cart_checkout'))  # Redirect to the checkout page if stock validation passes
+
+    # Re-fetch cart items to render updated cart
+    with mysql.connection.cursor() as cur:
+        cur.execute("""
+            SELECT 
+                c.product_id, 
+                p.product_name, 
+                p.price, 
+                c.quantity, 
+                (SELECT pic_url FROM product_pic pp WHERE pp.product_id = c.product_id LIMIT 1) AS pic_url,
+                (SELECT stock FROM product p WHERE p.product_id = c.product_id) AS stock
+            FROM cart c
+            JOIN product p ON c.product_id = p.product_id
+            WHERE c.username = %s
+        """, (username,))
+        cart_items = cur.fetchall()
+
+    item_count = len(cart_items)
+    cart_total_price = sum(item[2] * item[3] for item in cart_items if f'select_{item[0]}' in request.form)
+
+    return render_template("cart.html", cart_items=cart_items, cart_total_price=cart_total_price, item_count=item_count)
 
 #C-cart/checkout(choose payment method,address)
 @app.route("/cart/checkout", methods=["GET","POST"])
 def cart_checkout():
-    return render_template("cart_checkout.html")
+    username = session.get('username')
+    errors = {}
+    selected_items = session.get('selected_items', [])
+    checkout_total_price = 0
+    selected_items_details = []
 
-#C-cart/payment
-@app.route("/cart/payment", methods=["GET","POST"])
-def cart_payment():
-    return render_template("cart_payment.html")
+    if request.method == "POST":
+        order_id = generate_next_order_id()
+        ship_id = generate_next_ship_id()
+        saved_card_id = request.form.get('payment_method')
+
+        # Handle payment method insertion if 'new' is selected
+        if saved_card_id == 'new':
+            pay_email = request.form.get('pay_email', '')
+            name_on_card = request.form.get('name_on_card', '')
+            card_no = request.form.get('card_no', '').replace(" ", "")
+            cvv = request.form.get('cvv', '')
+            expiry_date = request.form.get('expiry_date', '')
+
+            errors.update({
+                "pay_email": not is_valid_email(pay_email),
+                "card_no": not is_valid_card_number(card_no),
+                "cvv": not is_valid_cvv(cvv),
+                "expiry_date": not is_valid_expiry_date(expiry_date)
+            })
+
+            if any(errors.values()):
+                print(f"Validation errors: {errors}")
+                return render_template("cart_checkout.html", errors=errors, form_data=request.form, selected_items=selected_items, checkout_total_price=checkout_total_price)
+
+            try:
+                with mysql.connection.cursor() as cur:
+                    new_saved_card_id = generate_next_saved_card_id()
+                    cur.execute("""
+                        INSERT INTO payment (saved_card_id, username, pay_email, name_on_card, card_no, cvv, expiry_date)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    """, (new_saved_card_id, username, pay_email, name_on_card, card_no, cvv, expiry_date))
+                    mysql.connection.commit()
+                    saved_card_id = new_saved_card_id
+            except Exception as e:
+                print(f"Error inserting into payment table: {e}")
+                mysql.connection.rollback()
+                return "Error processing payment details"
+            
+        # Calculate the total price for the selected items
+        with mysql.connection.cursor() as cur:
+            for product_id, quantity in selected_items:
+                cur.execute("""
+                    SELECT price
+                    FROM product
+                    WHERE product_id = %s
+                """, (product_id,))
+                result = cur.fetchone()
+                if result:
+                    price = result[0]
+                    checkout_total_price += price * quantity
+
+
+        for product_id, quantity in selected_items:
+            try:
+                with mysql.connection.cursor() as cur:
+                    # Fetch the quantity in the cart for this product
+                    cur.execute("""
+                        SELECT quantity
+                        FROM cart
+                        WHERE username = %s AND product_id = %s
+                    """, (username, product_id))
+                    result = cur.fetchone()
+
+                    if result:
+                        quantity_in_cart = result[0]
+
+                        # Validate the quantity in the cart
+                        if quantity_in_cart != quantity:
+                            flash(f"Quantity for product {product_id} in cart does not match the selected quantity.", 'error')
+                            return redirect(url_for('cart'))
+
+                        # Insert into the purchase table
+                        query = """
+                            INSERT INTO purchase 
+                            (order_id, username, product_id, pur_date, pur_amount, pur_status, pur_quantity, processed_by, saved_card_id)
+                            VALUES (%s, %s, %s, NOW(), %s, %s, %s, %s, %s)
+                        """
+                        params = (order_id, username, product_id, checkout_total_price, 'pending', quantity, None, saved_card_id)
+                        cur.execute(query, params)
+                        
+                        # Update stock
+                        query = """
+                            UPDATE product
+                            SET stock = stock - %s
+                            WHERE product_id = %s
+                        """
+                        cur.execute(query, (quantity, product_id))
+                        
+                    else:
+                        flash(f"Product {product_id} not found in the cart.", 'error')
+                        return redirect(url_for('cart'))
+                    
+                mysql.connection.commit()
+                print(f"Order {order_id} successfully inserted into purchase table.")
+            except Exception as e:
+                print(f"Error processing product {product_id}: {e}")
+                mysql.connection.rollback()
+                return "Error processing purchase"
+        
+        session['order_id'] = order_id
+
+        # Shipping details validation
+        dest_add = request.form.get('dest_add', '')
+        receiver_name = request.form.get('receiver_name', '')
+        receiver_phone = request.form.get('receiver_phone', '')
+
+        errors.update({
+            "dest_add": not (dest_add and dest_add.strip()),
+            "receiver_name": not (receiver_name and receiver_name.strip()),
+            "receiver_phone": not (receiver_phone and receiver_phone.strip())
+        })
+
+        if any(errors.values()):
+            print(f"Validation errors: {errors}")
+            return render_template("cart_checkout.html", errors=errors, form_data=request.form, selected_items=selected_items, checkout_total_price=checkout_total_price)
+
+        try:
+            with mysql.connection.cursor() as cur:
+                cur.execute("""
+                    INSERT INTO shipping (ship_id, order_id, dest_add, receiver_name, receiver_phone, ship_status, ship_time)
+                    VALUES (%s, %s, %s, %s, %s, %s, NOW())
+                """, (ship_id, order_id, dest_add, receiver_name, receiver_phone, 'pending'))
+                mysql.connection.commit()
+        except Exception as e:
+            print(f"Error inserting into shipping table: {e}")
+            mysql.connection.rollback()
+            return "Error processing shipping details"
+
+        # Remove items from cart
+        try:
+            with mysql.connection.cursor() as cur:
+                # Generate placeholders for the number of selected items
+                format_strings = ','.join(['%s'] * len(selected_items))
+                # Extract product IDs from selected_items
+                product_ids = [item[0] for item in selected_items]
+                
+                # Prepare and execute the delete statement
+                cur.execute(f"""
+                    DELETE FROM cart
+                    WHERE username = %s AND product_id IN ({format_strings})
+                """, (username, *product_ids))
+                
+                mysql.connection.commit()
+        except Exception as e:
+            print(f"Error removing items from cart: {e}")
+            mysql.connection.rollback()
+            return "Error removing items from cart"
+
+        session.pop('buy_now', None)
+        session.pop('selected_items', None)
+        flash("Checkout successful!", "success")
+        return redirect(url_for("cart_payment_success", order_id=order_id))
+
+    # Retrieve current payment methods
+    payment_methods = []
+    try:
+        with mysql.connection.cursor() as cur:
+            cur.execute("""
+                SELECT saved_card_id, card_no, expiry_date, pay_email
+                FROM payment
+                WHERE username = %s
+            """, (username,))
+            payment_methods = cur.fetchall()
+            print("Payment methods retrieved:", payment_methods)
+    except Exception as e:
+        print(f"Error fetching payment methods: {e}")
+
+    # Fetch details for selected items
+    if selected_items:
+        with mysql.connection.cursor() as cur:
+            for product_id, quantity in selected_items:
+                query = """
+                    SELECT 
+                        p.product_id, 
+                        p.product_name, 
+                        p.price, 
+                        pp.pic_url
+                    FROM product p
+                    LEFT JOIN product_pic pp ON pp.product_id = p.product_id
+                    WHERE p.product_id = %s
+                    LIMIT 1
+                """
+                
+                try:
+                    cur.execute(query, (product_id,))
+                    fetched_item = cur.fetchone()
+                    if fetched_item:
+                        # Ensure fetched_item has the correct number of elements
+                        if len(fetched_item) == 4:
+                            product_id, product_name, price, pic_url = fetched_item
+                            selected_items_details.append((product_id, product_name, float(price), quantity, pic_url))
+                            checkout_total_price += float(price) * quantity
+                        else:
+                            print(f"Unexpected number of values in fetched_item: {fetched_item}")
+                    else:
+                        print(f"No item found for product_id: {product_id}")
+                except Exception as e:
+                    print(f"Error fetching details for product {product_id}: {e}")
+
+    session['checkout_total_price'] = checkout_total_price
+
+    print("Selected Items Details:", selected_items_details)
+    print("Checkout Total Price:", checkout_total_price)
+
+    return render_template("cart_checkout.html", payment_methods=payment_methods, errors=errors, form_data=request.form, selected_items=selected_items_details, checkout_total_price=checkout_total_price)
+
+
+#generate ship_id
+def generate_next_ship_id():
+    cur = mysql.connection.cursor()
+    
+    cur.execute("SELECT ship_id FROM shipping ORDER BY ship_id DESC LIMIT 1")
+    last_id = cur.fetchone()
+    cur.close()
+    if last_id:
+        # Extract the numeric part of the ID and increment it
+        last_num = int(last_id[0][2:])  # Assuming ID format is SH000X
+        new_num = last_num + 1
+        new_id = f"SH{new_num:04d}"  # Keeps the leading zeros, making the numeric part 4 digits long
+    else:
+        # If there are no entries, start with SH0001
+        new_id = "SH0001"
+    return new_id
+
+#generate order_id
+def generate_next_order_id():
+    cur = mysql.connection.cursor()
+    
+    cur.execute("SELECT order_id FROM purchase ORDER BY order_id DESC LIMIT 1")
+    last_id = cur.fetchone()
+    cur.close()
+    if last_id:
+        # Extract the numeric part of the ID and increment it
+        last_num = int(last_id[0][2:])  # Assuming ID format is IN000X
+        new_num = last_num + 1
+        new_id = f"IN{new_num:04d}"  # Keeps the leading zeros, making the numeric part 4 digits long
+    else:
+        # If there are no entries, start with IN0001
+        new_id = "IN0001"
+    return new_id
+
+
+def get_product_price(product_id):
+    with mysql.connection.cursor() as cur:
+        cur.execute("SELECT price FROM product WHERE product_id = %s", (product_id,))
+        result = cur.fetchone()
+        return result[0] if result else 0
+    
+def get_payment_methods(username):
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM payment WHERE username = %s", (username,))
+    payment_methods = cur.fetchall()
+    cur.close()
+    return payment_methods
+
+def get_cart_quantity(username, product_id):
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT quantity FROM cart WHERE username = %s AND product_id = %s", (username, product_id))
+    result = cur.fetchone()
+    cur.close()
+    return result[0] if result else 0
 
 #C-cart/payment success
 @app.route("/cart/payment/success", methods=["GET","POST"])
 def cart_payment_success():
-    return render_template("cart_payment_success.html")
+    order_id = request.args.get('order_id') or session.get('order_id')
+    if not order_id:
+        return "No order ID found.", 400
 
-#C-cart/payment failed
-@app.route("/cart/payment/failed", methods=["GET","POST"])
-def cart_payment_failed():
-    return render_template("cart_payment_failed.html")
+    try:
+        with mysql.connection.cursor() as cur:
+            # Fetch order summary
+            cur.execute("""
+                SELECT 
+                    MAX(pu.pur_date) AS order_date,
+                    MAX(s.dest_add) AS shipping_address,
+                    MAX(s.receiver_name) AS receiver_name,
+                    MAX(s.receiver_phone) AS receiver_phone,
+                    SUM(p.price * pu.pur_quantity) AS total_amount
+                FROM purchase pu
+                JOIN product p ON pu.product_id = p.product_id
+                JOIN shipping s ON pu.order_id = s.order_id
+                WHERE pu.order_id = %s
+                GROUP BY pu.order_id
+            """, (order_id,))
+            order_summary = cur.fetchone()
+
+            if not order_summary:
+                return "Order details not found.", 404
+
+            order_date, shipping_address, receiver_name, receiver_phone, total_amount = order_summary
+
+            # Fetch order details
+            cur.execute("""
+                SELECT 
+                    p.product_name, 
+                    p.price, 
+                    pu.pur_quantity AS quantity, 
+                    (p.price * pu.pur_quantity) AS total
+                FROM purchase pu
+                JOIN product p ON pu.product_id = p.product_id
+                WHERE pu.order_id = %s
+            """, (order_id,))
+            invoice_details = cur.fetchall()
+
+            # Fetch payment method details
+            cur.execute("""
+                SELECT 
+                    pm.card_no, 
+                    pm.expiry_date, 
+                    pm.pay_email
+                FROM payment pm
+                JOIN purchase pu ON pm.saved_card_id = pu.saved_card_id
+                WHERE pu.order_id = %s
+                LIMIT 1
+            """, (order_id,))
+            payment_method = cur.fetchone()
+
+            if not payment_method:
+                card_no, expiry_date, pay_email = "N/A", "N/A", "N/A"
+            else:
+                card_no, expiry_date, pay_email = payment_method
+
+    except Exception as e:
+        print(f"Error fetching invoice details: {e}")
+        return "Error fetching invoice details.", 500
+
+    return render_template("cart_payment_success.html", 
+                           order_id=order_id, 
+                           order_date=order_date,
+                           shipping_address=shipping_address,
+                           receiver_name=receiver_name,
+                           receiver_phone=receiver_phone,
+                           invoice_details=invoice_details,
+                           total_amount=total_amount,
+                           card_no=card_no,
+                           expiry_date=expiry_date,
+                           pay_email=pay_email)
 
 #Admin section (Zhi Xian)
 #A-home page
-@app.route("/admin/homepage", methods=["GET","POST"])
+@app.route('/admin/homepage', methods=['GET', 'POST'])
 def admin_homepage():
-    return render_template("admin_homepage.html")
+    if not session.get('logged_in'):
+        return redirect('/admin/login')
+    else:
+        # Search bar or admin-specific actions
+        if request.method == 'POST':
+            if request.form['action'] == 'search':
+                search_query = request.form['query']
+                session['admin_homepage_search_query'] = search_query
+                return redirect("/admin/manage-laptops", search_query=search_query)
+            # Add more admin-specific actions here if needed
+        return render_template('admin_homepage.html')
 
-#A-laptop
-@app.route("/admin/laptop", methods=["GET","POST"])
-def admin_laptop():
-    return render_template("admin_laptop.html")
+#A-manage-laptops (4 functions)
+@app.route("/admin/manage-laptops", methods=["GET"])
+def admin_manage_laptops():
+    if not session.get('logged_in'):
+        return redirect('/admin/login')
+    
+    return render_template("admin_manage_laptops.html")
+
+@app.route("/admin/laptop/add", methods=["GET", "POST"])
+def admin_laptop_add():
+    if request.method == "POST":
+        # Extract laptop details from the form
+        product_id = request.form.get('product_id')
+        product_name = request.form.get('product_name')
+        brand = request.form.get('brand')
+        processor = request.form.get('processor')
+        graphics = request.form.get('graphics')
+        dimensions = request.form.get('dimensions')
+        weight = request.form.get('weight')
+        os = request.form.get('os')
+        memory = request.form.get('memory')
+        storage = request.form.get('storage')
+        power_supply = request.form.get('power_supply')
+        battery = request.form.get('battery')
+        price = request.form.get('price')
+
+        # Use the mysql object for database operations
+        cur = mysql.connection.cursor()
+
+        # Insert into laptops table
+        cur.execute('''INSERT INTO product (product_id, product_name, brand, processor, graphics, dimensions, weight, os, memory, storage, power_supply, battery, price)
+                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)''',
+                     (product_id, product_name, brand, processor, graphics, dimensions, weight, os, memory, storage, power_supply, battery, price))
+
+        mysql.connection.commit()
+        cur.close()
+
+        flash("Laptop added successfully.", "success")
+        return redirect("/admin/manage-laptops")
+
+    return render_template("admin_laptop_add.html")
+
+#A-remove laptop
+@app.route("/admin/laptop/remove", methods=["GET", "POST"])
+def admin_laptop_remove():
+    if request.method == "POST":
+        product_id = request.form['product_id']
+
+        # Delete laptop from product table
+        cursor = mysql.connection.cursor()
+        cursor.execute('DELETE FROM product WHERE product_id = %s', (product_id,))
+        
+        mysql.connection.commit()
+        cursor.close()
+
+        flash("Laptop successfully removed.", "success")
+        return redirect("/admin/manage-laptops")
+    
+    return render_template("admin_laptop_remove.html")
 
 #A-laptop/edit laptop
-@app.route("/admin/laptop/edit", methods=["GET","POST"])
+@app.route("/admin/laptop/edit", methods=["GET", "POST"])
 def admin_laptop_edit():
-    return render_template("admin_laptop_edit.html")
+    if request.method == "POST":
+        # Handle form submission (update)
+        product_id = request.form.get('product_id')
 
-#A-laptop/detail
-@app.route("/admin/laptop/detail", methods=["GET","POST"])
-def admin_laptop_detail():
-    return render_template("admin_laptop_detail.html")
+        if product_id:
+            cur = mysql.connection.cursor()
+            cur.execute('SELECT * FROM product WHERE product_id = %s', (product_id,))
+            laptop = cur.fetchone()
 
-#A-feedback(view+reply)
-@app.route("/admin/feedback/user", methods=["GET","POST"])
-def admin_feedback_user():
-    return render_template("admin_feedback_user.html")
+            if laptop:
+                column_names = [desc[0] for desc in cur.description]
+                laptop_dict = dict(zip(column_names, laptop))
 
-#A-feedback/send feedback
-@app.route("/admin/feedback/send", methods=["GET","POST"])
+                # Get updated values from form or use existing values
+                product_name = request.form.get('product_name') or laptop_dict['product_name']
+                brand = request.form.get('brand') or laptop_dict['brand']
+                processor = request.form.get('processor') or laptop_dict['processor']
+                graphics = request.form.get('graphics') or laptop_dict['graphics']
+                dimensions = request.form.get('dimensions') or laptop_dict['dimensions']
+                weight = request.form.get('weight') or laptop_dict['weight']
+                os = request.form.get('os') or laptop_dict['os']
+                memory = request.form.get('memory') or laptop_dict['memory']
+                storage = request.form.get('storage') or laptop_dict['storage']
+                power_supply = request.form.get('power_supply') or laptop_dict['power_supply']
+                battery = request.form.get('battery') or laptop_dict['battery']
+                price = request.form.get('price') or laptop_dict['price']
+
+                cur.execute('''UPDATE product SET product_name = %s, brand = %s, processor = %s, graphics = %s, dimensions = %s,
+                               weight = %s, os = %s, memory = %s, storage = %s, power_supply = %s, battery = %s, price = %s 
+                               WHERE product_id = %s''',
+                             (product_name, brand, processor, graphics, dimensions, weight, os, memory, storage, power_supply, battery, price, product_id))
+                
+                mysql.connection.commit()
+                cur.close()
+
+                flash("Laptop details updated successfully.", "success")
+                return redirect("/admin/laptop")
+            else:
+                flash("Laptop not found.", "danger")
+                return render_template("admin_laptop_edit_id.html")
+        else:
+            flash("Please enter a Product ID.", "danger")
+            return render_template("admin_laptop_edit_id.html")
+    
+    else:  # GET request
+        product_id = request.args.get('product_id')
+        if product_id:
+            cur = mysql.connection.cursor()
+            cur.execute('SELECT * FROM product WHERE product_id = %s', (product_id,))
+            laptop = cur.fetchone()
+
+            if laptop:
+                column_names = [desc[0] for desc in cur.description]
+                laptop_dict = dict(zip(column_names, laptop))
+                cur.close()
+
+                return render_template("admin_laptop_edit_form.html", laptop=laptop_dict)
+            else:
+                flash("Laptop not found.", "danger")
+                return render_template("admin_laptop_edit_id.html")
+        else:
+            return render_template("admin_laptop_edit_id.html")
+
+#A-laptop/manage quantity
+@app.route("/admin/laptop/manage_quantity", methods=["GET", "POST"])
+def admin_laptop_manage_quantity():
+    if request.method == "POST":
+        product_id = request.form.get('product_id')
+        new_quantity = request.form.get('quantity')
+
+        if product_id and new_quantity:
+            cur = mysql.connection.cursor()
+
+            # Check if the product_id exists in the quantities table
+            cur.execute('SELECT * FROM quantities WHERE product_id = %s', (product_id,))
+            existing_product = cur.fetchone()
+
+            if existing_product:
+                # Update laptop quantity in the quantities table
+                cur.execute('UPDATE quantities SET quantity = %s WHERE product_id = %s', (new_quantity, product_id))
+                mysql.connection.commit()
+                flash("Quantity updated successfully.", "success")
+            else:
+                flash("Product ID not found.", "danger")
+
+            cur.close()
+            return redirect("/admin/laptop/manage_quantity")
+        else:
+            flash("Please provide both Product ID and Quantity.", "danger")
+            return render_template("admin_laptop_manage_quantity.html")
+
+    # Render the form to enter Product ID and quantity
+    return render_template("admin_laptop_manage_quantity.html")
+
+#A-laptop/ (display all laptop + search result + filter)
+@app.route("/admin/laptop", methods=["GET","POST"])
+def admin_laptop():
+    search_query = session.get('admin_homepage_search_query', '')
+    if not search_query:
+        search_query = request.args.get('search', '')
+        
+    brand = request.args.get('brand', '')
+    min_price = request.args.get('min_price', '')
+    max_price = request.args.get('max_price', '')
+    memory = request.args.get('memory', '')
+    graphics = request.args.get('graphics', '')
+    storage = request.args.get('storage', '')
+    battery = request.args.get('battery', '')
+    processor = request.args.get('processor', '')
+    os = request.args.get('os', '')
+    min_weight = request.args.get('min_weight', '')
+    max_weight = request.args.get('max_weight', '')
+
+    # Fetch laptops and their first picture from the database
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        SELECT p.product_id, p.product_name, p.brand, p.price, p.memory, p.graphics, p.storage, p.battery, p.processor, p.os, p.weight, pic.pic_url
+        FROM product p
+        LEFT JOIN (
+            SELECT product_id, MIN(image_url) as pic_url
+            FROM product_pic
+            GROUP BY product_id
+        ) pic ON p.product_id = pic.product_id
+    """)
+    all_laptops = cur.fetchall()
+
+
+    # Fetch distinct values for each filter option
+    cur.execute("SELECT DISTINCT brand FROM product")
+    brands = [row[0] for row in cur.fetchall()]
+
+    cur.execute("SELECT DISTINCT memory FROM product")
+    memories = [row[0] for row in cur.fetchall()]
+
+    cur.execute("SELECT DISTINCT graphics FROM product")
+    graphics_options = [row[0] for row in cur.fetchall()]
+
+    cur.execute("SELECT DISTINCT storage FROM product")
+    storages = [row[0] for row in cur.fetchall()]
+
+    cur.execute("SELECT DISTINCT battery FROM product")
+    batteries = [row[0] for row in cur.fetchall()]
+
+    cur.execute("SELECT DISTINCT processor FROM product")
+    processors = [row[0] for row in cur.fetchall()]
+
+    cur.execute("SELECT DISTINCT os FROM product")
+    operating_systems = [row[0] for row in cur.fetchall()]
+
+    # Fetch min and max price from the database
+    cur.execute("SELECT MIN(price), MAX(price) FROM product")
+    min_price_db, max_price_db = cur.fetchone()
+
+    # Fetch min and max weight from the database
+    cur.execute("SELECT MIN(weight), MAX(weight) FROM product")
+    min_weight_db, max_weight_db = cur.fetchone()
+
+    # Validate user input for price and weight range
+    if min_price and max_price and float(min_price) > float(max_price):
+        message = "Max price must be greater than min price."
+        return render_template('laptop.html', message=message)
+    if min_weight and max_weight and float(min_weight) > float(max_weight):
+        message = "Max weight must be greater than min weight."
+        return render_template('laptop.html', message=message)
+
+    # Filter the laptops based on the criteria
+    filtered_laptops = [
+        laptop for laptop in all_laptops
+        if (search_query.lower() in laptop[1].lower()) and
+           (not brand or brand.lower() in laptop[2].lower()) and
+           (not min_price or laptop[3] >= float(min_price)) and
+           (not max_price or laptop[3] <= float(max_price)) and
+           (not memory or memory.lower() in laptop[4].lower()) and
+           (not graphics or graphics.lower() in laptop[5].lower()) and
+           (not storage or storage.lower() in laptop[6].lower()) and
+           (not battery or battery in str(laptop[7])) and
+           (not processor or processor.lower() in laptop[8].lower()) and
+           (not os or os.lower() in laptop[9].lower()) and
+           (not min_weight or laptop[10] >= float(min_weight)) and
+           (not max_weight or laptop[10] <= float(max_weight))
+    ]
+
+    message = None
+    if not filtered_laptops:
+        message = "No laptops found matching the criteria."
+
+    return render_template('laptop_search.html', laptops=filtered_laptops, brands=brands, memories=memories, graphics_options=graphics_options, storages=storages, batteries=batteries, processors=processors, operating_systems=operating_systems, message=message, min_price=min_price_db, max_price=max_price_db, min_weight=min_weight_db, max_weight=max_weight_db)
+
+# A-laptop/detail
+@app.route("/laptop/<product_id>", methods=["GET","POST"])
+def admin_laptop_detail(product_id):
+    
+    # Clean up the product_id
+    product_id = product_id.replace('<', '').replace('>', '').strip()
+    print(f"Processed product_id: {product_id}")  # Debug print
+
+    if request.method == "POST":
+        username = session.get('username')
+        if not username:
+            return redirect(url_for('login'))  # Redirect to login if user is not logged in
+
+        try:
+            quantity = int(request.form.get('quantity', 1))  # Default quantity is 1
+        except ValueError:
+            quantity = 1  # Fallback to default if conversion fails
+
+        action = request.form['action']
+
+        with mysql.connection.cursor() as cur:
+            try:
+                # Check if the same username and product_id exist in the cart
+                cur.execute("SELECT quantity FROM cart WHERE username = %s AND product_id = %s", (username, product_id))
+                existing_row = cur.fetchone()
+                
+                if existing_row:
+                    # Update the existing row with the new quantity
+                    new_quantity = existing_row[0] + quantity
+                    cur.execute("UPDATE cart SET quantity = %s WHERE username = %s AND product_id = %s", (new_quantity, username, product_id))
+                else:
+                    # Insert a new row
+                    cur.execute("INSERT INTO cart (username, product_id, quantity) VALUES (%s, %s, %s)", (username, product_id, quantity))
+                
+                mysql.connection.commit()
+
+                if action == 'add_to_cart':
+                    flash('Product added to cart.', 'success')
+                    return redirect(url_for('cart'))  # Redirect to cart page
+                elif action == 'buy_now':
+                    flash('Product added to cart. Redirecting to checkout...', 'success')
+                    # Set selected items in session
+                    session['selected_items'] = [(product_id, quantity)]
+                    session['selected_total_price'] = 0
+                    return redirect(url_for('cart_checkout'))  # Redirect to checkout page
+
+            except MySQLdb.Error as e:
+                mysql.connection.rollback()
+                print(f"Error inserting into cart: {e}")
+                flash(f'Error: {str(e)}', 'danger')
+
+    # Fetch laptop details
+    with mysql.connection.cursor() as cur:
+        cur.execute("""
+            SELECT *
+            FROM product
+            WHERE product_id = %s
+        """, (product_id,))
+        product = cur.fetchone()
+
+        if not product:
+            return render_template("laptop_detail.html", message="Laptop not found.", product_details={})
+
+        # Fetch laptop images
+        cur.execute("SELECT image_url FROM product_pic WHERE product_id = %s", (product_id,))
+        images = cur.fetchall()
+        
+
+        # Fetch reviews for the product based on product_id
+        cur.execute("""
+            SELECT product_id, username, review, rating, review_time, reply
+            FROM review 
+            WHERE product_id = %s
+        """, (product_id,))
+        reviews = cur.fetchall()
+
+        reviews_list = []
+
+
+    # Process and mask the role_id for each review
+    for row in reviews:
+        masked_username = mask_username(row[1])
+        review_data = {
+            'username': masked_username,
+            'review': row[2],
+            'rating': row[3],
+            'date': row[4]
+        }
+        if row[5] is not None:  # Only add the 'reply' field if it is not None
+            review_data['reply'] = row[5]
+        
+        reviews_list.append(review_data)
+
+    # Close cursor after fetching data
+    cur.close()
+
+    stock_status = "In Stock" if product[13] > 0 else "Out of Stock"
+
+    product_details = {
+        'product_id': product[0],
+        'product_name': product[1],
+        'brand': product[2],
+        'processor': product[3],
+        'graphics': product[4],
+        'dimensions': product[5],
+        'weight': product[6],
+        'os': product[7],
+        'memory': product[8],
+        'storage': product[9],
+        'power_supply': product[10],
+        'battery': product[11],
+        'price': product[12],
+        'stock_status': stock_status,
+        'images': [image[0] for image in images],
+        'reviews': reviews_list
+    }
+
+    # Pass laptop_details to the template
+    return render_template("laptop_detail.html", product_details=product_details)
+
+# A-review(view + reply to client review)
+@app.route("/admin/reviews", methods=["GET", "POST"])
+def admin_reviews():
+    if not session.get("logged_in"):
+        return redirect("/login")
+
+    cur = mysql.connection.cursor()
+
+    if request.method == "POST":
+        # Handle reply submission
+        review_id = request.form.get("review_id")
+        reply_text = request.form.get("reply")
+        current_time = datetime.now()
+
+        try:
+            # Update review with the admin's reply
+            cur.execute("""
+                UPDATE review 
+                SET reply = %s 
+                WHERE review_id = %s
+            """, (reply_text, review_id))
+            mysql.connection.commit()
+            flash("Reply sent successfully.", "success")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            flash("An error occurred while submitting the reply. Please try again.", "error")
+        finally:
+            cur.close()
+
+        return redirect("/admin/reviews")
+
+    try:
+        # Retrieve unreplied reviews only
+        query = """
+        SELECT review.review_id, review.product_id, review.username, review.review, review.rating, 
+               review.review_time, review.reply, product.product_name 
+        FROM review 
+        JOIN product ON review.product_id = product.product_id
+        WHERE review.reply IS NULL
+        ORDER BY review.review_time DESC
+        """
+        cur.execute(query)
+        reviews = cur.fetchall()
+        cur.close()
+
+        # Check if any reviews are fetched
+        if not reviews:
+            flash("All reviews have been replied to.", "info")
+
+        return render_template("admin_reviews.html", reviews=reviews)
+
+    except Exception as e:
+        cur.close()
+        print(f"An error occurred: {e}")
+        flash("An error occurred while retrieving reviews. Please try again later.", "error")
+        return redirect("/admin/homepage")
+
+#A-send feedback to manager
+@app.route("/admin/feedback/send", methods=["GET", "POST"])
 def admin_feedback_send():
+    if not session.get('logged_in'):
+        return redirect('/login')
+
+    staff_id = session.get('staff_id')  # Assuming staff_id is stored in session after login
+
+    if request.method == "POST":
+        feedback_text = request.form.get('feedback')
+        feedback_time = datetime.now()
+
+        # Insert feedback into the database
+        cur = mysql.connection.cursor()
+        cur.execute("""
+            INSERT INTO feedback (staff_id, feedback_text, feedback_time) 
+            VALUES (%s, %s, %s)
+        """, (staff_id, feedback_text, feedback_time))
+        mysql.connection.commit()
+        cur.close()
+
+        flash("Feedback sent successfully.", "success")
+        return redirect("/admin/feedback/send")
+
     return render_template("admin_feedback_send.html")
 
-#A-orders
-@app.route("/admin/orders", methods=["GET","POST"])
+#A-orders (Check and cancel orders)
+@app.route("/admin/orders", methods=["GET", "POST"])
 def admin_orders():
-    return render_template("admin_orders.html")
+    if not session.get('logged_in'):
+        return redirect('/login')
+
+    cur = mysql.connection.cursor()
+
+    # Handle order cancellation
+    if request.method == "POST":
+        order_id = request.form.get('order_id')
+        print(f"Attempting to cancel order: {order_id}")
+
+        try:
+            # First, delete related shipping details
+            cur.execute("""
+                DELETE FROM shipping 
+                WHERE order_id = %s
+            """, (order_id,))
+            
+            # Then delete the order from the purchase table
+            cur.execute("""
+                DELETE FROM purchase 
+                WHERE order_id = %s
+            """, (order_id,))
+
+            mysql.connection.commit()
+            flash(f"Order {order_id} has been canceled.", "success")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            mysql.connection.rollback()
+            flash("An error occurred while canceling the order. Please try again.", "error")
+        finally:
+            cur.close()
+        return redirect("/admin/orders")
+
+    # Pagination parameters
+    page = int(request.args.get('page', 1))  # Default to page 1 if no page param
+    per_page = 5
+    offset = (page - 1) * per_page
+
+    try:
+        # Retrieve orders with pagination
+        query = """
+        SELECT 
+            p.order_id, p.username, p.pur_date, p.pur_amount, p.pur_status, 
+            s.dest_add, s.receiver_name, s.receiver_phone, s.ship_status, s.ship_time
+        FROM purchase p
+        LEFT JOIN shipping s ON p.order_id = s.order_id
+        ORDER BY p.pur_date DESC
+        LIMIT %s OFFSET %s
+        """
+        cur.execute(query, (per_page, offset))
+        orders = cur.fetchall()
+
+        # Count total orders for pagination control
+        cur.execute("SELECT COUNT(*) FROM purchase")
+        total_orders = cur.fetchone()[0]
+        total_pages = ceil(total_orders / per_page)
+
+        cur.close()
+        return render_template("admin_orders.html", orders=orders, current_page=page, total_pages=total_pages)
+    except Exception as e:
+        cur.close()
+        print(f"An error occurred: {e}")
+        flash("An error occurred while retrieving orders. Please try again later.", "error")
+        return redirect("/admin/homepage")
+
 
 #Manager section (Ying Xin)
 #M-home page
