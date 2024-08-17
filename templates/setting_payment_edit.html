@@ -3,52 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Payment Method</title>
+    <title>Add Payment Method</title>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <style>
-        .error {
-            border-color: red;
-        }
-        .error-message {
-            color: red;
-        }
-        .error-message.hidden {
-            display: none;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/payment_edit.css') }}">
 </head>
 <body>
-    <h1>Edit Payment Method</h1>
-    <form method="POST" action="/user/setting/payment/edit" id="paymentForm">
-        <input type="hidden" name="action" value="add">
-        
-        <label for="pay_email">Email:</label>
-        <input type="email" id="pay_email" name="pay_email" value="{{ form_data.pay_email if form_data else '' }}" placeholder="example@example.com">
-        <span class="error-message hidden" id="emailError">Invalid email address.</span>
-        <br>
-        
-        <label for="name_on_card">Name on Card:</label>
-        <input type="text" id="name_on_card" name="name_on_card" value="{{ form_data.name_on_card if form_data else '' }}" placeholder="Name on card">
-        <br>
-        
-        <label for="card_no">Card Number:</label>
-        <input type="text" id="card_no" name="card_no" value="{{ form_data.card_no if form_data else '' }}" placeholder="xxxx xxxx xxxx xxxx" maxlength="19">
-        <span class="error-message hidden" id="cardNoError">Card number must be 16 digits.</span>
-        <br>
-        
-        <label for="cvv">CVV:</label>
-        <input type="text" id="cvv" name="cvv" value="{{ form_data.cvv if form_data else '' }}" placeholder="3-digit CVV" maxlength="3">
-        <span class="error-message hidden" id="cvvError">CVV must be 3 digits.</span>
-        <br>
-        
-        <label for="expiry_date">Expiry Date (MM/YY):</label>
-        <input type="text" id="expiry_date" name="expiry_date" value="{{ form_data.expiry_date if form_data else '' }}" placeholder="MM/YY">
-        <span class="error-message hidden" id="expiryDateError">Expiry date must be in MM/YY format and not in the past.</span>
-        <br>
-        
-        <button type="submit">Add Payment Method</button>
-    </form>
-    
+    <header>
+        <div class="navbar">
+            <div>
+                <a href="{{ url_for('homepage') }}" class="home-button">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="logo">
+                </a>
+            </div>
+
+            <div class="icons">
+                <a href="{{ url_for('laptop') }}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/header_all_laptop.png') }}" alt="Icon" class="all_laptop_icon">
+                </a>
+                <a href="{{ url_for('cart') }}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/cart.png') }}" alt="Icon" class="cart_icon">
+                </a>
+                <a href="{{ url_for('setting_profile') }}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/setting.png') }}" alt="Icon" class="setting_icon">
+                </a>
+            </div>
+        </div>
+    </header>
+    <main>
+        <div class="container-edit">
+            <h1>Edit Payment Method</h1>
+            <form method="POST" action="/user/setting/payment/edit" id="paymentForm">
+                <input type="hidden" name="action" value="add">
+                
+                <label for="pay_email">Email:</label>
+                <input type="email" id="pay_email" name="pay_email" value="{{ form_data.pay_email if form_data else '' }}" placeholder="example@example.com">
+                <span class="error-message hidden" id="emailError">Invalid email address.</span>
+                <br>
+                
+                <label for="name_on_card">Name on Card:</label>
+                <input type="text" id="name_on_card" name="name_on_card" value="{{ form_data.name_on_card if form_data else '' }}" placeholder="Name on card">
+                <br>
+                
+                <label for="card_no">Card Number:</label>
+                <input type="text" id="card_no" name="card_no" value="{{ form_data.card_no if form_data else '' }}" placeholder="xxxx xxxx xxxx xxxx" maxlength="19">
+                <span class="error-message hidden" id="cardNoError">Card number must be 16 digits.</span>
+                <br>
+                
+                <label for="cvv">CVV:</label>
+                <input type="text" id="cvv" name="cvv" value="{{ form_data.cvv if form_data else '' }}" placeholder="3-digit CVV" maxlength="3">
+                <span class="error-message hidden" id="cvvError">CVV must be 3 digits.</span>
+                <br>
+                
+                <label for="expiry_date">Expiry Date (MM/YY):</label>
+                <input type="text" id="expiry_date" name="expiry_date" value="{{ form_data.expiry_date if form_data else '' }}" placeholder="MM/YY">
+                <span class="error-message hidden" id="expiryDateError">Expiry date must be in MM/YY format and not in the past.</span>
+                <br>
+                
+                <button type="submit" class="btnap">Add Payment Method</button>
+            </form>
+        </div>
+    </main>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <script>

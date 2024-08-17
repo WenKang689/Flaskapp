@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ product_details.product_name}}</title>
+    <title>Product</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
@@ -21,7 +21,7 @@
             text-align: left;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             background-image: url('../static/images/nav_background.png');
-            background-color: rgb(255, 255, 255);
+            background-color: white;
             background-size: cover;
             background-position: center;
             z-index: 2;
@@ -78,7 +78,7 @@
             max-width: 1400px;
             margin: 0 auto;
             background-color: white;
-            padding-top: 20px; /* Adjusted for header space */
+            padding-top: 20px;
         }
 
         .breadcrumb {
@@ -204,7 +204,7 @@
         }
 
         #addToCartButton {
-            background-image: url('../static/images/nav_background.png');
+            background-image: url('../images/background.png');
             color: white;
             border: none;
             padding: 10px 60px;
@@ -300,6 +300,22 @@
         .fa-star.checked {
             color: #ffcc00;
         }
+
+        .flash-message { 
+            border: 1px solid #ccc; padding: 10px; margin: 10px 0; 
+        }
+
+        .flash-success { 
+            background-color: #dff0d8; 
+        }
+
+        .flash-danger { 
+            background-color: #f2dede; 
+        }
+
+        .close-btn { 
+            position: absolute; top: 5px; right: 10px; cursor: pointer; 
+        }
     </style>
 </head>
 
@@ -308,7 +324,7 @@
     <header>
         <div class="navbar">
             <div>
-                <a href="{{url_for('homepage')}}" class="home-button">
+                <a href="{{ url_for('homepage') }}" class="home-button">
                     <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="logo">
                 </a>
             </div>
@@ -329,6 +345,16 @@
 
     <!-- Main Part -->
     <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message flash-{{ category }}">
+                        <span class="close-btn" onclick="this.parentElement.style.display='none';">&times;</span>  
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
         <!-- Breadcrumb -->
         <div class="breadcrumb">
             <a href="{{ url_for('homepage') }}">Home</a> / <a href="{{ url_for('cart') }}">Shopping Cart</a> / <a>Product Page</a>

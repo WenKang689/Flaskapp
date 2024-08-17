@@ -275,7 +275,7 @@
             <div class="profile-content">
                 <div class="profile-header">
                     <div id="current-profile-container">
-                        <img id="current-profile-pic" src="{{ profile.profile_pic }}?v={{ timestamp }}" alt="Profile Picture">
+                        <img id="current-profile-pic" src="{{ profile.profile_pic or url_for('static', filename='images/default_profile_picture.png') }}?v={{ timestamp }}" alt="Profile Picture">
                     </div>
                 </div>
                 <form method="post" action="/user/setting/profile/edit" enctype="multipart/form-data">

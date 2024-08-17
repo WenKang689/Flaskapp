@@ -5,11 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laptop Recommendation Survey</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            padding: 0;
-        }
         .follow-up {
             display: none;
             margin-left: 20px;
@@ -18,116 +13,90 @@
         .question {
             margin-bottom: 20px;
         }
-        .button {
-            padding: 10px 20px;
-            font-size: 16px;
-            color: #fff;
-            background-color: #007BFF;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .button:hover {
-            background-color: #0056b3;
-        }
     </style>
 </head>
 <body>
-    <form id="survey-form" action="/recommend" method="post">
+    <form id="survey-form" action="/recommend/survey/form" method="post">
         <h1>Laptop Recommendation Survey</h1>
 
         <div class="question">
-            <label>Choose Input Method:</label><br>
-            <input type="radio" name="input_method" value="survey" id="input-method-survey" checked> Fill out survey<br>
+            <label for="primary-use">1. What will you primarily use your laptop for?</label><br>
+            <input type="radio" name="primary_use" value="general-use" required> General Use (e.g., web browsing, watching videos)<br>
+            <input type="radio" name="primary_use" value="education"> Education (e.g., school or university work)<br>
+            <input type="radio" name="primary_use" value="gaming"> Gaming (e.g., playing video games)<br>
+            <input type="radio" name="primary_use" value="professional-work"> Professional Work (e.g., graphic design, programming, video editing)<br>
+            <input type="radio" name="primary_use" value="no-preference"> No preference<br>
         </div>
 
-        <div id="survey-section">
-            <div class="question">
-                <label for="primary-use">1. What will you primarily use your laptop for?</label><br>
-                <input type="radio" name="primary_use" value="general-use" required> General Use (e.g., web browsing, watching videos)<br>
-                <input type="radio" name="primary_use" value="education"> Education (e.g., school or university work)<br>
-                <input type="radio" name="primary_use" value="gaming"> Gaming (e.g., playing video games)<br>
-                <input type="radio" name="primary_use" value="professional-work"> Professional Work (e.g., graphic design, programming, video editing)<br>
-                <input type="radio" name="primary_use" value="no-preference"> No preference<br>
-            </div>
-
-            <div id="general-use-options" class="follow-up">
-                <label for="portable">1a. Do you need your laptop to be portable?</label><br>
-                <input type="radio" name="portable" value="yes"> Yes, I will carry it around often<br>
-                <input type="radio" name="portable" value="no"> No, it will mostly stay in one place<br>
-                <input type="radio" name="portable" value="no-preference"> No preference<br>
-            </div>
-
-            <div id="education-options" class="follow-up">
-                <label for="education_activities">1a. What type of educational activities will you use the laptop for?</label><br>
-                <input type="radio" name="education_activities" value="writing"> Writing papers and researching online<br>
-                <input type="radio" name="education_activities" value="programming"> Programming and coding<br>
-                <input type="radio" name="education_activities" value="design"> Design and multimedia projects<br>
-                <input type="radio" name="education_activities" value="no-preference"> No preference<br>
-            </div>
-
-            <div id="high-performance-education" class="follow-up">
-                <label for="high_performance">1b. Do you need a high-performance laptop for your tasks?</label><br>
-                <input type="radio" name="high_performance" value="yes"> Yes<br>
-                <input type="radio" name="high_performance" value="no"> No<br>
-                <input type="radio" name="high_performance" value="no-preference"> No preference<br>
-            </div>
-
-            <div id="gaming-options" class="follow-up">
-                <label for="gaming_type">1a. What types of games will you be playing?</label><br>
-                <input type="radio" name="gaming_type" value="high-end"> High-end games (e.g., AAA titles with demanding graphics)<br>
-                <input type="radio" name="gaming_type" value="mid-tier"> Mid-tier games (e.g., less demanding but still modern games)<br>
-                <input type="radio" name="gaming_type" value="basic"> Basic games (e.g., casual or older games)<br>
-                <input type="radio" name="gaming_type" value="no-preference"> No preference<br>
-            </div>
-
-            <div id="professional-options" class="follow-up">
-                <label for="professional_work">1a. What type of professional work will you use the laptop for?</label><br>
-                <input type="radio" name="professional_work" value="graphic-design"> Graphic design<br>
-                <input type="radio" name="professional_work" value="programming"> Programming and software development<br>
-                <input type="radio" name="professional_work" value="video-editing"> Video editing and multimedia creation<br>
-                <input type="radio" name="professional_work" value="no-preference"> No preference<br>
-            </div>
-
-            <div class="question">
-                <label for="brand">2. Do you have a preferred brand?</label><br>
-                <input type="radio" name="brand" value="acer"> Acer<br>
-                <input type="radio" name="brand" value="asus"> Asus<br>
-                <input type="radio" name="brand" value="dell"> Dell<br>
-                <input type="radio" name="brand" value="hp"> HP<br>
-                <input type="radio" name="brand" value="lenovo"> Lenovo<br>
-                <input type="radio" name="brand" value="msi"> MSI<br>
-                <input type="radio" name="brand" value="razer"> Razer<br>
-                <input type="radio" name="brand" value="huawei"> Huawei<br>
-                <input type="radio" name="brand" value="no-preference"> No preference<br>
-            </div>
-
-            <div class="question">
-                <label for="os">3. Do you have a preferred operating system?</label><br>
-                <input type="radio" name="os" value="windows-10"> Windows 10<br>
-                <input type="radio" name="os" value="windows-11"> Windows 11<br>
-                <input type="radio" name="os" value="no-preference"> No preference<br>
-            </div>
-
-            <div class="question">
-                <label for="price">4. What is your price range?</label><br>
-                <input type="radio" name="price" value="budget"> Budget (Under $500)<br>
-                <input type="radio" name="price" value="mid-range"> Mid-range ($500 - $1000)<br>
-                <input type="radio" name="price" value="high-end"> High-end ($1000 - $2000)<br>
-                <input type="radio" name="price" value="premium"> Premium (Over $2000)<br>
-                <input type="radio" name="price" value="no-preference"> No preference<br>
-            </div>
+        <div id="general-use-options" class="follow-up">
+            <label for="portable">1a. Do you need your laptop to be portable?</label><br>
+            <input type="radio" name="portable" value="yes"> Yes, I will carry it around often<br>
+            <input type="radio" name="portable" value="no"> No, it will mostly stay in one place<br>
+            <input type="radio" name="portable" value="no-preference"> No preference<br>
         </div>
 
-        <button type="submit" class="button">Submit</button>
+        <div id="education-options" class="follow-up">
+            <label for="education_activities">1a. What type of educational activities will you use the laptop for?</label><br>
+            <input type="radio" name="education_activities" value="writing"> Writing papers and researching online<br>
+            <input type="radio" name="education_activities" value="programming"> Programming and coding<br>
+            <input type="radio" name="education_activities" value="design"> Design and multimedia projects<br>
+            <input type="radio" name="education_activities" value="no-preference"> No preference<br>
+        </div>
+
+        <div id="high-performance-education" class="follow-up">
+            <label for="high_performance">1b. Do you need a high-performance laptop for your tasks?</label><br>
+            <input type="radio" name="high_performance" value="yes"> Yes<br>
+            <input type="radio" name="high_performance" value="no"> No<br>
+            <input type="radio" name="high_performance" value="no-preference"> No preference<br>
+        </div>
+
+        <div id="gaming-options" class="follow-up">
+            <label for="gaming_type">1a. What types of games will you be playing?</label><br>
+            <input type="radio" name="gaming_type" value="high-end"> High-end games (e.g., AAA titles with demanding graphics)<br>
+            <input type="radio" name="gaming_type" value="mid-tier"> Mid-tier games (e.g., less demanding but still modern games)<br>
+            <input type="radio" name="gaming_type" value="basic"> Basic games (e.g., casual or older games)<br>
+            <input type="radio" name="gaming_type" value="no-preference"> No preference<br>
+        </div>
+
+        <div id="professional-options" class="follow-up">
+            <label for="professional_work">1a. What type of professional work will you use the laptop for?</label><br>
+            <input type="radio" name="professional_work" value="graphic-design"> Graphic design<br>
+            <input type="radio" name="professional_work" value="programming"> Programming and software development<br>
+            <input type="radio" name="professional_work" value="video-editing"> Video editing and multimedia creation<br>
+            <input type="radio" name="professional_work" value="no-preference"> No preference<br>
+        </div>
+
+        <div class="question">
+            <label for="brand">2. Do you have a preferred brand?</label><br>
+            <input type="radio" name="brand" value="alienware"> Alienware<br>
+            <input type="radio" name="brand" value="dell"> Dell<br>
+            <input type="radio" name="brand" value="hp"> HP<br>
+            <input type="radio" name="brand" value="msi"> MSI<br>
+            <input type="radio" name="brand" value="razer"> Razer<br>
+            <input type="radio" name="brand" value="no-preference"> No preference<br>
+        </div>
+
+        <div class="question">
+            <label for="os">3. Do you have a preferred operating system?</label><br>
+            <input type="radio" name="os" value="windows-10"> Windows 10<br>
+            <input type="radio" name="os" value="windows-11"> Windows 11<br>
+            <input type="radio" name="os" value="no-preference"> No preference<br>
+        </div>
+
+        <div class="question">
+            <label for="price">4. What is your price range?</label><br>
+            <input type="radio" name="price" value="budget"> Budget (Under $500)<br>
+            <input type="radio" name="price" value="mid-range"> Mid-range ($500 - $1000)<br>
+            <input type="radio" name="price" value="high-end"> High-end ($1000 - $2000)<br>
+            <input type="radio" name="price" value="premium"> Premium (Over $2000)<br>
+            <input type="radio" name="price" value="no-preference"> No preference<br>
+        </div>
+
+        <button type="submit">Submit</button>
     </form>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const primaryUseElements = document.querySelectorAll('input[name="primary_use"]');
-            const educationActivitiesElements = document.querySelectorAll('input[name="education_activities"]');
-            const surveyForm = document.getElementById('survey-form');
-            
             function hideAllFollowUps() {
                 document.getElementById('general-use-options').style.display = 'none';
                 document.getElementById('education-options').style.display = 'none';
@@ -135,37 +104,31 @@
                 document.getElementById('professional-options').style.display = 'none';
                 document.getElementById('high-performance-education').style.display = 'none';
             }
-        
-            function toggleSurveySection(show) {
-                document.getElementById('survey-section').style.display = show ? 'block' : 'none';
-            }
-        
-            primaryUseElements.forEach(elem => {
+    
+            document.querySelectorAll('input[name="primary_use"]').forEach((elem) => {
                 elem.addEventListener('change', function(event) {
                     hideAllFollowUps();
-                    const value = event.target.value;
-                    if (value === 'general-use') {
+                    if (event.target.value === 'general-use') {
                         document.getElementById('general-use-options').style.display = 'block';
-                    } else if (value === 'education') {
+                    } else if (event.target.value === 'education') {
                         document.getElementById('education-options').style.display = 'block';
-                    } else if (value === 'gaming') {
+                    } else if (event.target.value === 'gaming') {
                         document.getElementById('gaming-options').style.display = 'block';
-                    } else if (value === 'professional-work') {
+                    } else if (event.target.value === 'professional-work') {
                         document.getElementById('professional-options').style.display = 'block';
                     }
                 });
             });
-        
-            educationActivitiesElements.forEach(elem => {
+    
+            document.querySelectorAll('input[name="education_activities"]').forEach((elem) => {
                 elem.addEventListener('change', function(event) {
                     document.getElementById('high-performance-education').style.display = 
                         (event.target.value === 'programming' || event.target.value === 'design') ? 'block' : 'none';
                 });
             });
-        
-            // Hide auto-detect related code
-            toggleSurveySection(true); // Always show survey section
+    
+            hideAllFollowUps();
         });
-    </script>        
+    </script>
 </body>
 </html>

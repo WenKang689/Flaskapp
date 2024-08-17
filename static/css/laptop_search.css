@@ -1,0 +1,142 @@
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 120px;
+    padding: 20px 0;
+    text-align: left;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-image: url('/static/images/nav_background.png');
+    background-color: white;
+    background-size: cover;
+    background-position: center;
+    z-index: 2;
+}
+
+.navbar {
+    padding-right: 100px;
+    display: flex;
+    font-size: 40px;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.home-button {
+    position: absolute;
+    top: 20px;
+    left: 110px;
+    width: 300px;
+    display: flex;
+}
+
+.home-button img {
+    width: 70%;
+    height: auto;
+}
+
+.icons {
+    display: flex;
+    gap: 40px;
+    padding-top: 36px;
+}
+
+.icons a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.all_laptop_icon {
+    width: 130px;
+}
+
+.cart_icon {
+    width: 50px;
+    margin-top: -5px;
+}
+
+.setting_icon {
+    width: 65px;
+    margin-top: -12px;
+}
+
+.filter-bar {
+    padding: 10px;
+    background-color: #6e6b7200;
+    border-radius: 5px;
+    display: block;
+    text-decoration: none;
+    margin-bottom: 20px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s;
+    width: 260px;
+    margin-right: 20px;
+}
+
+.laptop-detail {
+    flex: 1; /* Take up the remaining space */
+    display: flex;
+    background-color: #ffffff;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.container {
+    display: flex;
+    margin-bottom: 20px;
+    padding: px;
+    max-width: 1500px;
+}
+
+.filter-bar label {
+    font-weight: bold; 
+    margin-top: 10px; 
+    display: block; 
+}
+
+.filter-bar input[type="text"],
+.filter-bar select,
+.filter-bar input[type="range"] {
+    width: 100%; 
+    padding: 10px; 
+    margin: 5px 0 15px; 
+    border: 1px solid #ced4da; 
+    border-radius: 4px; 
+    box-sizing: border-box; 
+}
+
+.filter-bar input[type="range"] {
+    -webkit-appearance: none;
+    background: #ddd; /* Background for the slider */
+    height: 5px; /* Height of the slider */
+    border-radius: 5px; /* Rounded corners */
+}
+
+.filter-bar input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; /* Remove default styling */
+    appearance: none; /* Remove default styling */
+    width: 15px; /* Width of the thumb */
+    height: 15px; /* Height of the thumb */
+    border-radius: 50%; /* Round thumb */
+    background: #007bff; /* Color of the thumb */
+    cursor: pointer; /* Pointer cursor on hover */
+}
+
+.filter-bar input[type="range"]::-moz-range-thumb {
+    width: 15px; /* Width of the thumb */
+    height: 15px; /* Height of the thumb */
+    border-radius: 50%; /* Round thumb */
+    background: #007bff; /* Color of the thumb */
+    cursor: pointer; /* Pointer cursor on hover */
+}
+
+/* Output styling */
+.filter-bar output {
+    font-weight: bold; /* Bold output values */
+    margin-left: 10px; /* Space between slider and output */
+}

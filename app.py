@@ -16,8 +16,7 @@ import re
 
 app= Flask(__name__)
 
-#database configuration
-db=yaml.load(open('db.yaml'), Loader=yaml.FullLoader)
+db=yaml.load(open('db.yaml'), Loader=yaml.FullLoader) #database configuration
 app.config["MYSQL_HOST"] = db["mysql_host"]
 app.config["MYSQL_USER"] = db["mysql_user"]
 app.config["MYSQL_PASSWORD"] = db["mysql_password"]
@@ -26,12 +25,11 @@ app.secret_key = db["secret_key"]
 
 mysql = MySQL(app)
 
-#AWS S3 credentials and bucket configuration
-S3= boto3.client('s3')
-S3_BUCKET = 'sourc-wk-sdp-project'
+S3= boto3.client('s3') #AWS S3 credentials and bucket configuration
+S3_BUCKET = 'sourc-wk-sdp-project' 
 S3_LOCATION = 'https://sourc-wk-sdp-project.s3.amazonaws.com/User+Profile+Picture/'
 
-#login for all (html sent)
+#login for all (html left)
 @app.route("/", methods=["GET","POST"])
 def login():
     if request.method == "POST":
@@ -59,7 +57,7 @@ def login():
             return redirect("/forgot_password")
     return render_template("login.html")
 
-#register (html sent)
+#register (flash message left)
 @app.route("/register", methods=["GET","POST"])
 def register():
     if request.method == "POST":
@@ -85,7 +83,11 @@ def register():
             cur.close()
             return redirect("/register")
         if not re.match(r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$', password):
-            flash("Password must contain at least one letter, one number, and one special character.", "danger")
+            flash("Password must between 8 and 20 characters, and contain at least one letter, one number, and one special character.", "danger")
+            cur.close()
+            return redirect("/register")
+        if not phone.isdigit() and len(phone) != 10:
+            flash("Phone number must be 10 digits only.", "danger")
             cur.close()
             return redirect("/register")
 
@@ -96,7 +98,7 @@ def register():
         return redirect("/")
     return render_template("register.html")
 
-#forgot password (html sent)
+#forgot password (DONE)-----------------------------------------------------------------------------------------------------------------
 @app.route("/forgot_password", methods=["GET", "POST"])
 def forgot_password():
     if request.method == "POST":
@@ -158,7 +160,7 @@ def verify_token(token, expiration=3600):
     except Exception as e:
         return f"Error verifying token: {e}", None
 
-#reset password (html sent)
+#reset password (DONE)-----------------------------------------------------------------------------------------------------------------
 @app.route("/reset_password", methods=["GET", "POST"])
 def reset_password():
     token = request.args.get("token")
@@ -203,7 +205,7 @@ def reset_password():
         return redirect("/")
     return render_template("reset_password.html")
 
-#staff login
+#staff login (html left)
 @app.route("/staff/login", methods=["GET","POST"])
 def staff_login():
     if request.method == "POST":
@@ -234,7 +236,7 @@ def staff_login():
     return render_template("staff_login.html")
 
 #Client Section (Timi)
-#C-home page
+#C-home page (DONE)-----------------------------------------------------------------------------------------------------------------
 @app.route('/homepage', methods=['GET', 'POST'])
 def homepage():
     if not session.get('logged_in'):
@@ -245,9 +247,33 @@ def homepage():
             search_query = request.form['query']
             session['homepage_search_query'] = search_query
             return redirect("/laptop")
-        return render_template('homepage.html')
+        
+        # Fetch top 3 recommended laptops with their first picture and score
+        cur = mysql.connection.cursor()
+        cur.execute("""
+            SELECT p.product_id, p.product_name, p.price, r.score, pic.pic_url
+            FROM recommendation r
+            JOIN product p ON r.product_id = p.product_id
+            LEFT JOIN (
+                SELECT product_id, MIN(pic_url) as pic_url
+                FROM product_pic
+                GROUP BY product_id
+            ) pic ON p.product_id = pic.product_id
+            WHERE r.username = %s
+            ORDER BY r.score DESC
+            LIMIT 3
+        """, (session.get('username'),))
+        top_recommendations = cur.fetchall()
 
-#C-setting/profile (html sent)
+        # Check if recommendations are empty
+        if not top_recommendations:
+            return redirect('/recommend')
+
+        cur.close()
+
+    return render_template('homepage.html', top_recommendations=top_recommendations)
+
+#C-setting/profile (flash message left)
 @app.route("/user/setting/profile", methods=["GET","POST"])
 def setting_profile():
     if 'logged_in' in session:
@@ -284,7 +310,7 @@ def setting_profile():
         flash("Please log in to view this page.", "warning")
         return render_template('login.html')
 
-#C-setting/profile/edit profile (html sent)
+#C-setting/profile/edit profile (flash message left)
 @app.route("/user/setting/profile/edit", methods=["GET","POST"])
 def edit_profile():
     current_username = session["username"]
@@ -413,7 +439,7 @@ def upload_file_to_s3(file_obj, bucket_name, object_name):
         print(f"Error uploading file to S3: {str(e)}")
         return None
 
-#C-setting/payment method
+#C-setting/payment method (DONE)-----------------------------------------------------------------------------------------------------------------
 @app.route("/user/setting/payment", methods=["GET", "POST"])
 def setting_payment():
 
@@ -448,6 +474,7 @@ def setting_payment():
     
     return render_template("setting_payment_detail.html", payment_methods=payment_methods)
 
+#C-setting/payment method/edit (DONE)-----------------------------------------------------------------------------------------------------------------
 @app.route('/user/setting/payment/edit', methods=['GET','POST'])
 def setting_payment_edit():
     current_username = session.get('username')
@@ -531,7 +558,7 @@ def is_valid_expiry_date(expiry_date):
         return month.isdigit() and year.isdigit() and 1 <= int(month) <= 12
     return False
 
-#C-setting/history(default purchase)
+#C-setting/history(default purchase) (html left)
 @app.route("/user/setting/history/purchase", methods=["GET","POST"])
 def setting_history_purchase():
     username = session.get("username")
@@ -656,7 +683,7 @@ def mask_username(username): # Function to mask the username
     else:
         return username[0] + '*' * (len(username) - 2) + username[-1]  # Mask all characters except first and last
 
-#C-setting/history/search history
+#C-setting/history/search history (html left)
 @app.route("/user/setting/history/search", methods=["GET","POST"])
 def setting_history_search():
     username = session.get('username')
@@ -689,31 +716,56 @@ def generate_next_search_id(): #generate search_id
         new_id = "SC0001"
     return new_id
 
+#C-recommend options (html left)
+@app.route("/recommend", methods=["GET", "POST"])
+def recommend():
+    if not session.get('logged_in'):
+        return redirect('/login')
+    
+    if request.method == 'POST':
+        choice = request.form.get('recommendation_option')
+        if choice == 'auto':
+            return redirect('/recommend/auto')
+        elif choice == 'survey':
+            return redirect('/recommend/survey/form')
+    
+    return render_template('recommend.html')
+    
 #C-survey/fill in survey
 @app.route("/recommend/survey/form", methods=["GET","POST"])
 def survey_form():
-    df = fetch_data()
-    df.columns = [
-    'Product ID', 'Product Name', 'Brand', 'Processor', 'Graphics', 
-    'Dimensions', 'Weight (g)', 'Operating System', 'Memory', 'Storage', 
-    'Power Supply', 'Battery', 'Price (MYR)'
-    ]
-    df["combined_features"] = df.apply(combine_features, axis=1)
-    cv = CountVectorizer()
-    count_matrix = cv.fit_transform(df["combined_features"])
-    # Computing the cosine similarity based on the count matrix
-    cosine_sim = cosine_similarity(count_matrix)
-    data = request.form
-    specs = get_specs_from_survey(data)
-    combined_query = combine_features(pd.Series(specs))
+    if request.method == "POST":    
+        
+        df = fetch_data()
+
+        df["combined_features"] = df.apply(combine_features, axis=1)
+
+        cv = CountVectorizer()
+        count_matrix = cv.fit_transform(df["combined_features"])
+
+        # Computing the cosine similarity based on the count matrix
+        cosine_sim = cosine_similarity(count_matrix)
+
+        data = request.form
+        specs = get_specs_from_survey(data)
+        combined_query = combine_features(pd.Series(specs))
 
 
-    recommendations = get_recommendations(combined_query, cosine_sim, df)
+        recommendations = get_recommendations(combined_query, cosine_sim, df)
 
-    if not recommendations:
-        return render_template('error.html', error_message="No similar laptops found.")
+        if not recommendations:
+            flash("No similar laptops found.")
+            return redirect("/homepage")
+        
+        username = session.get('username') 
+        save_recommendations_to_db(username, recommendations)
 
-    return render_template('recommendations.html', recommendations=recommendations)
+        # Redirect to homepage after saving recommendations
+        return redirect("/homepage")
+
+    else:
+        # Show the survey form
+        return render_template('survey.html')
 
 def fetch_data():
     cur=mysql.connection.cursor()
@@ -724,8 +776,17 @@ def fetch_data():
         power_supply, battery, price
     FROM product
     """
-    df = pd.read_sql(query, mysql.connection)
+    cur.execute(query)
+    data= cur.fetchall()
     cur.close()
+
+    # Convert the list of tuples to a DataFrame
+    df = pd.DataFrame(data, columns=[
+        'Product ID', 'Product Name', 'Brand', 'Processor', 'Graphics', 
+        'Dimensions', 'Weight (g)', 'Operating System', 'Memory', 'Storage', 
+        'Power Supply', 'Battery', 'Price (MYR)'
+    ])
+
     return df
     
 # Function to combine features
@@ -888,14 +949,13 @@ def get_recommendations(combined_query, cosine_sim, df):
             for index, similarity in similar_laptops
         ]
     
-    # Collect top laptop names and their similarity scores
-    top_laptops = []
+    # Collect top laptop IDs and their normalized similarity scores
+    recommendations = []
     for idx, score in normalized_scores:
-        laptop_name = df[df.index == idx]["Product Name"].values[0]
-        top_laptops.append((laptop_name, round(score)))
-        if len(top_laptops) == 5:
-            break
-    return top_laptops
+        product_id = df.iloc[idx]['Product ID']
+        recommendations.append((product_id, round(score)))  # Round the score for better readability
+
+    return recommendations
 
 def get_categories():
     # Define categories and associated keywords
@@ -909,31 +969,50 @@ def get_categories():
     }
     return categories
 
-    
-
 #C-auto recommend page
 @app.route("/recommend/auto", methods=["GET","POST"])
 def recommend_auto():
-    # Define categories and associated keywords
-    categories = get_categories()
+    # Check if the user accepted the privacy policy
+    if request.method == 'POST':
+        if 'accept_policy' in request.form:
+            # Validate checkbox
+            if 'accept_policy' not in request.form:
+                flash('You must accept the privacy policy to proceed.', 'warning')
+                return redirect('/recommend')
+            
+            # Process auto-recommendations
+            categories = get_categories()
+            program_files_dirs = [
+                r"C:\Program Files",
+                r"C:\Program Files (x86)"
+            ]
+            
+            categorized_apps = {category: 0 for category in categories}
+            categorized_apps['Other'] = 0
+            
+            for directory in program_files_dirs:
+                if os.path.exists(directory):
+                    apps_in_dir = detect_top_level_apps(directory)
+                    for app in apps_in_dir:
+                        category = categorize_app(app, categories)
+                        categorized_apps[category] += 1
+            
+            recommendations = recommend_laptops(categorized_apps)
+            
+            username = session.get('username')
+            try:
+                save_recommendations_to_db(username, recommendations)
+            except Exception as e:
+                flash(f"Failed to save recommendations: {str(e)}", "danger")
+                return redirect('/homepage')
+            
+            return redirect(url_for('homepage'))
+        
+        elif 'reject_policy' in request.form:
+            return redirect('/recommend')
 
-    program_files_dirs = [
-        r"C:\Program Files",
-        r"C:\Program Files (x86)"
-    ]
-    
-    categorized_apps = {category: 0 for category in categories}
-    categorized_apps['Other'] = 0
-    
-    for directory in program_files_dirs:
-        if os.path.exists(directory):
-            apps_in_dir = detect_top_level_apps(directory)
-            for app in apps_in_dir:
-                category = categorize_app(app,categories)
-                categorized_apps[category] += 1
-
-    recommendations=recommend_laptops(categorized_apps)
-    return render_template("recommend_auto.html",recommendations=recommendations,enumerate=enumerate)
+    # Render the page to accept privacy policy
+    return render_template('accept_policy.html')
 
 def detect_top_level_apps(directory):
     apps = []
@@ -971,12 +1050,13 @@ def get_laptops_from_db():
             dimensions, weight, os, memory, storage, 
             power_supply, battery, price
         FROM product
+        GROUP BY product_id
     """
     cur.execute(query)
-    laptops = cur.fetchall()
+    data = cur.fetchall()
     cur.close()
     
-    return laptops
+    return data
 
 def recommend_laptops(category_counts):
 
@@ -1006,7 +1086,7 @@ def recommend_laptops(category_counts):
         normalized_price = max(1, price / 1000)  
         final_score = basic_score + score_adjustment - normalized_price
         
-        recommendations.append((laptop, final_score))
+        recommendations.append((laptop[0], final_score))
     
     recommendations.sort(key=lambda x: x[1], reverse=True)
     
@@ -1019,8 +1099,7 @@ def recommend_laptops(category_counts):
         for i in range(len(recommendations)):
             normalized_score = ((recommendations[i][1] - min_score) / score_range) * 99 + 1
             recommendations[i] = (recommendations[i][0], normalized_score)
-        save_recommendations_to_db(session.get('username'),recommendations[:30])  # Return top 30 recommendations
-        return recommendations[:30]
+        return recommendations
     else:
         print("No recommendations found.")
         recommendations=[]
@@ -1039,39 +1118,52 @@ def save_recommendations_to_db(username,recommendations):
     ON DUPLICATE KEY UPDATE score = VALUES(score)
     """
     
-    values = [(username, laptop[0], score) for laptop, score in recommendations]
+    values = [(username, product_id, score) for product_id, score in recommendations]
     
     try:
         cur = mysql.connection.cursor()
         cur.executemany(upsert_query, values)
         mysql.connection.commit()
-        print("Recommendations saved to database.")
+        flash("Recommendation Success.", "success")
     except Exception as e:
         mysql.connection.rollback()
         raise e
     finally:
         cur.close()
 
-def get_categories():
-    # Define categories and associated keywords
-    categories = {
-        'Productivity': ['onedrive', 'keynote', 'onenote', 'microsoft word', 'microsoft excel', 'microsoft powerpoint', 'calendar', 'numbers', 'pages', 'draw.io', 'canva', 'apspace'],
-        'Media': ['audacity', 'ffmpeg', 'media player', 'photo viewer', 'imovie', 'garageband', 'bandicam'],
-        'Development': ['visual studio code', 'netbeans', 'azure data studio', 'git', 'obs-studio', 'mysqlworkbench', 'swi-prolog', 'docker', 'rapidminer studio'],
-        'Utilities': ['teams', 'bonjour', 'windows defender', 'windows mail', 'putty', 'hp', 'wsl', '7-zip', 'dotnet', 'faceit', 'nzxt cam', 'streamlabs', 'testproject', 'winpcap'],
-        'Games': ['game', 'launcher', 'hoyoplay', 'steam', 'wildgames', 'riot vanguard', 'easyanticheat'],
-        'Other': []
-    }
-    return categories
-
 #C-laptop (display all laptop + search result + filter) (html sent)
 @app.route("/laptop", methods=["GET","POST"])
 def laptop():
     username = session.get('username')
 
-    search_query = session.get('homepage_search_query', '')
-    if not search_query:
-        search_query = request.args.get('search', '')
+    # Clear filters if the button is clicked
+    if request.args.get('clear_filters'):
+        session.pop('homepage_search_query', None)
+        return redirect('/laptop')
+
+    # Retrieve the search query from session or request args
+    search_query = session.get('homepage_search_query', request.args.get('search', ''))
+
+    # Check if any filters are applied; if yes, clear the session search query
+    if any([
+        request.args.get('brand'),
+        request.args.get('min_price'),
+        request.args.get('max_price'),
+        request.args.get('memory'),
+        request.args.get('graphics'),
+        request.args.get('storage'),
+        request.args.get('battery'),
+        request.args.get('processor'),
+        request.args.get('os'),
+        request.args.get('min_weight'),
+        request.args.get('max_weight'),
+        request.args.get('score')
+    ]):
+        session.pop('homepage_search_query', None)  # Clear session search query
+
+    # Retrieve the search query from the request args if session query was cleared
+    search_query = request.args.get('search', search_query)
+
         
     brand = request.args.get('brand', '')
     min_price = request.args.get('min_price', '')
@@ -1084,6 +1176,7 @@ def laptop():
     os = request.args.get('os', '')
     min_weight = request.args.get('min_weight', '')
     max_weight = request.args.get('max_weight', '')
+    sort_by_score = request.args.get('sort_by_score','')
 
 
     # Generate a unique search_id
@@ -1106,16 +1199,17 @@ def laptop():
     # Fetch laptops and their first picture from the database
     cur = mysql.connection.cursor()
     cur.execute("""
-        SELECT p.product_id, p.product_name, p.brand, p.price, p.memory, p.graphics, p.storage, p.battery, p.processor, p.os, p.weight, pic.pic_url
+        SELECT p.product_id, p.product_name, p.brand, p.price, p.memory, p.graphics, p.storage, p.battery, p.processor, p.os, p.weight, pic.pic_url, r.score
         FROM product p
         LEFT JOIN (
             SELECT product_id, MIN(pic_url) as pic_url
             FROM product_pic
             GROUP BY product_id
         ) pic ON p.product_id = pic.product_id
-    """)
+        LEFT JOIN recommendation r ON p.product_id = r.product_id
+        AND r.username = %s
+    """, (username,))
     all_laptops = cur.fetchall()
-
 
     # Fetch distinct values for each filter option
     cur.execute("SELECT DISTINCT brand FROM product")
@@ -1158,7 +1252,7 @@ def laptop():
     # Filter the laptops based on the criteria
     filtered_laptops = [
         laptop for laptop in all_laptops
-        if (search_query.lower() in laptop[1].lower()) and
+        if (search_query.lower() in laptop[1].lower() if search_query else True) and
            (not brand or brand.lower() in laptop[2].lower()) and
            (not min_price or laptop[3] >= float(min_price)) and
            (not max_price or laptop[3] <= float(max_price)) and
@@ -1172,35 +1266,35 @@ def laptop():
            (not max_weight or laptop[10] <= float(max_weight))
     ]
 
+    # Fetch user-specific recommendations if logged in
+    user_recommendation_dict = {}
+    if username:
+        cur.execute("""
+            SELECT product_id, score
+            FROM recommendation
+            WHERE username = %s
+        """, (username,))
+        user_recommendations = cur.fetchall()
+        user_recommendation_dict = {product_id: score for product_id, score in user_recommendations}
+
+    # Integrate user-specific scores if the user is logged in
+    if username:
+        for i, laptop in enumerate(filtered_laptops):
+            product_id = laptop[0]
+            filtered_laptops[i] = laptop + (user_recommendation_dict.get(product_id, 0),)
+
+
+    # Sort the laptops by score if the filter is applied
+    if sort_by_score == 'on' and username:
+        filtered_laptops.sort(key=lambda x: x[12], reverse=True)  # Descending
+
+
     message = None
+
     if not filtered_laptops:
         message = "No laptops found matching the criteria."
 
     return render_template('laptop_search.html', laptops=filtered_laptops, brands=brands, memories=memories, graphics_options=graphics_options, storages=storages, batteries=batteries, processors=processors, operating_systems=operating_systems, message=message, min_price=min_price_db, max_price=max_price_db, min_weight=min_weight_db, max_weight=max_weight_db)
-
-def generate_next_search_id(): #generate search_id
-    cur = mysql.connection.cursor()
-    
-    cur.execute("SELECT search_id FROM search_history ORDER BY search_id DESC LIMIT 1")
-    last_id = cur.fetchone()
-    cur.close()
-    if last_id:
-        # Extract the numeric part of the ID and increment it
-        last_num = int(last_id[0][2:])  # Assuming ID format is SC000X
-        new_num = last_num + 1
-        new_id = f"SC{new_num:04d}"  # Keeps the leading zeros, making the numeric part 4 digits long
-    else:
-        # If there are no entries, start with SC0001
-        new_id = "SC0001"
-    return new_id
-
-def mask_username(username): # Function to mask the username
-    if len(username) <= 1:
-        return '*'  # If the role_id is 1 character or fewer, show the first character
-    elif len(username) == 2:
-        return username[0] + '*'  # If the role_id is 2 characters, show the first character and mask the second
-    else:
-        return username[0] + '*' * (len(username) - 2) + username[-1]  # Mask all characters except first and last
 
 #C-laptop/detail (html sent)
 @app.route("/laptop/<product_id>", methods=["GET","POST"])
@@ -1208,7 +1302,6 @@ def laptop_detail(product_id):
     
     # Clean up the product_id
     product_id = product_id.replace('<', '').replace('>', '').strip()
-    print(f"Processed product_id: {product_id}")  # Debug print
 
     if request.method == "POST":
         username = session.get('username')

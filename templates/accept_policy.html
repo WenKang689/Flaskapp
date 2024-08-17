@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Privacy Policy</title>
+    <script>
+        function validateForm(event) {
+            // Get the checkbox element
+            var checkbox = document.getElementById('accept_policy');
+            
+            // If the checkbox is not checked and the form is for accepting policy
+            if (!checkbox.checked && event.submitter.name === 'accept_policy') {
+                // Prevent the form from submitting
+                event.preventDefault();
+                
+                // Alert the user to check the checkbox
+                alert('You must tick the checkbox to accept the privacy policy.');
+                
+                return false;
+            }
+            return true;
+        }
+    </script>
+</head>
+<body>
+    <h1>Privacy Policy</h1>
+    <p>Privacy Policy: Software Usage Data Collection for Auto-Recommendations</p>
+    <p><strong>1. Introduction</strong></p>
+    <p>Your privacy is important to us. This section of our Privacy Policy explains how we collect and use information from your laptop when you opt-in to our auto-recommendation feature. By enabling this feature, you agree to the collection and use of your installed software data as outlined below.</p>
+    <p><strong>2. What Information We Collect</strong></p>
+    <p>When you choose to enable the auto-recommendation feature, our system may collect the following information from your laptop:</p>
+    <ul>
+        <li>Installed Software Information: A list of software applications installed on your laptop, including version details and usage patterns.</li>
+    </ul>
+    <p><strong>3. How We Use the Collected Information</strong></p>
+    <p>The information collected is used exclusively for the following purposes:</p>
+    <ul>
+        <li>Usage Detection: To analyze the types of software you use and how frequently they are used.</li>
+        <li>Personalized Recommendations: To provide tailored recommendations based on your software usage to enhance your productivity and system performance.</li>
+    </ul>
+    <p><strong>4. Data Security</strong></p>
+    <p>We take the security of your data seriously and implement industry-standard security measures to protect the information collected from unauthorized access, alteration, or disclosure.</p>
+    <p><strong>5. Data Sharing and Retention</strong></p>
+    <ul>
+        <li>Third-Party Sharing: We do not share your software usage data with any third parties unless required by law.</li>
+        <li>Data Retention: The data collected is retained only as long as necessary to provide you with the auto-recommendation service. Once the data is no longer needed, it is securely deleted.</li>
+    </ul>
+    <p><strong>6. Your Choices</strong></p>
+    <ul>
+        <li>Opting In: The collection of software usage data is optional and only occurs when you enable the auto-recommendation feature.</li>
+        <li>Opting Out: You can disable the auto-recommendation feature at any time through your account settings. Once disabled, no further data will be collected, and any previously collected data will be deleted.</li>
+    </ul>
+    <p><strong>7. Changes to This Policy</strong></p>
+    <p>We may update this privacy policy from time to time. Any changes will be communicated to you through our system or via email. Continued use of the auto-recommendation feature after any updates signifies your acceptance of the revised policy.</p>
+    <p><strong>8. Contact Us</strong></p>
+    <p>If you have any questions or concerns about this privacy policy or our data collection practices, please contact us at [Your Contact Information].</p>
+    
+    <form method="POST" onsubmit="return validateForm(event)">
+        <input type="checkbox" name="accept_policy" id="accept_policy">
+        <label for="accept_policy">I have read and understand the policy</label><br>
+        <button type="submit" name="accept_policy" value="accept">Accept Policy</button>
+        <button type="submit" name="reject_policy" value="reject">Reject Policy</button>
+    </form>
+
+</body>
+</html>

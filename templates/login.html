@@ -26,14 +26,24 @@
                     {% endfor %}
                 {% endif %}
             {% endwith %}
-            <form method="post">
+            <form method="post" id="loginForm">
                 <h2>Username</h2>
                 <input type="username" name="username" required>
                 <h3>Password</h3> 
                 <input type="password" name="password" required>
                 <button type="submit" class="btnf" name="action" value="forgot_password">Forgot Password</button>
-                <button type="submit" class="btn" name="action" value="login">Login</button>
+                <button type="submit" class="btn" name="action" value="login" id="loginButton">Login</button>
             </form>
+            
+            <script>
+                document.getElementById('loginForm').addEventListener('keypress', function(event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        document.getElementById('loginButton').click();
+                    }
+                });
+            </script>
+
             <p class="register">Don't have an Account? <a href="{{ url_for('register') }}">Sign up here</a></p>
         </div>
     </div>

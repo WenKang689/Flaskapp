@@ -3,23 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <title>Search History</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/search_history.css') }}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
 </head>
 <body>
-    <h1>Search History</h1>
-    {% if search_history %}
-        <ul>
-            {% for search in search_history %}
-                <li>
-                    <p>
-                        Search Query: 
-                        <a href="{{ url_for('laptop', search=search[1]) }}">{{ search[1] }}</a>
-                    </p>
-                    <p>Search Time: {{ search[2] }}</p>
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>No search history found.</p>
-    {% endif %}
+    <header>
+        <div class="navbar">
+            <div>
+                <a href="{{ url_for('homepage') }}" class="home-button">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="logo">
+                </a>
+            </div>
+
+            <div class="icons">
+                <a href="{{ url_for('laptop') }}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/header_all_laptop.png') }}" alt="Icon" class="all_laptop_icon">
+                </a>
+                <a href="{{ url_for('cart') }}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/cart.png') }}" alt="Icon" class="cart_icon">
+                </a>
+                <a href="{{ url_for('setting_profile') }}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/setting.png') }}" alt="Icon" class="setting_icon">
+                </a>
+            </div>
+        </div>
+    </header>
+    <main>
+        <div class="container">
+            <div class="sidebar">
+                <a href="{{ url_for('setting_profile') }}" class="profilebtn">PROFILE</a>
+                <a href="{{ url_for('setting_payment') }}" class="paymentbtn">PAYMENT DETAILS</a>
+                <a href="{{ url_for('setting_history_purchase') }}" class="historybtn">HISTORY</a>
+                <a href="{{ url_for('login') }}" class="logoutbtn">
+                    <img src="{{ url_for('static', filename='images/logouticon.png') }}" alt="logouticon" style="padding-right: 15px; width: 19px; height: 20px; vertical-align: middle;">
+                    LOG OUT
+                </a>
+            </div>
+            <div class="content-area">
+                <div class="main-container">
+                    <div class="header-links">
+                        <a href="{{ url_for('setting_history_purchase') }}" class="header-link"><h1>Purchase</h1></a>
+                        <a href="#" class="active-link"><h1>Search</h1></a>
+                    </div>
+                </div>
+                    <div class="search-container">
+                        {% if search_history %}
+                            <ul>
+                                {% for search in search_history %}
+                                    <li>
+                                        <p>
+                                            Search Query: 
+                                            <a href="{{ url_for('laptop', search=search[1]) }}">{{ search[1] }}</a>
+                                        </p>
+                                        <p>Search Time: {{ search[2] }}</p>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p>No search history found.</p>
+                        {% endif %}
+                    </div>
+            </div>
+        </div>
+    </main>
 </body>
 </html>

@@ -3,6 +3,14 @@
     <label for="search">Search:</label>
     <input type="text" id="search" name="search" value="{{ request.args.get('search', '') }}"><br>
 
+    <!-- Sort by Score -->
+    <label>
+        <input type="checkbox" name="sort_by_score" {% if request.args.get('sort_by_score') == 'on' %}checked{% endif %}>
+        Sort by Score
+    </label><br>
+
+
+
     <!-- Brand Filter -->
     <label for="brand">Brand:</label>
     <select id="brand" name="brand">
@@ -109,7 +117,12 @@
         });
     </script>
 
+    <!-- Apply Filters Button -->
     <button type="submit">Filter</button>
+
+    <!-- Clear Filters Button -->
+    <button type="submit" name="clear_filters" value="true">Clear Filters</button>
+
 </form> 
 
 {% if message %}
