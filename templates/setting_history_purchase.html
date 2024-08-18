@@ -7,6 +7,16 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
 </head>
 <body>
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <span class="close-btn" onclick="this.parentElement.style.display='none';">&times;</span>  
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
     <header>
         <div class="navbar">
             <div>
@@ -44,68 +54,70 @@
                     </div>
                 </div>
                     {% if orders %}
+                    <div class="order-grid"> 
                         {% for order_id, details in orders.items() %}
-                        <div class="order-container">
-                            <div class="order">
-                                <h2>Order ID: {{ order_id }}</h2>
-                                <p>Purchase Date: {{ details.date }}</p>
-                                <p>Order Status: {{ details.status }}</p>
-                                <ul>
-                                    {% for product in details.products %}
-                                            <p>Product Name: <a href="{{ url_for('laptop_detail', product_id=product.product_id) }}">{{ product.name }}</a></p>
-                                            <p>Purchase Amount: RM {{ product.amount }}</p>
-                                            <p>Purchase Quantity: {{ product.quantity }}</p>
+                            <div class="order-container"> 
+                                <div class="order">
+                                    <h2>Order ID: {{ order_id }}</h2>
+                                    <p>Purchase Date: {{ details.date }}</p>
+                                    <p>Order Status: {{ details.status }}</p>
+                                    
+                                        {% for product in details.products %}
                                             
-                                            {% if product.pic_url %}
-                                                <a href="{{ url_for('laptop_detail', product_id=product.product_id) }}">
-                                                    <img src="{{ product.pic_url }}" alt="Product Image" style="max-width: 300px; max-height: 200px;">
-                                                </a>
-                                            {% else %}
-                                                <p>No image available</p>
-                                            {% endif %}
-                                            
-                                            {% if (order_id, product.product_id) in existing_reviews %}
-                                                <p>Review: {{ existing_reviews[(order_id, product.product_id)]['review'] }}</p>
-                                                <p>Rating: {{ existing_reviews[(order_id, product.product_id)]['rating'] }} / 5</p>
-                                                {% if existing_reviews[(order_id, product.product_id)].reply %}
-                                                    <p>Responses: {{ existing_reviews[(order_id, product.product_id)].reply }}</p>
+                                                <p>Product Name: <a href="{{ url_for('laptop_detail', product_id=product.product_id) }}">{{ product.name }}</a></p>
+                                                <p>Purchase Amount: RM {{ product.amount }}</p>
+                                                <p>Purchase Quantity: {{ product.quantity }}</p>
+                                                {% if product.pic_url %}
+                                                    <a href="{{ url_for('laptop_detail', product_id=product.product_id) }}">
+                                                        <img src="{{ product.pic_url }}" alt="Product Image" class="lapimage">
+                                                    </a>
+                                                {% else %}
+                                                    <p>No image available</p>
                                                 {% endif %}
-                                            {% else %}
-                                                <br>
-                                                <button class="review-btn" data-product-id="{{ product.product_id }}" data-order-id="{{ order_id }}">Give Review and Rating</button>
-                                            {% endif %}
-                                        </li>
-                                    {% endfor %}
-                                </ul>
+                                                {% if (order_id, product.product_id) in existing_reviews %}
+                                                    <p>Review: {{ existing_reviews[(order_id, product.product_id)]['review'] }}</p>
+                                                    <p>Rating: {{ existing_reviews[(order_id, product.product_id)]['rating'] }} / 5</p>
+                                                    {% if existing_reviews[(order_id, product.product_id)].reply %}
+                                                        <p>Responses: {{ existing_reviews[(order_id, product.product_id)].reply }}</p>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <br>
+                                                    <button class="review-btn" data-product-id="{{ product.product_id }}" data-order-id="{{ order_id }}">Give Review and Rating</button>
+                                                {% endif %}
+                                            
+                                        {% endfor %}
+                                    
+                                </div>
                             </div>
                         {% endfor %}
-                    {% else %}
-                        <p>No purchase history available.</p>
-                    {% endif %}
-    
-                    <div id="review-popup" class="popup">
-                        <div class="popup-content">
-                            <span class="close-btn" onclick="closePopup()">&times;</span>
-                            <form action="{{ url_for('setting_history_purchase') }}" method="post" class="review-form">
-                                <input type="hidden" id="product-id" name="product_id">
-                                <input type="hidden" id="order-id" name="order_id">
-                                <label for="review">Review:</label>
-                                <input type="text" id="review" name="review" required>
-                                <label for="rating">Rating:</label>
-                                <div class="stars">
-                                    <span class="star" data-value="1">&#9733;</span>
-                                    <span class="star" data-value="2">&#9733;</span>
-                                    <span class="star" data-value="3">&#9733;</span>
-                                    <span class="star" data-value="4">&#9733;</span>
-                                    <span class="star" data-value="5">&#9733;</span>
-                                    <input type="hidden" id="rating" name="rating" required>
-                                    <button type="submit">Submit</button>
-                                </div>
-                            </form>
-                        </div>
                     </div>
-                        </div>     
-            </div>
+                {% else %}
+                    <p>No purchase history available.</p>
+                {% endif %}
+        
+                        <div id="review-popup" class="popup">
+                            <div class="popup-content">
+                                <span class="close-btn" onclick="closePopup()">&times;</span>
+                                <form action="{{ url_for('setting_history_purchase') }}" method="post" class="review-form">
+                                    <input type="hidden" id="product-id" name="product_id">
+                                    <input type="hidden" id="order-id" name="order_id">
+                                    <label for="review">Review:</label>
+                                    <input type="text" id="review" name="review" required>
+                                    <label for="rating">Rating:</label>
+                                    <div class="stars">
+                                        <span class="star" data-value="1">&#9733;</span>
+                                        <span class="star" data-value="2">&#9733;</span>
+                                        <span class="star" data-value="3">&#9733;</span>
+                                        <span class="star" data-value="4">&#9733;</span>
+                                        <span class="star" data-value="5">&#9733;</span>
+                                        <input type="hidden" id="rating" name="rating" required>
+                                        <button type="submit">Submit</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                            </div>     
+                </div>
         </div>
     <script>
         document.querySelectorAll('.review-btn').forEach(button => {
@@ -137,6 +149,15 @@
                 }
             });
         }
+
+        window.onscroll = function() {
+            var sidebar = document.getElementById("sidebar");
+            if (window.pageYOffset > 0) {
+                sidebar.style.top = window.pageYOffset + "px";
+            } else {
+                sidebar.style.top = "0";
+            }
+        };
     </script>
 </body>
 </html>
