@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Laptop Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        nav ul li {
+            display: inline;
+            margin: 0 10px;
+        }
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+        }
+        main {
+            padding: 20px;
+        }
+        .search-container {
+            margin-bottom: 20px;
+        }
+        form {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        input[type="text"] {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            flex: 1;
+        }
+        button {
+            padding: 8px 16px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .add-laptop-button {
+            margin: 20px 0;
+            text-align: right;
+        }
+        .add-laptop-button a {
+            padding: 10px 20px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 4px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .add-laptop-button a:hover {
+            background-color: #45a049;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        img {
+            max-width: 100px;
+            height: auto;
+        }
+        .actions-column {
+            width: 200px; /* Ensure consistent width for actions column */
+        }
+        .button-container {
+            display: flex;
+            gap: 10px;
+        }
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Admin Laptop Management</h1>
+        <nav>
+            <ul>
+                <li><a href="/admin/laptop">Laptop Page</a></li>
+                <li><a href="/admin/reviews">Manage Reviews</a></li>
+                <li><a href="/admin/feedback/send">Send Feedback</a></li>
+                <li><a href="/admin/orders">Manage Orders</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <div class="search-container">
+            <form action="{{ url_for('admin_laptop') }}" method="get">
+                <input type="text" name="search" placeholder="Search laptops..." value="{{ search_query }}">
+                <button type="submit">Search</button>
+            </form>
+        </div>
+
+        <div class="add-laptop-button">
+            <a href="{{ url_for('admin_laptop_add') }}">Add Laptop</a>
+        </div>
+
+        {% if search_query %}
+        <p>Showing results for: <strong>{{ search_query }}</strong></p>
+        {% endif %}
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Brand</th>
+                    <th>Price</th>
+                    <th>Memory</th>
+                    <th>Graphics</th>
+                    <th>Storage</th>
+                    <th>Battery</th>
+                    <th>Processor</th>
+                    <th>OS</th>
+                    <th>Weight</th>
+                    <th>Stock</th>
+                    <th>Image</th>
+                    <th class="actions-column">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for laptop in laptops %}
+                <tr>
+                    <td>{{ laptop[0] }}</td>
+                    <td>{{ laptop[1] }}</td>
+                    <td>{{ laptop[2] }}</td>
+                    <td>${{ laptop[3] }}</td>
+                    <td>{{ laptop[4] }}</td>
+                    <td>{{ laptop[5] }}</td>
+                    <td>{{ laptop[6] }}</td>
+                    <td>{{ laptop[7] }}</td>
+                    <td>{{ laptop[8] }}</td>
+                    <td>{{ laptop[9] }}</td>
+                    <td>{{ laptop[10] }}</td>
+                    <td>{{ laptop[12] if laptop[12] is not none else 'N/A' }}</td>
+                    <td>
+                        {% if laptop[11] %}
+                        <a href="{{ url_for('laptop_images', product_id=laptop[0]) }}">
+                            <img src="{{ laptop[11] }}" alt="Laptop Image">
+                        </a>
+                        {% else %}
+                        <a href="{{ url_for('laptop_images', product_id=laptop[0]) }}">No image</a>
+                        {% endif %}
+                    </td>                    
+                    <td class="actions-column">
+                        <div class="button-container">
+                            <a href="{{ url_for('admin_laptop_edit') }}?product_id={{ laptop[0] }}" class="edit-button"><button>Edit</button></a>
+                            <form action="{{ url_for('admin_laptop_remove') }}" method="post" style="display:inline;">
+                                <input type="hidden" name="product_id" value="{{ laptop[0] }}">
+                                <button type="submit" onclick="return confirm('Are you sure you want to remove this laptop?')">Remove</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </main>
+    <p>&copy; 2023 Laptop Finder. All rights reserved.</p>
+</body>
+</html>
