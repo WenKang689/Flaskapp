@@ -1,3 +1,5 @@
+CREATE DATABASE  IF NOT EXISTS `flaskapp` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+USE `flaskapp`;
 -- MySQL dump 10.13  Distrib 8.0.36, for Win64 (x86_64)
 --
 -- Host: localhost    Database: flaskapp
@@ -179,15 +181,16 @@ CREATE TABLE `purchase` (
   `pur_amount` int NOT NULL,
   `pur_status` varchar(7) NOT NULL,
   `pur_quantity` int NOT NULL,
-  `processed_by` char(6) NOT NULL,
+  `processed_by` char(6) DEFAULT NULL,
+  `saved_card_id` char(6) NOT NULL,
   PRIMARY KEY (`order_id`,`product_id`),
   UNIQUE KEY `order_id` (`order_id`),
   KEY `username` (`username`),
   KEY `product_id` (`product_id`),
-  KEY `processed_by` (`processed_by`),
+  KEY `saved_card_id` (`saved_card_id`),
   CONSTRAINT `purchase_ibfk_1` FOREIGN KEY (`username`) REFERENCES `user` (`username`) ON UPDATE CASCADE,
   CONSTRAINT `purchase_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE,
-  CONSTRAINT `purchase_ibfk_3` FOREIGN KEY (`processed_by`) REFERENCES `staff` (`stf_id`)
+  CONSTRAINT `purchase_ibfk_3` FOREIGN KEY (`saved_card_id`) REFERENCES `payment` (`saved_card_id`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -228,6 +231,7 @@ CREATE TABLE `review` (
 
 LOCK TABLES `review` WRITE;
 /*!40000 ALTER TABLE `review` DISABLE KEYS */;
+INSERT INTO `review` VALUES ('RV0001','IN0001','LP0001','wkwk','haha',5,'2024-08-07 03:54:01',NULL),('RV0002','IN0002','LP0001','wkwk','ninj',1,'2024-08-07 04:04:56',NULL);
 /*!40000 ALTER TABLE `review` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -352,6 +356,112 @@ INSERT INTO `user` VALUES ('aaa','asd','Chong Wen Kang','braynchongwenkang590@gm
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
 
+/* Quantities Table */
+DROP TABLE IF EXISTS `quantities`;
+
+CREATE TABLE `quantities` (
+    `product_id` CHAR(6) NOT NULL,
+    `quantity` INT NOT NULL,
+    PRIMARY KEY (`product_id`),
+    FOREIGN KEY (`product_id`) REFERENCES `product`(`product_id`)
+);
+
+CREATE TABLE user_recommendations (
+    username VARCHAR(30) PRIMARY KEY,
+    product_id_1 CHAR(6),
+    score_1 DECIMAL(5,2),
+    product_id_2 CHAR(6),
+    score_2 DECIMAL(5,2),
+    product_id_3 CHAR(6),
+    score_3 DECIMAL(5,2),
+    product_id_4 CHAR(6),
+    score_4 DECIMAL(5,2),
+    product_id_5 CHAR(6),
+    score_5 DECIMAL(5,2),
+    product_id_6 CHAR(6),
+    score_6 DECIMAL(5,2),
+    product_id_7 CHAR(6),
+    score_7 DECIMAL(5,2),
+    product_id_8 CHAR(6),
+    score_8 DECIMAL(5,2),
+    product_id_9 CHAR(6),
+    score_9 DECIMAL(5,2),
+    product_id_10 CHAR(6),
+    score_10 DECIMAL(5,2),
+    product_id_11 CHAR(6),
+    score_11 DECIMAL(5,2),
+    product_id_12 CHAR(6),
+    score_12 DECIMAL(5,2),
+    product_id_13 CHAR(6),
+    score_13 DECIMAL(5,2),
+    product_id_14 CHAR(6),
+    score_14 DECIMAL(5,2),
+    product_id_15 CHAR(6),
+    score_15 DECIMAL(5,2),
+    product_id_16 CHAR(6),
+    score_16 DECIMAL(5,2),
+    product_id_17 CHAR(6),
+    score_17 DECIMAL(5,2),
+    product_id_18 CHAR(6),
+    score_18 DECIMAL(5,2),
+    product_id_19 CHAR(6),
+    score_19 DECIMAL(5,2),
+    product_id_20 CHAR(6),
+    score_20 DECIMAL(5,2),
+    product_id_21 CHAR(6),
+    score_21 DECIMAL(5,2),
+    product_id_22 CHAR(6),
+    score_22 DECIMAL(5,2),
+    product_id_23 CHAR(6),
+    score_23 DECIMAL(5,2),
+    product_id_24 CHAR(6),
+    score_24 DECIMAL(5,2),
+    product_id_25 CHAR(6),
+    score_25 DECIMAL(5,2),
+    product_id_26 CHAR(6),
+    score_26 DECIMAL(5,2),
+    product_id_27 CHAR(6),
+    score_27 DECIMAL(5,2),
+    product_id_28 CHAR(6),
+    score_28 DECIMAL(5,2),
+    product_id_29 CHAR(6),
+    score_29 DECIMAL(5,2),
+    product_id_30 CHAR(6),
+    score_30 DECIMAL(5,2),
+    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (username) REFERENCES user(username) ON UPDATE CASCADE,
+    FOREIGN KEY (product_id_1) REFERENCES product(product_id) ON UPDATE CASCADE,
+    FOREIGN KEY (product_id_2) REFERENCES product(product_id) ON UPDATE CASCADE,
+    FOREIGN KEY (product_id_3) REFERENCES product(product_id) ON UPDATE CASCADE,
+    FOREIGN KEY (product_id_4) REFERENCES product(product_id) ON UPDATE CASCADE,
+    FOREIGN KEY (product_id_5) REFERENCES product(product_id) ON UPDATE CASCADE,
+    FOREIGN KEY (product_id_6) REFERENCES product(product_id) ON UPDATE CASCADE,
+    FOREIGN KEY (product_id_7) REFERENCES product(product_id) ON UPDATE CASCADE,
+    FOREIGN KEY (product_id_8) REFERENCES product(product_id) ON UPDATE CASCADE,
+    FOREIGN KEY (product_id_9) REFERENCES product(product_id) ON UPDATE CASCADE,
+    FOREIGN KEY (product_id_10) REFERENCES product(product_id) ON UPDATE CASCADE,
+    FOREIGN KEY (product_id_11) REFERENCES product(product_id) ON UPDATE CASCADE,
+    FOREIGN KEY (product_id_12) REFERENCES product(product_id) ON UPDATE CASCADE,
+    FOREIGN KEY (product_id_13) REFERENCES product(product_id) ON UPDATE CASCADE,
+    FOREIGN KEY (product_id_14) REFERENCES product(product_id) ON UPDATE CASCADE,
+    FOREIGN KEY (product_id_15) REFERENCES product(product_id) ON UPDATE CASCADE,
+    FOREIGN KEY (product_id_16) REFERENCES product(product_id) ON UPDATE CASCADE,
+    FOREIGN KEY (product_id_17) REFERENCES product(product_id) ON UPDATE CASCADE,
+    FOREIGN KEY (product_id_18) REFERENCES product(product_id) ON UPDATE CASCADE,
+    FOREIGN KEY (product_id_19) REFERENCES product(product_id) ON UPDATE CASCADE,
+    FOREIGN KEY (product_id_20) REFERENCES product(product_id) ON UPDATE CASCADE,
+    FOREIGN KEY (product_id_21) REFERENCES product(product_id) ON UPDATE CASCADE,
+    FOREIGN KEY (product_id_22) REFERENCES product(product_id) ON UPDATE CASCADE,
+    FOREIGN KEY (product_id_23) REFERENCES product(product_id) ON UPDATE CASCADE,
+    FOREIGN KEY (product_id_24) REFERENCES product(product_id) ON UPDATE CASCADE,
+    FOREIGN KEY (product_id_25) REFERENCES product(product_id) ON UPDATE CASCADE,
+    FOREIGN KEY (product_id_26) REFERENCES product(product_id) ON UPDATE CASCADE,
+    FOREIGN KEY (product_id_27) REFERENCES product(product_id) ON UPDATE CASCADE,
+    FOREIGN KEY (product_id_28) REFERENCES product(product_id) ON UPDATE CASCADE,
+    FOREIGN KEY (product_id_29) REFERENCES product(product_id) ON UPDATE CASCADE,
+    FOREIGN KEY (product_id_30) REFERENCES product(product_id) ON UPDATE CASCADE
+);
+
 --
 -- Dumping events for database 'flaskapp'
 --
@@ -369,4 +479,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-07-25 20:54:43
+-- Dump completed on 2024-08-04 23:33:19

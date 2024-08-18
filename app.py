@@ -8,6 +8,11 @@ from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 import boto3
 from datetime import datetime, timezone
 import os
+import MySQLdb
+from flask import request, render_template, redirect, flash
+from math import ceil
+from werkzeug.utils import secure_filename
+import uuid
 
 app= Flask(__name__)
 
@@ -18,6 +23,7 @@ app.config["MYSQL_USER"] = db["mysql_user"]
 app.config["MYSQL_PASSWORD"] = db["mysql_password"]
 app.config["MYSQL_DB"] = db["mysql_db"]
 app.secret_key = db["secret_key"]
+
 
 mysql = MySQL(app)
 
@@ -71,8 +77,10 @@ def register():
             cur.close()
             return redirect("/register")
         else:
-            cur.execute("INSERT INTO user VALUES(%s,%s,%s,%s,%s,%s,%s,%s,NULL)",(username,password,name,email,phone,dob,address,occupation))
-            mysql.connection.commit()
+            cur.execute(
+    "INSERT INTO user (username, password, name, email, phone, dob, address, occupation) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+    (username, password, name, email, phone, dob, address, occupation)
+)
             flash("Register Successful.")
             cur.close()
             return redirect("/")
@@ -181,197 +189,428 @@ def reset_password():
     return render_template("reset_password.html")
 
 #staff login
-@app.route("/staff/login", methods=["GET","POST"])
+@app.route("/staff/login", methods=["GET", "POST"])
 def staff_login():
     if request.method == "POST":
-        userdata=request.form
-        staff_id=userdata["stf_id"]
-        staff_psw=userdata["stf_psw"]
-        cur=mysql.connection.cursor()
-        value=cur.execute("SELECT stf_id, stf_psw, stf_role FROM user WHERE stf_id=%s",(staff_id,))
+        userdata = request.form
+        staff_id = userdata.get("stf_id")
+        staff_psw = userdata.get("stf_psw")
+        cur = mysql.connection.cursor()
+        value = cur.execute("SELECT stf_id, stf_psw, stf_role FROM staff WHERE stf_id=%s", (staff_id,))
 
-        if value>0:
-            data=cur.fetchone()
-            passw=data["stf_psw"]
-            role=data["stf_role"]
-            if staff_psw==passw:
-                if role=="Manager":
-                    session["logged_in"]=True
-                    session["staff_id"]=staff_id
-                    flash("Login Successful","success")
+        if value > 0:
+            data = cur.fetchone()
+            passw = data[1]
+            role = data[2]
+            if staff_psw == passw:
+                session["logged_in"] = True
+                session["staff_id"] = staff_id
+                if role == "manager":
+                    flash("Login Successful", "success")
                     return redirect("/manager/homepage")
-                elif role=="Admin":
-                    session["logged_in"]=True
-                    session["staff_id"]=staff_id
-                    flash("Login Successful","success")
+                elif role == "admin":
+                    flash("Login Successful", "success")
                     return redirect("/admin/homepage")
+            else:
+                flash("Invalid staff ID or password.")
         else:
-            flash("User not found.")
+            flash("Invalid staff ID or password.")
         cur.close()
     return render_template("staff_login.html")
 
-#Client Section (Timi)
-#C-home page
-@app.route('/homepage', methods=['GET', 'POST'])
-def homepage():
-    return render_template("homepage.html")
-
-#C-setting/profile
-@app.route("/user/setting/profile", methods=["GET","POST"])
-def setting_profile():
-    return render_template("setting_profile.html")
-
-#C-setting/profile/edit profile
-@app.route("/user/setting/profile/edit", methods=["GET","POST"])
-def setting_profile_edit():
-    return render_template("setting_profile_edit.html")
-
-#C-setting/profile/payment method
-@app.route("/user/setting/payment", methods=["GET"])
-def setting_payment():
-    return render_template("setting_payment.html")
-
-#C-setting/profile/edit payment method(add,delete)
-@app.route("/user/setting/payment/edit", methods=["GET","POST"])
-def setting_payment_edit():
-    return render_template("setting_payment_edit.html")
-
-#C-setting/history(default purchase)
-@app.route("/user/setting/history/purchase", methods=["GET","POST"])
-def setting_history_purchase():
-    return render_template("setting_history_purchase.html")
-
-#C-setting/history/search history
-@app.route("/user/setting/history/search", methods=["GET","POST"])
-def setting_history_search():
-    return render_template("setting_history_search.html")
-
-#C-survey/fill in survey
-@app.route("/recommend/survey/form", methods=["GET","POST"])
-def recommend_survey_form():
-    return render_template("recommend_survey_form.html")
-
-#C-auto recommend page
-@app.route("/recommend/auto", methods=["GET","POST"])
-def recommend_auto():
-    return render_template("recommend_auto.html")
-
-#C-laptop/ (display all laptop + search result + filter)
-@app.route("/laptop", methods=["GET","POST"])
-def laptop_filter():
-    return render_template("laptop_search.html")
-
-#C-laptop/detail
-@app.route("/laptop/<product_id>", methods=["GET","POST"])
-def laptop_detail():
-    return render_template("laptop_detail.html")
-
-#C-cart(all)
-@app.route("/cart", methods=["GET","POST"])
-def cart():
-    return render_template("cart.html")
-
-#C-cart/checkout(choose payment method,address)
-@app.route("/cart/checkout", methods=["GET","POST"])
-def cart_checkout():
-    return render_template("cart_checkout.html")
-
-#C-cart/payment
-@app.route("/cart/payment", methods=["GET","POST"])
-def cart_payment():
-    return render_template("cart_payment.html")
-
-#C-cart/payment success
-@app.route("/cart/payment/success", methods=["GET","POST"])
-def cart_payment_success():
-    return render_template("cart_payment_success.html")
 
 #Admin section (Zhi Xian)
 #A-home page
-@app.route("/admin/homepage", methods=["GET","POST"])
+@app.route('/admin/homepage', methods=['GET', 'POST'])
 def admin_homepage():
-    return render_template("admin_homepage.html")
+    if not session.get('logged_in'):
+        return redirect('/admin/login')
+    else:
+        # Search bar or admin-specific actions
+        if request.method == 'POST':
+            if request.form['action'] == 'search':
+                search_query = request.form['query']
+                session['admin_homepage_search_query'] = search_query
+                return redirect("/admin/laptop", search_query=search_query)
+            # Add more admin-specific actions here if needed
+        return render_template('admin_homepage.html')
 
 #A-laptop
-@app.route("/admin/laptop", methods=["GET","POST"])
+@app.route("/admin/laptop", methods=["GET", "POST"])
 def admin_laptop():
-    return render_template("admin_laptop.html")
+    search_query = request.args.get('search', '')
 
-#A-laptop/edit laptop
-@app.route("/admin/laptop/edit", methods=["GET","POST"])
+    sql_query = """
+    SELECT p.product_id, p.product_name, p.brand, p.price, p.memory, p.graphics, p.storage, p.battery, p.processor, p.os, p.weight, pic.pic_url, p.stock
+    FROM product p
+    LEFT JOIN (
+        SELECT product_id, MIN(pic_url) as pic_url
+        FROM product_pic
+        GROUP BY product_id
+    ) pic ON p.product_id = pic.product_id
+    WHERE p.product_name LIKE %s
+    OR p.brand LIKE %s
+    OR p.processor LIKE %s
+    """
+
+    search_term = f'%{search_query}%'
+    cur = mysql.connection.cursor()
+    cur.execute(sql_query, (search_term, search_term, search_term))
+    all_laptops = cur.fetchall()
+    cur.close()
+
+    return render_template('admin_laptop_search.html', laptops=all_laptops, search_query=search_query)
+
+#A-add-laptops
+@app.route("/admin/laptop/add", methods=["GET", "POST"])
+def admin_laptop_add():
+    if request.method == "POST":
+        product_name = request.form.get('product_name')
+        brand = request.form.get('brand')
+        processor = request.form.get('processor')
+        graphics = request.form.get('graphics')
+        dimensions = request.form.get('dimensions')
+        weight = request.form.get('weight')
+        os = request.form.get('os')
+        memory = request.form.get('memory')
+        storage = request.form.get('storage')
+        power_supply = request.form.get('power_supply')
+        battery = request.form.get('battery')
+        price = request.form.get('price')
+        stock = request.form.get('stock')
+
+        cur = mysql.connection.cursor()
+
+        # Get the latest product_id from the database
+        cur.execute("SELECT product_id FROM product ORDER BY product_id DESC LIMIT 1")
+        latest_id = cur.fetchone()
+
+        # Generate new product_id based on the latest one
+        if latest_id:
+            latest_id_num = int(latest_id[0][2:])  # Extract the numeric part of the ID
+            new_id_num = latest_id_num + 1
+            product_id = f"LP{new_id_num:04d}"  # Format as LPxxxx
+        else:
+            product_id = "LP0001"  # Start with LP0001 if no records exist
+
+        # Insert the new product with the auto-generated product_id
+        cur.execute('''INSERT INTO product (product_id, product_name, brand, processor, graphics, dimensions, weight, os, memory, storage, power_supply, battery, price, stock)
+                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)''',
+                     (product_id, product_name, brand, processor, graphics, dimensions, weight, os, memory, storage, power_supply, battery, price, stock))
+
+        mysql.connection.commit()
+        cur.close()
+
+        flash(f"Laptop added successfully with ID {product_id}.", "success")
+        return redirect("/admin/laptop")
+
+    return render_template("admin_laptop_add.html")
+
+#A-edit laptop
+@app.route("/admin/laptop/edit", methods=["GET", "POST"])
 def admin_laptop_edit():
-    return render_template("admin_laptop_edit.html")
+    if request.method == "POST":
+        product_id = request.form.get('product_id')
+        if product_id:
+            cur = mysql.connection.cursor()
 
-#A-laptop/detail
-@app.route("/admin/laptop/detail", methods=["GET","POST"])
-def admin_laptop_detail():
-    return render_template("admin_laptop_detail.html")
+            # Fetch existing laptop details
+            cur.execute('SELECT * FROM product WHERE product_id = %s', (product_id,))
+            laptop = cur.fetchone()
 
-#A-feedback(view+reply)
-@app.route("/admin/feedback/user", methods=["GET","POST"])
-def admin_feedback_user():
-    return render_template("admin_feedback_user.html")
+            if laptop:
+                column_names = [desc[0] for desc in cur.description]
+                laptop_dict = dict(zip(column_names, laptop))
 
-#A-feedback/send feedback
-@app.route("/admin/feedback/send", methods=["GET","POST"])
+                # Get updated values from form or use existing values
+                product_name = request.form.get('product_name') or laptop_dict['product_name']
+                brand = request.form.get('brand') or laptop_dict['brand']
+                processor = request.form.get('processor') or laptop_dict['processor']
+                graphics = request.form.get('graphics') or laptop_dict['graphics']
+                dimensions = request.form.get('dimensions') or laptop_dict['dimensions']
+                weight = request.form.get('weight') or laptop_dict['weight']
+                os = request.form.get('os') or laptop_dict['os']
+                memory = request.form.get('memory') or laptop_dict['memory']
+                storage = request.form.get('storage') or laptop_dict['storage']
+                power_supply = request.form.get('power_supply') or laptop_dict['power_supply']
+                battery = request.form.get('battery') or laptop_dict['battery']
+                price = request.form.get('price') or laptop_dict['price']
+                stock = request.form.get('stock') or laptop_dict['stock']
+
+                # Update product details and stock
+                cur.execute('''UPDATE product SET product_name = %s, brand = %s, processor = %s, graphics = %s, dimensions = %s,
+                               weight = %s, os = %s, memory = %s, storage = %s, power_supply = %s, battery = %s, price = %s, stock = %s 
+                               WHERE product_id = %s''',
+                             (product_name, brand, processor, graphics, dimensions, weight, os, memory, storage, power_supply, battery, price, stock, product_id))
+
+                mysql.connection.commit()
+                cur.close()
+
+                flash("Laptop details and stock updated successfully.", "success")
+                return redirect("/admin/laptop")
+            else:
+                flash("Laptop not found.", "danger")
+                return render_template("admin_laptop_edit_id.html")
+        else:
+            flash("Please enter a Product ID.", "danger")
+            return render_template("admin_laptop_edit_id.html")
+    
+    else:  # GET request
+        product_id = request.args.get('product_id')
+        if product_id:
+            cur = mysql.connection.cursor()
+            cur.execute('SELECT * FROM product WHERE product_id = %s', (product_id,))
+            laptop = cur.fetchone()
+
+            if laptop:
+                column_names = [desc[0] for desc in cur.description]
+                laptop_dict = dict(zip(column_names, laptop))
+                cur.close()
+
+                return render_template("admin_laptop_edit_form.html", laptop=laptop_dict)
+
+#A-remove laptop
+@app.route("/admin/laptop/remove", methods=["GET", "POST"])
+def admin_laptop_remove():
+    if request.method == "POST":
+        product_id = request.form['product_id']
+
+        # Delete laptop from product table
+        cursor = mysql.connection.cursor()
+        cursor.execute('DELETE FROM product WHERE product_id = %s', (product_id,))
+        
+        mysql.connection.commit()
+        cursor.close()
+
+        flash("Laptop successfully removed.", "success")
+        return redirect("/admin/laptop")
+
+#A-laptop images
+@app.route('/admin/laptop_images/<product_id>', methods=['GET', 'POST'])
+def laptop_images(product_id):
+    if request.method == 'POST':
+        # Handle image upload
+        if 'image_file' in request.files:
+            image_file = request.files['image_file']
+            if image_file.filename != '':
+                # Define the S3 path
+                sql_query = "SELECT product_name FROM product WHERE product_id = %s"
+                cur = mysql.connection.cursor()
+                cur.execute(sql_query, (product_id,))
+                laptop_name = cur.fetchone()[0]
+                cur.close()
+
+                object_name = f"New Laptops/{product_id} {laptop_name}/Image-{generate_pic_id()}.jpg"
+                pic_url = upload_file_to_s3(image_file, S3_BUCKET, object_name)
+
+                if pic_url:
+                    # Save the URL in the database
+                    pic_id = generate_pic_id()
+                    sql_insert = """
+                    INSERT INTO product_pic (pic_id, product_id, pic_url)
+                    VALUES (%s, %s, %s)
+                    """
+                    cur = mysql.connection.cursor()
+                    cur.execute(sql_insert, (pic_id, product_id, pic_url))
+                    mysql.connection.commit()
+                    cur.close()
+
+                    flash("Image uploaded successfully.", "success")
+                else:
+                    flash("Failed to upload image to S3.", "danger")
+
+            return redirect(url_for('laptop_images', product_id=product_id))
+
+        # Handle image deletion
+        if 'delete_pic_id' in request.form:
+            delete_pic_id = request.form['delete_pic_id']
+
+            # Delete image from the database
+            sql_delete = "DELETE FROM product_pic WHERE pic_id = %s"
+            cur = mysql.connection.cursor()
+            cur.execute(sql_delete, (delete_pic_id,))
+            mysql.connection.commit()
+            cur.close()
+
+            flash("Image deleted successfully.", "success")
+            return redirect(url_for('laptop_images', product_id=product_id))
+
+    # Display existing images
+    sql_query = "SELECT pic_url FROM product_pic WHERE product_id = %s"
+    cur = mysql.connection.cursor()
+    cur.execute(sql_query, (product_id,))
+    images = cur.fetchall()
+    cur.close()
+
+    return render_template('laptop_images.html', product_id=product_id, images=images)
+
+def upload_file_to_s3(file_obj, bucket_name, object_name):
+    try:
+        print(f"Uploading file: {object_name}")
+        S3.upload_fileobj(file_obj, bucket_name, object_name)
+
+        object_url = f"https://{bucket_name}.s3.amazonaws.com/{object_name}"
+        print(f"File uploaded successfully: {object_url}")
+        return object_url
+    except Exception as e:
+        print(f"Error uploading file to S3: {str(e)}")
+        return None
+    
+def generate_pic_id():
+    return 'PP' + str(uuid.uuid4().int)[:4].zfill(4)
+
+
+# A-review(view + reply to client review)
+@app.route("/admin/reviews", methods=["GET", "POST"])
+def admin_reviews():
+    if not session.get("logged_in"):
+        return redirect("/login")
+
+    cur = mysql.connection.cursor()
+
+    if request.method == "POST":
+        # Handle reply submission
+        review_id = request.form.get("review_id")
+        reply_text = request.form.get("reply")
+        current_time = datetime.now()
+
+        try:
+            # Update review with the admin's reply
+            cur.execute("""
+                UPDATE review 
+                SET reply = %s 
+                WHERE review_id = %s
+            """, (reply_text, review_id))
+            mysql.connection.commit()
+            flash("Reply sent successfully.", "success")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            flash("An error occurred while submitting the reply. Please try again.", "error")
+        finally:
+            cur.close()
+
+        return redirect("/admin/reviews")
+
+    try:
+        # Retrieve unreplied reviews only
+        query = """
+        SELECT review.review_id, review.product_id, review.username, review.review, review.rating, 
+               review.review_time, review.reply, product.product_name 
+        FROM review 
+        JOIN product ON review.product_id = product.product_id
+        WHERE review.reply IS NULL
+        ORDER BY review.review_time DESC
+        """
+        cur.execute(query)
+        reviews = cur.fetchall()
+        cur.close()
+
+        # Check if any reviews are fetched
+        if not reviews:
+            flash("All reviews have been replied to.", "info")
+
+        return render_template("admin_reviews.html", reviews=reviews)
+
+    except Exception as e:
+        cur.close()
+        print(f"An error occurred: {e}")
+        flash("An error occurred while retrieving reviews. Please try again later.", "error")
+        return redirect("/admin/homepage")
+
+#A-send feedback to manager
+@app.route("/admin/feedback/send", methods=["GET", "POST"])
 def admin_feedback_send():
+    if not session.get('logged_in'):
+        return redirect('/login')
+
+    staff_id = session.get('stf_id')  # Assuming staff_id is stored in session after login
+
+    if request.method == "POST":
+        feedback_text = request.form.get('feedback')
+        feedback_time = datetime.now()
+
+        # Insert feedback into the database
+        cur = mysql.connection.cursor()
+        cur.execute("""
+            INSERT INTO feedback (stf_id, feedback, feedback_time) 
+            VALUES (%s, %s, %s)
+        """, (staff_id, feedback_text, feedback_time))
+        mysql.connection.commit()
+        cur.close()
+
+        flash("Feedback sent successfully.", "success")
+        return redirect("/admin/feedback/send")
+
     return render_template("admin_feedback_send.html")
 
-#A-orders
-@app.route("/admin/orders", methods=["GET","POST"])
+#A-orders (Check and cancel orders)
+@app.route("/admin/orders", methods=["GET", "POST"])
 def admin_orders():
-    return render_template("admin_orders.html")
+    if not session.get('logged_in'):
+        return redirect('/login')
 
-#Manager section (Ying Xin)
-#M-home page
-@app.route("/manager/homepage", methods=["GET","POST"])
-def manager_homepage():
-    return render_template("manager_homepage.html")
+    cur = mysql.connection.cursor()
 
-#M-laptop
-@app.route("/manager/laptop", methods=["GET","POST"])
-def manager_laptop():
-    return render_template("manager_laptop.html")
+    # Handle order cancellation
+    if request.method == "POST":
+        order_id = request.form.get('order_id')
+        print(f"Attempting to cancel order: {order_id}")
 
-#M-laptop/detail
-@app.route("/manager/laptop/detail", methods=["GET","POST"])
-def manager_laptop_detail():
-    return render_template("manager_laptop_detail.html")
+        try:
+            # First, delete related shipping details
+            cur.execute("""
+                DELETE FROM shipping 
+                WHERE order_id = %s
+            """, (order_id,))
+            
+            # Then delete the order from the purchase table
+            cur.execute("""
+                DELETE FROM purchase 
+                WHERE order_id = %s
+            """, (order_id,))
 
-#M-view account
-@app.route("/manager/account", methods=["GET","POST"])
-def manager_account():
-    return render_template("manager_account.html")
+            mysql.connection.commit()
+            flash(f"Order {order_id} has been canceled.", "success")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            mysql.connection.rollback()
+            flash("An error occurred while canceling the order. Please try again.", "error")
+        finally:
+            cur.close()
+        return redirect("/admin/orders")
 
-#M-view account/add new account
-@app.route("/manager/account/new", methods=["GET","POST"])
-def manager_account_new():
-    return render_template("manager_account_new.html")
+    # Pagination parameters
+    page = int(request.args.get('page', 1))  # Default to page 1 if no page param
+    per_page = 5
+    offset = (page - 1) * per_page
 
-#M-reports/daily
-@app.route("/manager/reports/daily", methods=["GET","POST"])
-def manager_reports_daily():
-    return render_template("manager_reports_daily.html")
+    try:
+        # Retrieve orders with pagination
+        query = """
+        SELECT 
+            p.order_id, p.username, p.pur_date, p.pur_amount, p.pur_status, 
+            s.dest_add, s.receiver_name, s.receiver_phone, s.ship_status, s.ship_time
+        FROM purchase p
+        LEFT JOIN shipping s ON p.order_id = s.order_id
+        ORDER BY p.pur_date DESC
+        LIMIT %s OFFSET %s
+        """
+        cur.execute(query, (per_page, offset))
+        orders = cur.fetchall()
 
-#M-reports/weekly
-@app.route("/manager/reports/weekly", methods=["GET","POST"])
-def manager_reports_weekly():
-    return render_template("manager_reports_weekly.html")
+        # Count total orders for pagination control
+        cur.execute("SELECT COUNT(*) FROM purchase")
+        total_orders = cur.fetchone()[0]
+        total_pages = ceil(total_orders / per_page)
 
-#M-reports/monthly
-@app.route("/manager/reports/monthly", methods=["GET","POST"])
-def manager_reports_monthly():
-    return render_template("manager_reports_monthly.html")
+        cur.close()
+        return render_template("admin_orders.html", orders=orders, current_page=page, total_pages=total_pages)
+    except Exception as e:
+        cur.close()
+        print(f"An error occurred: {e}")
+        flash("An error occurred while retrieving orders. Please try again later.", "error")
+        return redirect("/admin/homepage")
 
-#M-reports/yearly
-@app.route("/manager/reports/yearly", methods=["GET","POST"])
-def manager_reports_yearly():
-    return render_template("manager_reports_yearly.html")
-
-#M-feedbacks
-@app.route("/manager/feedback", methods=["GET","POST"])
-def manager_feedback():
-    return render_template("manager_feedback.html")
 
 if __name__=='__main__':
     app.run(debug=True)
