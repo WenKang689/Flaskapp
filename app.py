@@ -6,13 +6,9 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 import boto3
-from datetime import datetime, timezone
-import os
-import MySQLdb
+from datetime import datetime
 from flask import request, render_template, redirect, flash
-from math import ceil
-from werkzeug.utils import secure_filename
-import uuid
+from urllib.parse import urlparse
 
 app= Flask(__name__)
 
@@ -210,7 +206,7 @@ def staff_login():
                     return redirect("/manager/homepage")
                 elif role == "admin":
                     flash("Login Successful", "success")
-                    return redirect("/admin/homepage")
+                    return redirect("/admin/laptop")
             else:
                 flash("Invalid staff ID or password.")
         else:
@@ -220,26 +216,22 @@ def staff_login():
 
 
 #Admin section (Zhi Xian)
-#A-home page
-@app.route('/admin/homepage', methods=['GET', 'POST'])
-def admin_homepage():
-    if not session.get('logged_in'):
-        return redirect('/admin/login')
-    else:
-        # Search bar or admin-specific actions
-        if request.method == 'POST':
-            if request.form['action'] == 'search':
-                search_query = request.form['query']
-                session['admin_homepage_search_query'] = search_query
-                return redirect("/admin/laptop", search_query=search_query)
-            # Add more admin-specific actions here if needed
-        return render_template('admin_homepage.html')
-
 #A-laptop
-@app.route("/admin/laptop", methods=["GET", "POST"])
+@app.route('/admin/laptop', methods=['GET', 'POST'])
 def admin_laptop():
-    search_query = request.args.get('search', '')
+    if not session.get('logged_in'):
+        return redirect('/staff/login')
+    
+    search_query = ''
+    if request.method == 'POST':
+        if request.form.get('action') == 'search':
+            search_query = request.form.get('query', '')
+            session['admin_homepage_search_query'] = search_query
+            return redirect(f"/admin/laptop?search={search_query}")
 
+    # Default to the search query from the URL if no POST data
+    search_query = request.args.get('search', search_query)
+    
     sql_query = """
     SELECT p.product_id, p.product_name, p.brand, p.price, p.memory, p.graphics, p.storage, p.battery, p.processor, p.os, p.weight, pic.pic_url, p.stock
     FROM product p
@@ -400,12 +392,12 @@ def laptop_images(product_id):
                 laptop_name = cur.fetchone()[0]
                 cur.close()
 
-                object_name = f"New Laptops/{product_id} {laptop_name}/Image-{generate_pic_id()}.jpg"
+                object_name = f"New Laptops/{product_id} {laptop_name}/Image-{generate_next_pic_id()}.jpg"
                 pic_url = upload_file_to_s3(image_file, S3_BUCKET, object_name)
 
                 if pic_url:
                     # Save the URL in the database
-                    pic_id = generate_pic_id()
+                    pic_id = generate_next_pic_id()
                     sql_insert = """
                     INSERT INTO product_pic (pic_id, product_id, pic_url)
                     VALUES (%s, %s, %s)
@@ -425,24 +417,57 @@ def laptop_images(product_id):
         if 'delete_pic_id' in request.form:
             delete_pic_id = request.form['delete_pic_id']
 
-            # Delete image from the database
-            sql_delete = "DELETE FROM product_pic WHERE pic_id = %s"
+            # Retrieve pic_url from the database using delete_pic_id
+            sql_select = "SELECT pic_url FROM product_pic WHERE pic_id = %s"
             cur = mysql.connection.cursor()
-            cur.execute(sql_delete, (delete_pic_id,))
-            mysql.connection.commit()
+            cur.execute(sql_select, (delete_pic_id,))
+            pic_url = cur.fetchone()  # Fetch the pic_url
+
+            if pic_url:  # If the pic_url is found
+                pic_url = pic_url[0]  # Extract the URL from the tuple
+
+                # Delete image from S3
+                delete_file_from_s3(pic_url)
+
+                # Delete image entry from the database
+                sql_delete = "DELETE FROM product_pic WHERE pic_id = %s"
+                cur.execute(sql_delete, (delete_pic_id,))
+                mysql.connection.commit()
+
+                flash("Image deleted successfully.", "success")
+            else:
+                flash("Image not found.", "error")
+
             cur.close()
 
-            flash("Image deleted successfully.", "success")
             return redirect(url_for('laptop_images', product_id=product_id))
 
     # Display existing images
-    sql_query = "SELECT pic_url FROM product_pic WHERE product_id = %s"
+    sql_query = "SELECT pic_id, pic_url FROM product_pic WHERE product_id = %s"
     cur = mysql.connection.cursor()
     cur.execute(sql_query, (product_id,))
     images = cur.fetchall()
     cur.close()
 
     return render_template('admin_laptop_images.html', product_id=product_id, images=images)
+
+def delete_file_from_s3(pic_url):
+    # Parse the URL to get bucket name and object key
+    parsed_url = urlparse(pic_url)
+    bucket_name = parsed_url.netloc.split('.')[0]
+    object_name = parsed_url.path.lstrip('/')
+
+    s3_client = boto3.client('s3')
+
+    try:
+        print(f"Deleting file: {object_name} from bucket: {bucket_name}")
+        s3_client.delete_object(Bucket=bucket_name, Key=object_name)
+        
+        print(f"File deleted successfully: {pic_url}")
+        return True
+    except Exception as e:
+        print(f"Error deleting file from S3: {str(e)}")
+        return False
 
 def upload_file_to_s3(file_obj, bucket_name, object_name):
     try:
@@ -456,9 +481,21 @@ def upload_file_to_s3(file_obj, bucket_name, object_name):
         print(f"Error uploading file to S3: {str(e)}")
         return None
     
-def generate_pic_id():
-    return 'PP' + str(uuid.uuid4().int)[:4].zfill(4)
-
+def generate_next_pic_id(): #generate pic_id
+    cur = mysql.connection.cursor()
+    
+    cur.execute("SELECT pic_id FROM product_pic ORDER BY pic_id DESC LIMIT 1")
+    last_id = cur.fetchone()
+    cur.close()
+    if last_id:
+        # Extract the numeric part of the ID and increment it
+        last_num = int(last_id[0][2:])  # Assuming ID format is PP000X
+        new_num = last_num + 1
+        new_id = f"PP{new_num:04d}"  # Keeps the leading zeros, making the numeric part 4 digits long
+    else:
+        # If there are no entries, start with PP0001
+        new_id = "PP0001"
+    return new_id
 
 # A-review(view + reply to client review)
 @app.route("/admin/reviews", methods=["GET", "POST"])
@@ -515,7 +552,7 @@ def admin_reviews():
         cur.close()
         print(f"An error occurred: {e}")
         flash("An error occurred while retrieving reviews. Please try again later.", "error")
-        return redirect("/admin/homepage")
+        return redirect("/admin/laptop")
 
 #A-send feedback to manager
 @app.route("/admin/feedback/send", methods=["GET", "POST"])
@@ -523,18 +560,31 @@ def admin_feedback_send():
     if not session.get('logged_in'):
         return redirect('/login')
 
-    staff_id = session.get('stf_id')  # Assuming staff_id is stored in session after login
+    staff_id = session.get('staff_id')
 
     if request.method == "POST":
         feedback_text = request.form.get('feedback')
         feedback_time = datetime.now()
 
-        # Insert feedback into the database
+        if staff_id is None:
+            flash("Error: Staff ID is not set.", "error")
+            return redirect("/admin/feedback/send")
+
+        # Generate a new feedback_id based on the last one
         cur = mysql.connection.cursor()
+        cur.execute("SELECT MAX(feedback_id) FROM feedback")
+        result = cur.fetchone()
+
+        last_id = result[0] if result[0] is not None else 'F0000'
+        last_number = int(last_id[1:])  # Get the numeric part and convert to integer
+        next_number = last_number + 1
+        feedback_id = f'F{next_number:04d}'  # Format as F#### with leading zeros
+
+        # Insert feedback into the database
         cur.execute("""
-            INSERT INTO feedback (stf_id, feedback, feedback_time) 
-            VALUES (%s, %s, %s)
-        """, (staff_id, feedback_text, feedback_time))
+            INSERT INTO feedback (feedback_id, stf_id, feedback, feedback_time) 
+            VALUES (%s, %s, %s, %s)
+        """, (feedback_id, staff_id, feedback_text, feedback_time))
         mysql.connection.commit()
         cur.close()
 
@@ -542,6 +592,22 @@ def admin_feedback_send():
         return redirect("/admin/feedback/send")
 
     return render_template("admin_feedback_send.html")
+
+def generate_next_feedback_id(): #generate feedback_id
+    cur = mysql.connection.cursor()
+    
+    cur.execute("SELECT feedback_id FROM feedback ORDER BY feedback_id DESC LIMIT 1")
+    last_id = cur.fetchone()
+    cur.close()
+    if last_id:
+        # Extract the numeric part of the ID and increment it
+        last_num = int(last_id[0][2:])  # Assuming ID format is FB000X
+        new_num = last_num + 1
+        new_id = f"FB{new_num:04d}"  # Keeps the leading zeros, making the numeric part 4 digits long
+    else:
+        # If there are no entries, start with FB0001
+        new_id = "FB0001"
+    return new_id
 
 #A-orders (Check and cancel orders)
 @app.route("/admin/orders", methods=["GET", "POST"])
@@ -579,13 +645,7 @@ def admin_orders():
             cur.close()
         return redirect("/admin/orders")
 
-    # Pagination parameters
-    page = int(request.args.get('page', 1))  # Default to page 1 if no page param
-    per_page = 5
-    offset = (page - 1) * per_page
-
     try:
-        # Retrieve orders with pagination
         query = """
         SELECT 
             p.order_id, p.username, p.pur_date, p.pur_amount, p.pur_status, 
@@ -593,23 +653,18 @@ def admin_orders():
         FROM purchase p
         LEFT JOIN shipping s ON p.order_id = s.order_id
         ORDER BY p.pur_date DESC
-        LIMIT %s OFFSET %s
         """
-        cur.execute(query, (per_page, offset))
+        cur.execute(query)
         orders = cur.fetchall()
-
-        # Count total orders for pagination control
-        cur.execute("SELECT COUNT(*) FROM purchase")
-        total_orders = cur.fetchone()[0]
-        total_pages = ceil(total_orders / per_page)
-
         cur.close()
-        return render_template("admin_orders.html", orders=orders, current_page=page, total_pages=total_pages)
+
+        return render_template("admin_orders.html", orders=orders)
+    
     except Exception as e:
         cur.close()
         print(f"An error occurred: {e}")
         flash("An error occurred while retrieving orders. Please try again later.", "error")
-        return redirect("/admin/homepage")
+        return redirect("/admin/laptop")
 
 
 if __name__=='__main__':
