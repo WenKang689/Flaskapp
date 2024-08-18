@@ -4,6 +4,102 @@
     <meta charset="UTF-8">
     <title>Admin Orders</title>
     <link rel="stylesheet" href="/static/styles.css"> <!-- Path to your CSS -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        nav ul li {
+            display: inline;
+            margin: 0 10px;
+        }
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+        }
+        main {
+            padding: 20px;
+        }
+        section {
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        h2 {
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        ul {
+            padding: 0;
+            margin: 0;
+            list-style-type: none;
+        }
+        li {
+            margin-bottom: 20px;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        li p {
+            margin: 5px 0;
+        }
+        button {
+            background-color: #d9534f;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin-top: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #c9302c;
+        }
+        .pagination {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .pagination a {
+            color: #333;
+            text-decoration: none;
+            padding: 10px 20px;
+            margin: 0 5px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .pagination a:hover {
+            background-color: #ddd;
+        }
+        .pagination span {
+            padding: 10px 20px;
+            margin: 0 5px;
+        }
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -11,8 +107,7 @@
         <nav>
             <ul>
                 <li><a href="/admin/homepage">Admin Home</a></li>
-                <li><a href="/admin/manage-laptops">Manage Laptops</a></li>
-                <li><a href="/admin/laptop">View and Browse Laptops</a></li>
+                <li><a href="/admin/laptop">Laptop Page</a></li>
                 <li><a href="/admin/reviews">Manage Reviews</a></li>
                 <li><a href="/admin/feedback/send">Send Feedback</a></li>
                 <li><a href="/admin/orders">Manage Orders</a></li>
@@ -36,7 +131,7 @@
                             <p><strong>Receiver Phone:</strong> {{ order[7] }}</p>
                             <p><strong>Shipping Status:</strong> {{ order[8] }}</p>
                             <p><strong>Shipping Time:</strong> {{ order[9] }}</p>
-                            <form action="/admin/orders" method="POST">
+                            <form action="/admin/orders" method="POST" style="display:inline;">
                                 <input type="hidden" name="order_id" value="{{ order[0] }}">
                                 <button type="submit">Cancel Order</button>
                             </form>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload Laptop Images - Admin Panel</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Upload Images for Laptop</h1>
+        <nav>
+            <ul>
+                <li><a href="/admin/homepage">Admin Home</a></li>
+                <li><a href="/admin/manage-laptops">Manage Laptops</a></li>
+                <li><a href="/admin/laptop">View and Browse Laptops</a></li>
+                <li><a href="/admin/reviews">Manage Reviews</a></li>
+                <li><a href="/admin/feedback/send">Send Feedback</a></li>
+                <li><a href="/admin/orders">Manage Orders</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <form action="/admin/laptop/upload-images" method="POST" enctype="multipart/form-data">
+            <label for="laptop_id">Laptop ID:</label>
+            <input type="text" id="laptop_id" name="laptop_id" required><br>
+
+            <label for="images">Select 4 images:</label>
+            <input type="file" id="images" name="images" multiple required><br>
+
+            <button type="submit">Upload Images</button>
+        </form>
+    </main>
+    <footer>
+        <p>&copy; 2023 Laptop Finder. All rights reserved.</p>
+    </footer>
+</body>
+</html>

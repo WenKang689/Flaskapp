@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product_id }} - Laptop Images</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        nav ul li {
+            display: inline;
+            margin: 0 10px;
+        }
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+        }
+        main {
+            padding: 20px;
+        }
+        .image-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+        .image-container img {
+            max-width: 300px;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            background: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .upload-form, .delete-form {
+            margin-bottom: 20px;
+        }
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+        .delete-button {
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Images for {{ product_id }}</h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('admin_homepage') }}">Admin Home</a></li>
+                <li><a href="{{ url_for('admin_laptop') }}">Laptop Page</a></li>
+                <li><a href="{{ url_for('admin_reviews') }}">Manage Reviews</a></li>
+                <li><a href="{{ url_for('admin_feedback_send') }}">Send Feedback</a></li>
+                <li><a href="{{ url_for('admin_orders') }}">Manage Orders</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <div class="upload-form">
+            <form action="{{ url_for('laptop_images', product_id=product_id) }}" method="post" enctype="multipart/form-data">
+                <input type="file" name="image_file" accept="image/*" required>
+                <button type="submit">Upload Image</button>
+            </form>
+        </div>
+        <div class="image-container">
+            {% for image in images %}
+            <div class="image-wrapper">
+                <img src="{{ image[0] }}" alt="Laptop Image {{ loop.index }}">
+                <form action="{{ url_for('laptop_images', product_id=product_id) }}" method="post" style="margin-top: 10px;">
+                    <input type="hidden" name="delete_pic_id" value="{{ image[0] }}">
+                    <button type="submit" class="delete-button">Delete Image</button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+    <footer>
+        <p>&copy; 2023 Laptop Finder. All rights reserved.</p>
+    </footer>
+</body>
+</html>
