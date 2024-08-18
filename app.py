@@ -442,7 +442,7 @@ def laptop_images(product_id):
     images = cur.fetchall()
     cur.close()
 
-    return render_template('laptop_images.html', product_id=product_id, images=images)
+    return render_template('admin_laptop_images.html', product_id=product_id, images=images)
 
 def upload_file_to_s3(file_obj, bucket_name, object_name):
     try:
