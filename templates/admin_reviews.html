@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Reviews</title>
+    <link rel="stylesheet" href="/static/styles.css"> <!-- Path to your CSS -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        nav ul li {
+            display: inline;
+            margin: 0 10px;
+        }
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+        }
+        main {
+            padding: 20px;
+        }
+        section {
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        h2 {
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        ul {
+            padding: 0;
+            margin: 0;
+            list-style-type: none;
+        }
+        li {
+            margin-bottom: 20px;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        li p {
+            margin: 5px 0;
+        }
+        form textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        form button {
+            background-color: #5bc0de;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin-top: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        form button:hover {
+            background-color: #31b0d5;
+        }
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Customer Reviews Management</h1>
+        <nav>
+            <ul>
+                <li><a href="/admin/laptop">Laptop Page</a></li>
+                <li><a href="/admin/reviews">Manage Reviews</a></li>
+                <li><a href="/admin/feedback/send">Send Feedback</a></li>
+                <li><a href="/admin/orders">Manage Orders</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section>
+            <h2>Unreplied Reviews</h2>
+            {% if reviews %}
+                <ul>
+                    {% for review in reviews %}
+                        <li>
+                            <p><strong>{{ review[7] }}</strong> by {{ review[2] }}</p> <!-- product_name and username -->
+                            <p>Rating: {{ review[4] }}/5</p> <!-- rating -->
+                            <p>Reviewed on: {{ review[5] }}</p> <!-- review_time -->
+                            <p>Review Comment: "{{ review[3] }}"</p> <!-- review text -->
+                            {% if review[6] %}
+                                <p><em>Your Reply:</em> {{ review[6] }}</p> <!-- reply -->
+                            {% else %}
+                                <form action="/admin/reviews" method="POST">
+                                    <textarea name="reply" placeholder="Write your reply here..." required></textarea>
+                                    <input type="hidden" name="review_id" value="{{ review[0] }}">
+                                    <button type="submit">Reply</button>
+                                </form>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No unreplied reviews. All reviews have been replied to.</p>
+            {% endif %}
+        </section>
+    </main>
+    <p>&copy; 2023 Laptop Finder. All rights reserved.</p>
+</body>
+</html>
