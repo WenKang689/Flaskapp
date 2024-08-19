@@ -67,15 +67,21 @@ header {
 
 .filter-bar {
     padding: 10px;
-    background-color: #6e6b7200;
+    background-image: url('/static/images/nav_background.png');
     border-radius: 5px;
     display: block;
     text-decoration: none;
-    margin-bottom: 20px;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    border: 1px solid black;
     transition: background-color 0.3s;
     width: 260px;
-    margin-right: 20px;
+    margin-top: 30px;
+    margin-right: 30px;
+    margin-left: 30px;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: 90%;
+
 }
 
 .laptop-detail {
@@ -89,8 +95,9 @@ header {
 .container {
     display: flex;
     margin-bottom: 20px;
-    padding: px;
     max-width: 1500px;
+    padding-top: 10px; /* Adjust based on the height of the header */
+    position: relative;
 }
 
 .filter-bar label {
@@ -112,31 +119,112 @@ header {
 
 .filter-bar input[type="range"] {
     -webkit-appearance: none;
-    background: #ddd; /* Background for the slider */
-    height: 5px; /* Height of the slider */
-    border-radius: 5px; /* Rounded corners */
+    background: #ddd; 
+    height: 5px; 
+    border-radius: 5px; 
 }
 
 .filter-bar input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none; /* Remove default styling */
-    appearance: none; /* Remove default styling */
-    width: 15px; /* Width of the thumb */
-    height: 15px; /* Height of the thumb */
-    border-radius: 50%; /* Round thumb */
-    background: #007bff; /* Color of the thumb */
-    cursor: pointer; /* Pointer cursor on hover */
+    -webkit-appearance: none; 
+    appearance: none; 
+    width: 15px; 
+    height: 15px; 
+    border-radius: 50%; 
+    background: #007bff; 
+    cursor: pointer; 
 }
 
 .filter-bar input[type="range"]::-moz-range-thumb {
-    width: 15px; /* Width of the thumb */
-    height: 15px; /* Height of the thumb */
-    border-radius: 50%; /* Round thumb */
-    background: #007bff; /* Color of the thumb */
-    cursor: pointer; /* Pointer cursor on hover */
+    width: 15px; 
+    height: 15px; 
+    border-radius: 50%; 
+    background: #007bff;
+    cursor: pointer; 
 }
 
-/* Output styling */
+
 .filter-bar output {
-    font-weight: bold; /* Bold output values */
-    margin-left: 10px; /* Space between slider and output */
+    font-weight: bold; 
+    margin-left: 10px; 
+}
+
+.laptop-grid {
+    display: grid; 
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 60px; 
+    margin-top: 30px;
+    margin-left: 50px;
+}
+
+.laptop-content {
+    border: 1px solid rgb(255, 255, 255);
+    border-radius: 8px;
+    padding: 10px;
+    background: #fff;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    position: relative;
+}
+
+.btnf {
+    background-color: #9747FF;
+    color: white; 
+    padding: 10px; 
+    border: none; 
+    border-radius: 5px; 
+    cursor: pointer; 
+    width: 110px; 
+    transition: background-color 0.3s;
+    margin-right: 20px;
+}
+
+.btncf {
+    background-color: #9747FF;
+    color: white; 
+    padding: 10px; 
+    border: none; 
+    border-radius: 5px; 
+    cursor: pointer; 
+    width: 110px; 
+    transition: background-color 0.3s;
+}
+
+.lapimage {
+    max-width: 200px; 
+    max-height: 200px; 
+    min-width: 200px; 
+    min-height: 200px; 
+    width: auto; 
+    height: auto; 
+    object-fit: contain; 
+}
+
+.flash-message { 
+    border: 1px solid #ccc; 
+    padding: 10px; 
+    margin: 10px 0;
+    border-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10; 
+}
+
+.flash-success { 
+    background-color: #4cb423; 
+}
+
+.flash-danger { 
+    background-color: #f2dede; 
+}
+
+.close-btn { 
+    position: absolute; 
+    top: 5px; 
+    right: 10px; 
+    cursor: pointer; 
 }

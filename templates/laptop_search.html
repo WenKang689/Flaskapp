@@ -1,150 +1,191 @@
-<form method="get" action="{{ url_for('laptop') }}">
-    <!-- Search Bar -->
-    <label for="search">Search:</label>
-    <input type="text" id="search" name="search" value="{{ request.args.get('search', '') }}"><br>
-
-    <!-- Sort by Score -->
-    <label>
-        <input type="checkbox" name="sort_by_score" {% if request.args.get('sort_by_score') == 'on' %}checked{% endif %}>
-        Sort by Score
-    </label><br>
-
-
-
-    <!-- Brand Filter -->
-    <label for="brand">Brand:</label>
-    <select id="brand" name="brand">
-        <option value="">Any</option>
-        {% for option in brands %}
-            <option value="{{ option }}" {% if request.args.get('brand') == option %}selected{% endif %}>{{ option }}</option>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Laptop Search</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/laptop_search.css') }}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
+</head>
+<body>
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <span class="close-btn" onclick="this.parentElement.style.display='none';">&times;</span>  
+                {{ message }}
+            </div>
         {% endfor %}
-    </select><br>
-
-    <!-- Memory Filter -->
-    <label for="memory">Memory:</label>
-    <select id="memory" name="memory">
-        <option value="">Any</option>
-        {% for option in memories %}
-            <option value="{{ option }}" {% if request.args.get('memory') == option %}selected{% endif %}>{{ option }}</option>
-        {% endfor %}
-    </select><br>
-
-    <!-- Graphics Filter -->
-    <label for="graphics">Graphics:</label>
-    <select id="graphics" name="graphics">
-        <option value="">Any</option>
-        {% for option in graphics_options %}
-            <option value="{{ option }}" {% if request.args.get('graphics') == option %}selected{% endif %}>{{ option }}</option>
-        {% endfor %}
-    </select><br>
-
-    <!-- Storage Filter -->
-    <label for="storage">Storage:</label>
-    <select id="storage" name="storage">
-        <option value="">Any</option>
-        {% for option in storages %}
-            <option value="{{ option }}" {% if request.args.get('storage') == option %}selected{% endif %}>{{ option }}</option>
-        {% endfor %}
-    </select><br>
-
-    <!-- Battery Filter -->
-    <label for="battery">Battery:</label>
-    <select id="battery" name="battery">
-        <option value="">Any</option>
-        {% for option in batteries %}
-            <option value="{{ option }}" {% if request.args.get('battery') == option %}selected{% endif %}>{{ option }}</option>
-        {% endfor %}
-    </select><br>
-
-    <!-- Processor Filter -->
-    <label for="processor">Processor:</label>
-    <select id="processor" name="processor">
-        <option value="">Any</option>
-        {% for option in processors %}
-            <option value="{{ option }}" {% if request.args.get('processor') == option %}selected{% endif %}>{{ option }}</option>
-        {% endfor %}
-    </select><br>
-
-    <!-- Operating System Filter -->
-    <label for="os">Operating System:</label>
-    <select id="os" name="os">
-        <option value="">Any</option>
-        {% for option in operating_systems %}
-            <option value="{{ option }}" {% if request.args.get('os') == option %}selected{% endif %}>{{ option }}</option>
-        {% endfor %}
-    </select><br>
-
-    <!-- Price Range Slider -->
-    <label for="price_range">Price Range:</label>
-    <div>
-        <label for="min_price">Min:</label>
-        <input type="range" id="min_price" name="min_price" min="{{ min_price }}" max="{{ max_price }}" value="{{ request.args.get('min_price', min_price) }}" oninput="document.getElementById('min_price_output').value = this.value">
-        <output id="min_price_output">{{ request.args.get('min_price', min_price) }}</output>
-    </div>
-    <div>
-        <label for="max_price">Max:</label>
-        <input type="range" id="max_price" name="max_price" min="{{ min_price }}" max="{{ max_price }}" value="{{ request.args.get('max_price', max_price) }}" oninput="document.getElementById('max_price_output').value = this.value">
-        <output id="max_price_output">{{ request.args.get('max_price', max_price) }}</output>
-    </div><br>
-
-    <!-- Weight Range Slider -->
-    <label for="weight_range">Weight Range:</label>
-    <div>
-        <label for="min_weight">Min:</label>
-        <input type="range" id="min_weight" name="min_weight" min="{{ min_weight }}" max="{{ max_weight }}" value="{{ request.args.get('min_weight', min_weight) }}" oninput="document.getElementById('min_weight_output').value = this.value">
-        <output id="min_weight_output">{{ request.args.get('min_weight', min_weight) }}</output>
-    </div>
-    <div>
-        <label for="max_weight">Max:</label>
-        <input type="range" id="max_weight" name="max_weight" min="{{ min_weight }}" max="{{ max_weight }}" value="{{ request.args.get('max_weight', max_weight) }}" oninput="document.getElementById('max_weight_output').value = this.value">
-        <output id="max_weight_output">{{ request.args.get('max_weight', max_weight) }}</output>
-    </div><br>
-
-    <script>
-        document.querySelector('form').addEventListener('submit', function(event) {
-            var minPrice = parseFloat(document.getElementById('min_price').value);
-            var maxPrice = parseFloat(document.getElementById('max_price').value);
-            if (minPrice > maxPrice) {
-                alert('Max price must be greater than min price.');
-                event.preventDefault(); // Prevent form submission
-            }
-            var minWeight = parseFloat(document.getElementById('min_weight').value);
-            var maxWeight = parseFloat(document.getElementById('max_weight').value);
-            if (minWeight > maxWeight) {
-                alert('Max weight must be greater than min weight.');
-                event.preventDefault(); // Prevent form submission
-            }
-        });
-    </script>
-
-    <!-- Apply Filters Button -->
-    <button type="submit">Filter</button>
-
-    <!-- Clear Filters Button -->
-    <button type="submit" name="clear_filters" value="true">Clear Filters</button>
-
-</form> 
-
-{% if message %}
-        <p>{{ message }}</p>
     {% endif %}
+{% endwith %}
+    <header>
+        <div class="navbar">
+            <div>
+                <a href="{{ url_for('homepage') }}" class="home-button">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="logo">
+                </a>
+            </div>
 
-    {% if laptops %}
-        <ul>
-            {% for laptop in laptops %}
-                <li>
-                    <h2>{{ laptop[1] }}</h2>
-                    <p>Price: ${{ laptop[3] }}</p>
-                    {% if laptop[11] %}
-                        <img src="{{ laptop[11] }}" alt="{{ laptop[1] }}" width="200">
-                    {% else %}
-                        <p>No image available</p>
-                    {% endif %}
-                    <br>
-                    <a href="{{ url_for('laptop_detail', product_id=laptop[0]) }}">View More</a>
-                </li>
-            {% endfor %}
-        </ul>
-    {% endif %}
+            <div class="icons">
+                <a href="{{ url_for('laptop') }}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/header_all_laptop.png') }}" alt="Icon" class="all_laptop_icon">
+                </a>
+                <a href="{{ url_for('cart') }}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/cart.png') }}" alt="Icon" class="cart_icon">
+                </a>
+                <a href="{{ url_for('setting_profile') }}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/setting.png') }}" alt="Icon" class="setting_icon">
+                </a>
+            </div>
+        </div>
+    </header>
+    <div  class="container">
+        <div class="content-area">
+            <div class="filter-bar">
+                <form method="get" action="{{ url_for('laptop') }}">
+                    <!-- Search Bar -->
+                    <label for="search">Search:</label>
+                    <input type="text" id="search" name="search" value="{{ request.args.get('search', '') }}"><br>
+            
+                    <!-- Sort by Score -->
+                    <label>
+                        <input type="checkbox" name="sort_by_score" {% if request.args.get('sort_by_score') == 'on' %}checked{% endif %}>
+                        Sort by Score
+                    </label><br>
+            
+                    <!-- Brand Filter -->
+                    <label for="brand">Brand:</label>
+                    <select id="brand" name="brand">
+                        <option value="">Any</option>
+                        {% for option in brands %}
+                            <option value="{{ option }}" {% if request.args.get('brand') == option %}selected{% endif %}>{{ option }}</option>
+                        {% endfor %}
+                    </select><br>
+            
+                    <!-- Memory Filter -->
+                    <label for="memory">Memory:</label>
+                    <select id="memory" name="memory">
+                        <option value="">Any</option>
+                        {% for option in memories %}
+                            <option value="{{ option }}" {% if request.args.get('memory') == option %}selected{% endif %}>{{ option }}</option>
+                        {% endfor %}
+                    </select><br>
+            
+                    <!-- Graphics Filter -->
+                    <label for="graphics">Graphics:</label>
+                    <select id="graphics" name="graphics">
+                        <option value="">Any</option>
+                        {% for option in graphics_options %}
+                            <option value="{{ option }}" {% if request.args.get('graphics') == option %}selected{% endif %}>{{ option }}</option>
+                        {% endfor %}
+                    </select><br>
+            
+                    <!-- Storage Filter -->
+                    <label for="storage">Storage:</label>
+                    <select id="storage" name="storage">
+                        <option value="">Any</option>
+                        {% for option in storages %}
+                            <option value="{{ option }}" {% if request.args.get('storage') == option %}selected{% endif %}>{{ option }}</option>
+                        {% endfor %}
+                    </select><br>
+            
+                    <!-- Battery Filter -->
+                    <label for="battery">Battery:</label>
+                    <select id="battery" name="battery">
+                        <option value="">Any</option>
+                        {% for option in batteries %}
+                            <option value="{{ option }}" {% if request.args.get('battery') == option %}selected{% endif %}>{{ option }}</option>
+                        {% endfor %}
+                    </select><br>
+            
+                    <!-- Processor Filter -->
+                    <label for="processor">Processor:</label>
+                    <select id="processor" name="processor">
+                        <option value="">Any</option>
+                        {% for option in processors %}
+                            <option value="{{ option }}" {% if request.args.get('processor') == option %}selected{% endif %}>{{ option }}</option>
+                        {% endfor %}
+                    </select><br>
+            
+                    <!-- Operating System Filter -->
+                    <label for="os">Operating System:</label>
+                    <select id="os" name="os">
+                        <option value="">Any</option>
+                        {% for option in operating_systems %}
+                            <option value="{{ option }}" {% if request.args.get('os') == option %}selected{% endif %}>{{ option }}</option>
+                        {% endfor %}
+                    </select><br>
+            
+                    <!-- Price Range Slider -->
+                    <label for="price_range">Price Range:</label>
+                    <div>
+                        <label for="min_price">Min:</label>
+                        <input type="range" id="min_price" name="min_price" min="{{ min_price }}" max="{{ max_price }}" value="{{ request.args.get('min_price', min_price) }}" oninput="document.getElementById('min_price_output').value = this.value">
+                        <output id="min_price_output">{{ request.args.get('min_price', min_price) }}</output>
+                    </div>
+                    <div>
+                        <label for="max_price">Max:</label>
+                        <input type="range" id="max_price" name="max_price" min="{{ min_price }}" max="{{ max_price }}" value="{{ request.args.get('max_price', max_price) }}" oninput="document.getElementById('max_price_output').value = this.value">
+                        <output id="max_price_output">{{ request.args.get('max_price', max_price) }}</output>
+                    </div><br>
+            
+                    <!-- Weight Range Slider -->
+                    <label for="weight_range">Weight Range:</label>
+                    <div>
+                        <label for="min_weight">Min:</label>
+                        <input type="range" id="min_weight" name="min_weight" min="{{ min_weight }}" max="{{ max_weight }}" value="{{ request.args.get('min_weight', min_weight) }}" oninput="document.getElementById('min_weight_output').value = this.value">
+                        <output id="min_weight_output">{{ request.args.get('min_weight', min_weight) }}</output>
+                    </div>
+                    <div>
+                        <label for="max_weight">Max:</label>
+                        <input type="range" id="max_weight" name="max_weight" min="{{ min_weight }}" max="{{ max_weight }}" value="{{ request.args.get('max_weight', max_weight) }}" oninput="document.getElementById('max_weight_output').value = this.value">
+                        <output id="max_weight_output">{{ request.args.get('max_weight', max_weight) }}</output>
+                    </div><br>
+            
+            
+            
+                    <!-- Apply Filters Button -->
+                    <button type="submit" class="btnf">Filter</button>
+            
+                    <!-- Clear Filters Button -->
+                    <button type="submit" class="btncf" name="clear_filters" value="true">Clear Filters</button>
+            
+                </form> 
+            </div>
+        </div>
+
+        <div class="laptop-grid">
+            {% if laptops %}
+                {% for laptop in laptops %}
+                    <div class="laptop-content">
+                        <h2>{{ laptop[1] }}</h2>
+                        <p>Price: RM{{ laptop[3] }}</p>
+                        {% if laptop[11] %}
+                            <img src="{{ laptop[11] }}" alt="{{ laptop[1] }}" class="lapimage">
+                        {% else %}
+                            <p>No image available</p>
+                        {% endif %}
+                        <a href="{{ url_for('laptop_detail', product_id=laptop[0]) }}">View More</a>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+
 </body>
+<script>
+    document.querySelector('form').addEventListener('submit', function(event) {
+        var minPrice = parseFloat(document.getElementById('min_price').value);
+        var maxPrice = parseFloat(document.getElementById('max_price').value);
+        if (minPrice > maxPrice) {
+            alert('Max price must be greater than min price.');
+            event.preventDefault(); // Prevent form submission
+        }
+        var minWeight = parseFloat(document.getElementById('min_weight').value);
+        var maxWeight = parseFloat(document.getElementById('max_weight').value);
+        if (minWeight > maxWeight) {
+            alert('Max weight must be greater than min weight.');
+            event.preventDefault(); // Prevent form submission
+        }
+    });
+</script>
 </html>

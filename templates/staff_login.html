@@ -15,8 +15,6 @@
             <a href="#" class="tab active">Staff</a>
         </div>
         <div class="login-container">
-            <h1>Staff Login</h1>
-            <p class="greetings">Welcome back. Enter your credentials to access your account</p>
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for category, message in messages %}
@@ -29,13 +27,13 @@
             {% endwith %}
             <form method="post">
                 <h2>Username</h2>
-                <input type="username" placeholder= "Kai" name="username" required>
+                <input type="username" name="username" required>
                 <h3>Password</h3> 
-                <input type="password" placeholder="Please enter correct password" name="password" required>
-                <button type="submit" class="btnf" name="action" value="forgot_password">Forgot Password</button>
-                <button type="submit" class="btn" name="action" value="login">Login</button>
+                <input type="password" name="password" required>
+                
+                <button type="submit" class="btn" name="action" value="login" style="margin-top: 20px;">Login</button>
             </form>
-            <p class="register">Don't have an Account? <a href="{{ url_for('register') }}">Sign up here</a></p>
+            </form>
         </div>
     </div>
 </body>

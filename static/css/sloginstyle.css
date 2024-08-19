@@ -58,18 +58,6 @@ body {
     height: 169px; 
 }
 
-h1 {
-    font-size: 24px;
-    margin: 10px 0;
-    text-align: left;
-
-}
-
-.greetings {
-    color:#000000;
-    text-align: left;
-    font-weight: 100;
-}
 
 h2 {
     font-size: 18px;
@@ -106,27 +94,6 @@ input:focus {
     outline: none;
 }
 
-.continue-btn {
-    background: #6200ea;
-    color: white;
-    border: none;
-    padding: 12px;
-    border-radius: 5px;
-    cursor: pointer;
-    width: 100%;
-    font-size: 16px;
-    margin-top: 10px;
-}
-
-.register{
-    color:black;
-}
-
-.register a {
-    color: #022ec0;
-    font-size: 16px;
-}
-
 .btn {
     background-color: rgb(185, 105, 231); 
     color: white; 
@@ -137,19 +104,6 @@ input:focus {
     width: 100%; 
     transition: background-color 0.3s;
     font-size: 18px;
-}
-
-.btnf {
-    background: none; 
-    border: none; 
-    color: #022ec0; 
-    text-decoration: underline; 
-    cursor: pointer; 
-    font-size: inherit; 
-    padding: 5px; 
-    display: block;
-    text-align: left;
-    font-size: 16px;
 }
 
 .flash-message { 
@@ -170,5 +124,5 @@ input:focus {
     position: absolute; 
     top: 5px; 
     right: 10px; 
-    cursor: pointer; 
+    cursor:pointer;
 }
