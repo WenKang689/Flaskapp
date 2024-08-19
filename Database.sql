@@ -87,7 +87,7 @@ CREATE TABLE `payment` (
   `cvv` char(3) NOT NULL,
   `expiry_date` char(5) NOT NULL,
   `pay_email` varchar(50) NOT NULL,
-  `status` tinyint(1) NOT NULL,
+  `status` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`saved_card_id`),
   KEY `username` (`username`),
   CONSTRAINT `payment_ibfk_1` FOREIGN KEY (`username`) REFERENCES `user` (`username`) ON UPDATE CASCADE
@@ -405,4 +405,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-08-19 11:11:28
+-- Dump completed on 2024-08-19 11:53:03
