@@ -153,22 +153,22 @@
             </div>
         </div>
 
-        <div class="laptop-grid">
-            {% if laptops %}
-                {% for laptop in laptops %}
-                    <div class="laptop-content">
-                        <h2>{{ laptop[1] }}</h2>
-                        <p>Price: RM{{ laptop[3] }}</p>
-                        {% if laptop[11] %}
-                            <img src="{{ laptop[11] }}" alt="{{ laptop[1] }}" class="lapimage">
-                        {% else %}
-                            <p>No image available</p>
-                        {% endif %}
-                        <a href="{{ url_for('laptop_detail', product_id=laptop[0]) }}">View More</a>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        </div>
+            <div class="laptop-grid">
+                {% if laptops %}
+                    {% for laptop in laptops %}
+                        <div class="laptop-content">
+                            {% if laptop[11] %}
+                                <img src="{{ laptop[11] }}" alt="{{ laptop[1] }}" class="lapimage">
+                                <h2>{{ laptop[1] }}</h2>
+                                <p>RM{{ laptop[3] }}</p>
+                            {% else %}
+                                <p>No image available</p>
+                            {% endif %}
+                            <a href="{{ url_for('laptop_detail', product_id=laptop[0]) }}" class="btnvm"><strong>View More</strong></a>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
     </div>
 
 </body>

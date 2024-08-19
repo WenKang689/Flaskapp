@@ -91,3 +91,31 @@ label[for="accept_policy"] {
     display: inline-block; /* Keep the label inline with the checkbox */
     padding-top: 0; /* Remove padding if not needed */
 }
+
+.flash-message { 
+    border: 1px solid #ccc; 
+    padding: 10px; 
+    margin: 10px 0;
+    border-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10; 
+}
+
+.flash-success { 
+    background-color: #4cb423; 
+}
+
+.flash-danger { 
+    background-color: #f2dede; 
+}
+
+.close-btn { 
+    position: absolute; 
+    top: 5px; 
+    right: 10px; 
+    cursor: pointer; 
+}

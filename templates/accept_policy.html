@@ -7,6 +7,16 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/policy.css') }}">
 </head>
 <body>
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <span class="close-btn" onclick="this.parentElement.style.display='none';">&times;</span>  
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
         <div class="privacy-container">
             <div class="scrollable-container">
                 <h1>Privacy Policy</h1>
@@ -41,7 +51,7 @@
                 <p><strong>8. Contact Us</strong></p>
                 <p>If you have any questions or concerns about this privacy policy or our data collection practices, please contact us at laptopkawkaw@outlook.com.</p>
                 <form method="POST" onsubmit="return validateForm(event)">
-                    <input type="checkbox" name="accept_policy" id="accept_policy">
+                    <input type="checkbox" name="accept_policy_checkbox" id="accept_policy">
                     <label for="accept_policy">I have read and understand the policy</label><br>
                         <div class="button-container">
                             <button type="submit" class="btnap" name="accept_policy" value="accept">Accept Policy</button>
@@ -50,6 +60,8 @@
                 </form> 
             </div>
         </div>
+
+
 
     <script>
         function validateForm(event) {
@@ -65,8 +77,12 @@
                 alert('You must tick the checkbox to accept the privacy policy.');
                 
                 return false;
+            } else if (event.submitter.name === 'reject_policy') {
+                return true;
             }
-            return true;
+            else {
+                return true;
+            }
         }
     </script>
 </body>

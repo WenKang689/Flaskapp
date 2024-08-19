@@ -447,7 +447,7 @@ def setting_payment():
 
     cur = mysql.connection.cursor()
     
-    cur.execute("SELECT saved_card_id, username, pay_email, name_on_card, card_no, cvv, expiry_date FROM payment WHERE username = %s", [username])
+    cur.execute("SELECT saved_card_id, username, pay_email, name_on_card, card_no, cvv, expiry_date FROM payment WHERE username = %s AND status = 1", [username])
     payment_data = cur.fetchall()
 
     payment_methods = []
@@ -507,7 +507,7 @@ def setting_payment_edit():
             else:
                 # Proceed with the database insert if all fields are valid
                 cur = mysql.connection.cursor()
-                cur.execute("INSERT INTO payment (saved_card_id, username, pay_email, name_on_card, card_no, cvv, expiry_date) VALUES (%s, %s, %s, %s, %s, %s, %s)", (saved_card_id, current_username, pay_email, name_on_card, card_no, cvv, expiry_date))
+                cur.execute("INSERT INTO payment (saved_card_id, username, pay_email, name_on_card, card_no, cvv, expiry_date, status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (saved_card_id, current_username, pay_email, name_on_card, card_no, cvv, expiry_date, 1))
                 mysql.connection.commit()
                 flash("Payment method added successfully.", "success")
                 cur.close()
@@ -516,10 +516,14 @@ def setting_payment_edit():
         elif action == "remove":
             saved_card_id = request.form.get('saved_card_id')
             cur = mysql.connection.cursor()
-            cur.execute("DELETE FROM payment WHERE saved_card_id = %s AND username = %s", (saved_card_id, current_username))
+            
+            # Update the status to 0 instead of deleting the record
+            cur.execute("UPDATE payment SET status = 0 WHERE saved_card_id = %s AND username = %s", (saved_card_id, current_username))
+            
             mysql.connection.commit()
             flash("Payment method removed successfully.", "success")
             cur.close()
+            
             return redirect("/user/setting/payment")
         
         else:
@@ -972,14 +976,15 @@ def get_categories():
 #C-auto recommend page
 @app.route("/recommend/auto", methods=["GET","POST"])
 def recommend_auto():
-    # Check if the user accepted the privacy policy
     if request.method == 'POST':
-        if 'accept_policy' in request.form:
-            # Validate checkbox
-            if 'accept_policy' not in request.form:
+        action = request.form.get('action')
+
+        if action == 'accept':
+            # User accepted the privacy policy
+            if 'accept_policy_checkbox' not in request.form:
                 flash('You must accept the privacy policy to proceed.', 'warning')
-                return redirect('/recommend')
-            
+                return redirect('/recommend/auto')
+
             # Process auto-recommendations
             categories = get_categories()
             program_files_dirs = [
@@ -1007,8 +1012,10 @@ def recommend_auto():
                 return redirect('/homepage')
             
             return redirect(url_for('homepage'))
-        
-        elif 'reject_policy' in request.form:
+
+        elif action == 'reject':
+            # User rejected the privacy policy
+            flash('You have rejected the privacy policy. Returning to recommendations page.', 'warning')
             return redirect('/recommend')
 
     # Render the page to accept privacy policy
@@ -1596,9 +1603,9 @@ def cart_checkout():
                 with mysql.connection.cursor() as cur:
                     new_saved_card_id = generate_next_saved_card_id()
                     cur.execute("""
-                        INSERT INTO payment (saved_card_id, username, pay_email, name_on_card, card_no, cvv, expiry_date)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s)
-                    """, (new_saved_card_id, username, pay_email, name_on_card, card_no, cvv, expiry_date))
+                        INSERT INTO payment (saved_card_id, username, pay_email, name_on_card, card_no, cvv, expiry_date, status)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                    """, (new_saved_card_id, username, pay_email, name_on_card, card_no, cvv, expiry_date, 1))
                     mysql.connection.commit()
                     saved_card_id = new_saved_card_id
             except Exception as e:
@@ -1728,7 +1735,7 @@ def cart_checkout():
             cur.execute("""
                 SELECT saved_card_id, card_no, expiry_date, pay_email
                 FROM payment
-                WHERE username = %s
+                WHERE username = %s and status = 1
             """, (username,))
             payment_methods = cur.fetchall()
             print("Payment methods retrieved:", payment_methods)
