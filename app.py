@@ -291,6 +291,7 @@ def admin_laptop_add():
                      (product_id, product_name, brand, processor, graphics, dimensions, weight, os, memory, storage, power_supply, battery, price, stock))
 
         mysql.connection.commit()
+        print(f"New laptop added with ID: {product_id}, Name: {product_name}")
         cur.close()
 
         flash(f"Laptop added successfully with ID {product_id}.", "success")
