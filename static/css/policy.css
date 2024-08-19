@@ -103,14 +103,11 @@ label[for="accept_policy"] {
     left: 50%;
     transform: translateX(-50%);
     z-index: 10; 
+    top: 100px;
 }
 
 .flash-success { 
     background-color: #4cb423; 
-}
-
-.flash-danger { 
-    background-color: #f2dede; 
 }
 
 .close-btn { 

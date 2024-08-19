@@ -50,40 +50,15 @@
                 <p>We may update this privacy policy from time to time. Any changes will be communicated to you through our system or via email. Continued use of the auto-recommendation feature after any updates signifies your acceptance of the revised policy.</p>
                 <p><strong>8. Contact Us</strong></p>
                 <p>If you have any questions or concerns about this privacy policy or our data collection practices, please contact us at laptopkawkaw@outlook.com.</p>
-                <form method="POST" onsubmit="return validateForm(event)">
+                <form method="POST" action="/recommend/auto">
                     <input type="checkbox" name="accept_policy_checkbox" id="accept_policy">
-                    <label for="accept_policy">I have read and understand the policy</label><br>
-                        <div class="button-container">
-                            <button type="submit" class="btnap" name="accept_policy" value="accept">Accept Policy</button>
-                            <button type="submit" class="btnrp" name="reject_policy" value="reject">Reject Policy</button>
-                        </div>
-                </form> 
+                    <label for="accept_policy">I accept the privacy policy</label>
+                    <p>
+                        <button type="submit" name="action" value="accept" class="btnap">Accept</button>
+                        <button type="submit" name="action" value="reject" class="btnrp">Reject</button>
+                    </p>
+                </form>
             </div>
         </div>
-
-
-
-    <script>
-        function validateForm(event) {
-            // Get the checkbox element
-            var checkbox = document.getElementById('accept_policy');
-            
-            // If the checkbox is not checked and the form is for accepting policy
-            if (!checkbox.checked && event.submitter.name === 'accept_policy') {
-                // Prevent the form from submitting
-                event.preventDefault();
-                
-                // Alert the user to check the checkbox
-                alert('You must tick the checkbox to accept the privacy policy.');
-                
-                return false;
-            } else if (event.submitter.name === 'reject_policy') {
-                return true;
-            }
-            else {
-                return true;
-            }
-        }
-    </script>
 </body>
 </html>
