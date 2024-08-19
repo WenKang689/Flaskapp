@@ -50,14 +50,9 @@
         .upload-form, .delete-form {
             margin-bottom: 20px;
         }
-        footer {
-            background-color: #333;
-            color: white;
+        .back-button {
+            margin-top: 20px;
             text-align: center;
-            padding: 10px;
-            position: fixed;
-            bottom: 0;
-            width: 100%;
         }
         .delete-button {
             background-color: red;
@@ -66,6 +61,15 @@
             padding: 5px 10px;
             cursor: pointer;
             border-radius: 4px;
+        }
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
         }
     </style>
 </head>
@@ -91,7 +95,7 @@
         <div class="image-container">
             {% for image in images %}
             <div class="image-wrapper">
-                <img src="{{ image[0] }}" alt="Laptop Image {{ loop.index }}">
+                <img src="{{ image[1] }}" alt="Laptop Image {{ loop.index }}">
                 <form action="{{ url_for('laptop_images', product_id=product_id) }}" method="post" style="margin-top: 10px;">
                     <input type="hidden" name="delete_pic_id" value="{{ image[0] }}">
                     <button type="submit" class="delete-button">Delete Image</button>
@@ -99,7 +103,14 @@
             </div>
             {% endfor %}
         </div>
+        <div class="back-button">
+            <a href="{{ url_for('admin_laptop') }}">
+                <button type="button">Save changes</button>
+            </a>
+        </div>
     </main>
-    <p>&copy; 2023 Laptop Finder. All rights reserved.</p>
+    <footer>
+        <p>&copy; Copyright 2024 - LAPTOP KAW KAW</p>
+    </footer>
 </body>
 </html>
