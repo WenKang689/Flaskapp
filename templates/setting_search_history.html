@@ -52,11 +52,10 @@
                             <ul>
                                 {% for search in search_history %}
                                     <li>
-                                        <p>
-                                            Search Query: 
-                                            <a href="{{ url_for('laptop', search=search[1]) }}">{{ search[1] }}</a>
+                                        <p class="search-item">
+                                            <span class="search-query">Search Query: <a href="{{ url_for('laptop', search=search[1]) }}">{{ search[1] }}</a></span>
+                                            <span class="search-time">{{ search[2] }}</span>
                                         </p>
-                                        <p>Search Time: {{ search[2] }}</p>
                                     </li>
                                 {% endfor %}
                             </ul>

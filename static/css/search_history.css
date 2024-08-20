@@ -179,7 +179,6 @@ header {
     padding: 20px; /* Optional: add some padding */
 }
 
-/* Optional: Style the scrollbar for better appearance (works in WebKit browsers like Chrome, Safari) */
 .scrollable-container::-webkit-scrollbar {
     width: 8px;
 }
@@ -191,4 +190,19 @@ header {
 
 .scrollable-container::-webkit-scrollbar-track {
     background-color: #f9f9f9;
+}
+
+p {
+    color:white;
+    font-weight: bold;
+}
+
+.search-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.search-time {
+    text-align: right;
 }

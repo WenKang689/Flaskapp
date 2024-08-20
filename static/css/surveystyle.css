@@ -10,7 +10,7 @@
 
 body {
     margin: 0;
-    padding: 0;
+    padding: 0 0 50px 0;
     font-family: 'Roboto', sans-serif;
     background-image: url('../images/background.png');
     background-size: cover;
@@ -31,6 +31,8 @@ body {
     position: relative;
     border-radius: 5px;
     padding-left: 30px;
+    padding-bottom: 40px;
+    margin-bottom: 60px;
 }
 
 h1 {
