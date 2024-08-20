@@ -126,7 +126,7 @@ CREATE TABLE `product` (
   `battery` varchar(30) NOT NULL,
   `price` int NOT NULL,
   `stock` int NOT NULL,
-  `status` tinyint NOT NULL,
+  `status` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`product_id`),
   UNIQUE KEY `product_id` (`product_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -182,7 +182,7 @@ CREATE TABLE `purchase` (
   `product_id` char(6) NOT NULL,
   `pur_date` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `pur_amount` int NOT NULL,
-  `pur_status` varchar(7) NOT NULL,
+  `pur_status` varchar(10) NOT NULL,
   `pur_quantity` int NOT NULL,
   `processed_by` char(6) DEFAULT NULL,
   `saved_card_id` char(6) NOT NULL,
