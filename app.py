@@ -216,7 +216,7 @@ def staff_login():
 
 
 #Admin section (Zhi Xian)
-#A-laptop
+#A-homepage(laptop mainpage)
 @app.route('/admin/laptop', methods=['GET', 'POST'])
 def admin_laptop():
     if not session.get('logged_in'):
@@ -233,7 +233,7 @@ def admin_laptop():
     search_query = request.args.get('search', search_query)
     
     sql_query = """
-    SELECT p.product_id, p.product_name, p.brand, p.price, p.memory, p.graphics, p.storage, p.battery, p.processor, p.os, p.weight, pic.pic_url, p.stock
+    SELECT p.product_id, p.product_name, p.brand, p.price, p.memory, p.graphics, p.storage, p.battery, p.processor, p.os, p.weight, pic.pic_url, p.stock, p.status
     FROM product p
     LEFT JOIN (
         SELECT product_id, MIN(pic_url) as pic_url
@@ -241,7 +241,6 @@ def admin_laptop():
         GROUP BY product_id
     ) pic ON p.product_id = pic.product_id
     WHERE (p.product_name LIKE %s OR p.brand LIKE %s OR p.processor LIKE %s)
-    AND p.status = 1
     """
 
     search_term = f'%{search_query}%'
@@ -251,6 +250,32 @@ def admin_laptop():
     cur.close()
 
     return render_template('admin_laptop_search.html', laptops=all_laptops, search_query=search_query)
+
+#A-toggle laptop status
+@app.route('/admin/laptop/toggle_status/<product_id>', methods=['POST'])
+def toggle_status(product_id):
+    if not session.get('logged_in'):
+        return redirect('/staff/login')
+
+    cur = mysql.connection.cursor()
+
+    # Get the current status of the product
+    cur.execute("SELECT status FROM product WHERE product_id = %s", (product_id,))
+    current_status = cur.fetchone()[0]  # Accessing the first element of the tuple
+
+    # Toggle the status
+    new_status = 0 if current_status == 1 else 1
+
+    # Update the status in the database
+    cur.execute("UPDATE product SET status = %s WHERE product_id = %s", (new_status, product_id))
+    mysql.connection.commit()
+
+    # Print a confirmation message
+    print(f"Product ID {product_id}: Status successfully toggled to {new_status}")
+
+    cur.close()
+
+    return redirect('/admin/laptop')
 
 #A-add-laptops
 @app.route("/admin/laptop/add", methods=["GET", "POST"])
