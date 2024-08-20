@@ -67,12 +67,11 @@ header {
 
 .filter-bar {
     padding: 10px;
-    background-image: url('/static/images/nav_background.png');
+    background-image: url('/static/images/background.png');
     border-radius: 5px;
     display: block;
     text-decoration: none;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-    border: 1px solid black;
     transition: background-color 0.3s;
     width: 260px;
     margin-top: 30px;
@@ -81,6 +80,32 @@ header {
     background-repeat: no-repeat;
     background-size: cover;
     background-position: 90%;
+    color: white;
+}
+
+.btnf {
+    background-color: #9747FF;
+    color: white; 
+    padding: 10px; 
+    border: none; 
+    border-radius: 5px; 
+    cursor: pointer; 
+    width: 110px; 
+    transition: background-color 0.3s;
+    margin-right: 10px;
+    margin-left: 10px;
+    margin-bottom: 10px;
+}
+
+.btncf {
+    background-color: #9747FF;
+    color: white; 
+    padding: 10px; 
+    border: none; 
+    border-radius: 5px; 
+    cursor: pointer; 
+    width: 110px; 
+    transition: background-color 0.3s;
 
 }
 
@@ -160,11 +185,11 @@ header {
 }
 
 .laptop-content {
-    border: 1px solid rgb(0, 0, 0);
-    border-radius: 8px;
+
+    border-radius: 10px;
     padding: 10px;
     background: #ffffff;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
     display: flex;
     flex-direction: column;
     text-align: left;
@@ -172,29 +197,6 @@ header {
     width: 400px;
     height: 400px;
     align-items: center;
-}
-
-.btnf {
-    background-color: #9747FF;
-    color: white; 
-    padding: 10px; 
-    border: none; 
-    border-radius: 5px; 
-    cursor: pointer; 
-    width: 110px; 
-    transition: background-color 0.3s;
-    margin-right: 20px;
-}
-
-.btncf {
-    background-color: #9747FF;
-    color: white; 
-    padding: 10px; 
-    border: none; 
-    border-radius: 5px; 
-    cursor: pointer; 
-    width: 110px; 
-    transition: background-color 0.3s;
 }
 
 .lapimage {
@@ -242,18 +244,27 @@ header {
     color: #9747ff; 
     padding: 10px; 
     padding-bottom: 10px;
-    border: none; 
+    border: 1px solid purple; 
     border-radius: 5px; 
     cursor: pointer; 
-    width: 20%; 
+    width: 30%; 
     transition: background-color 0.3s;
     position: relative;
     display: flex;
-    text-align: center;
+    align-items: center;
+    justify-content: center;
     text-decoration: none;
 }
 
 .btnvm:hover {
     background-color: #9747FF;
     color: white;
+}
+
+h2 {
+    margin-bottom: 0px;
+}
+
+p {
+    margin-bottom: 30px;
 }
