@@ -240,9 +240,8 @@ def admin_laptop():
         FROM product_pic
         GROUP BY product_id
     ) pic ON p.product_id = pic.product_id
-    WHERE p.product_name LIKE %s
-    OR p.brand LIKE %s
-    OR p.processor LIKE %s
+    WHERE (p.product_name LIKE %s OR p.brand LIKE %s OR p.processor LIKE %s)
+    AND p.status = 1
     """
 
     search_term = f'%{search_query}%'
@@ -294,6 +293,9 @@ def admin_laptop_add():
         print(f"New laptop added with ID: {product_id}, Name: {product_name}")
         cur.close()
 
+        # Print statement after successful save
+        print(f"Laptop successfully added with ID {product_id}.")
+
         flash(f"Laptop added successfully with ID {product_id}.", "success")
         return redirect("/admin/laptop")
 
@@ -339,10 +341,14 @@ def admin_laptop_edit():
                 mysql.connection.commit()
                 cur.close()
 
+                # Print statement after successful update
+                print(f"Laptop with ID {product_id} updated successfully.")
+
                 flash("Laptop details and stock updated successfully.", "success")
                 return redirect("/admin/laptop")
             else:
                 flash("Laptop not found.", "danger")
+                cur.close()
                 return render_template("admin_laptop_edit_id.html")
         else:
             flash("Please enter a Product ID.", "danger")
@@ -361,6 +367,13 @@ def admin_laptop_edit():
                 cur.close()
 
                 return render_template("admin_laptop_edit_form.html", laptop=laptop_dict)
+            else:
+                flash("Laptop not found.", "danger")
+                cur.close()
+                return redirect("/admin/laptop")
+        else:
+            flash("Please provide a Product ID.", "danger")
+            return redirect("/admin/laptop")
 
 #A-remove laptop
 @app.route("/admin/laptop/remove", methods=["GET", "POST"])
@@ -368,14 +381,17 @@ def admin_laptop_remove():
     if request.method == "POST":
         product_id = request.form['product_id']
 
-        # Delete laptop from product table
+        # Update the status to 0 instead of deleting the row
         cursor = mysql.connection.cursor()
-        cursor.execute('DELETE FROM product WHERE product_id = %s', (product_id,))
+        cursor.execute('UPDATE product SET status = 0 WHERE product_id = %s', (product_id,))
         
         mysql.connection.commit()
         cursor.close()
 
-        flash("Laptop successfully removed.", "success")
+        # Print statement after successful status update
+        print(f"Laptop with ID {product_id} marked as removed (status set to 0).")
+
+        flash("Laptop successfully marked as removed.", "success")
         return redirect("/admin/laptop")
 
 #A-laptop images
@@ -408,6 +424,9 @@ def laptop_images(product_id):
                     mysql.connection.commit()
                     cur.close()
 
+                    # Print statement after successful database insert
+                    print(f"Image with ID {pic_id} uploaded and saved to database for product ID {product_id}. URL: {pic_url}")
+
                     flash("Image uploaded successfully.", "success")
                 else:
                     flash("Failed to upload image to S3.", "danger")
@@ -428,14 +447,19 @@ def laptop_images(product_id):
                 pic_url = pic_url[0]  # Extract the URL from the tuple
 
                 # Delete image from S3
-                delete_file_from_s3(pic_url)
+                if delete_file_from_s3(pic_url):
+                    # Delete image entry from the database
+                    sql_delete = "DELETE FROM product_pic WHERE pic_id = %s"
+                    cur.execute(sql_delete, (delete_pic_id,))
+                    mysql.connection.commit()
+                    
+                    # Print statement after successful database delete
+                    print(f"Image with ID {delete_pic_id} deleted from database and S3. URL: {pic_url}")
 
-                # Delete image entry from the database
-                sql_delete = "DELETE FROM product_pic WHERE pic_id = %s"
-                cur.execute(sql_delete, (delete_pic_id,))
-                mysql.connection.commit()
+                    flash("Image deleted successfully.", "success")
+                else:
+                    flash("Failed to delete image from S3.", "danger")
 
-                flash("Image deleted successfully.", "success")
             else:
                 flash("Image not found.", "error")
 
@@ -510,8 +534,7 @@ def admin_reviews():
         # Handle reply submission
         review_id = request.form.get("review_id")
         reply_text = request.form.get("reply")
-        current_time = datetime.now()
-
+        
         try:
             # Update review with the admin's reply
             cur.execute("""
@@ -520,9 +543,13 @@ def admin_reviews():
                 WHERE review_id = %s
             """, (reply_text, review_id))
             mysql.connection.commit()
+
+            # Print statement after successful reply update
+            print(f"Successfully updated review with ID {review_id}. Admin's reply: {reply_text}")
+
             flash("Reply sent successfully.", "success")
         except Exception as e:
-            print(f"An error occurred: {e}")
+            print(f"An error occurred while updating review with ID {review_id}: {e}")
             flash("An error occurred while submitting the reply. Please try again.", "error")
         finally:
             cur.close()
@@ -537,10 +564,14 @@ def admin_reviews():
         FROM review 
         JOIN product ON review.product_id = product.product_id
         WHERE review.reply IS NULL
-        ORDER BY review.review_time DESC
+        ORDER BY review.review_time ASC
         """
         cur.execute(query)
         reviews = cur.fetchall()
+
+        # Print statement after successfully retrieving reviews
+        print(f"Retrieved {len(reviews)} unreplied reviews.")
+
         cur.close()
 
         # Check if any reviews are fetched
@@ -551,7 +582,7 @@ def admin_reviews():
 
     except Exception as e:
         cur.close()
-        print(f"An error occurred: {e}")
+        print(f"An error occurred while retrieving reviews: {e}")
         flash("An error occurred while retrieving reviews. Please try again later.", "error")
         return redirect("/admin/laptop")
 
@@ -581,15 +612,24 @@ def admin_feedback_send():
         next_number = last_number + 1
         feedback_id = f'F{next_number:04d}'  # Format as F#### with leading zeros
 
-        # Insert feedback into the database
-        cur.execute("""
-            INSERT INTO feedback (feedback_id, stf_id, feedback, feedback_time) 
-            VALUES (%s, %s, %s, %s)
-        """, (feedback_id, staff_id, feedback_text, feedback_time))
-        mysql.connection.commit()
-        cur.close()
+        try:
+            # Insert feedback into the database
+            cur.execute("""
+                INSERT INTO feedback (feedback_id, stf_id, feedback, feedback_time) 
+                VALUES (%s, %s, %s, %s)
+            """, (feedback_id, staff_id, feedback_text, feedback_time))
+            mysql.connection.commit()
+            
+            # Print statement after successful database insert
+            print(f"Feedback inserted successfully. ID: {feedback_id}, Staff ID: {staff_id}, Feedback: {feedback_text}")
 
-        flash("Feedback sent successfully.", "success")
+            flash("Feedback sent successfully.", "success")
+        except Exception as e:
+            print(f"An error occurred while inserting feedback: {e}")
+            flash("An error occurred while sending feedback. Please try again.", "error")
+        finally:
+            cur.close()
+
         return redirect("/admin/feedback/send")
 
     return render_template("admin_feedback_send.html")
@@ -610,7 +650,7 @@ def generate_next_feedback_id(): #generate feedback_id
         new_id = "FB0001"
     return new_id
 
-#A-orders (Check and cancel orders)
+#A-Manage orders
 @app.route("/admin/orders", methods=["GET", "POST"])
 def admin_orders():
     if not session.get('logged_in'):
@@ -618,30 +658,31 @@ def admin_orders():
 
     cur = mysql.connection.cursor()
 
-    # Handle order cancellation
+    # Handle order status update
     if request.method == "POST":
         order_id = request.form.get('order_id')
-        print(f"Attempting to cancel order: {order_id}")
+        action = request.form.get('action')  # Expecting "complete" or "cancel"
+        staff_id = session.get('staff_id')  # Get staff_id from session
+        print(f"Staff {staff_id} attempting to update order: {order_id} to {action}")
+
+        # Determine the new status based on the action
+        new_status = "completed" if action == "complete" else "cancelled"
 
         try:
-            # First, delete related shipping details
+            # Update the order status and set the staff_id in the processed_by column
             cur.execute("""
-                DELETE FROM shipping 
+                UPDATE purchase
+                SET pur_status = %s, processed_by = %s
                 WHERE order_id = %s
-            """, (order_id,))
-            
-            # Then delete the order from the purchase table
-            cur.execute("""
-                DELETE FROM purchase 
-                WHERE order_id = %s
-            """, (order_id,))
+            """, (new_status, staff_id, order_id))
 
             mysql.connection.commit()
-            flash(f"Order {order_id} has been canceled.", "success")
+            print(f"Order {order_id} successfully updated to {new_status} by staff {staff_id}.")
+            flash(f"Order {order_id} has been marked as {new_status}.", "success")
         except Exception as e:
-            print(f"An error occurred: {e}")
+            print(f"An error occurred while updating order {order_id}: {e}")
             mysql.connection.rollback()
-            flash("An error occurred while canceling the order. Please try again.", "error")
+            flash("An error occurred while updating the order. Please try again.", "error")
         finally:
             cur.close()
         return redirect("/admin/orders")
@@ -653,20 +694,23 @@ def admin_orders():
             s.dest_add, s.receiver_name, s.receiver_phone, s.ship_status, s.ship_time
         FROM purchase p
         LEFT JOIN shipping s ON p.order_id = s.order_id
-        ORDER BY p.pur_date DESC
+        WHERE p.pur_status = 'pending'
+        ORDER BY p.pur_date ASC
         """
         cur.execute(query)
         orders = cur.fetchall()
-        cur.close()
+        
+        # Print statement after successfully retrieving orders
+        print(f"Retrieved {len(orders)} pending orders from the database.")
 
+        cur.close()
         return render_template("admin_orders.html", orders=orders)
     
     except Exception as e:
         cur.close()
-        print(f"An error occurred: {e}")
+        print(f"An error occurred while retrieving orders: {e}")
         flash("An error occurred while retrieving orders. Please try again later.", "error")
-        return redirect("/admin/laptop")
-
+        return redirect("/admin/orders")
 
 if __name__=='__main__':
     app.run(debug=True)
