@@ -55,8 +55,11 @@
         li p {
             margin: 5px 0;
         }
+        .btn-container {
+            margin-top: 10px;
+        }
         button {
-            background-color: #d9534f;
+            background-color: #5cb85c;
             border: none;
             color: white;
             padding: 10px 20px;
@@ -64,12 +67,18 @@
             text-decoration: none;
             display: inline-block;
             font-size: 16px;
-            margin-top: 10px;
+            margin-right: 10px;
             cursor: pointer;
             border-radius: 5px;
         }
-        button:hover {
+        button.cancel {
+            background-color: #d9534f;
+        }
+        button.cancel:hover {
             background-color: #c9302c;
+        }
+        button.complete:hover {
+            background-color: #4cae4c;
         }
         .pagination {
             margin: 20px 0;
@@ -130,14 +139,21 @@
                             <p><strong>Receiver Phone:</strong> {{ order[7] }}</p>
                             <p><strong>Shipping Status:</strong> {{ order[8] }}</p>
                             <p><strong>Shipping Time:</strong> {{ order[9] }}</p>
-                            <form action="/admin/orders" method="POST" style="display:inline;">
-                                <input type="hidden" name="order_id" value="{{ order[0] }}">
-                                <button type="submit">Cancel Order</button>
-                            </form>
+                            <div class="btn-container">
+                                <form action="/admin/orders" method="POST" style="display:inline;">
+                                    <input type="hidden" name="order_id" value="{{ order[0] }}">
+                                    <input type="hidden" name="action" value="complete">
+                                    <button type="submit" class="complete">Complete Order</button>
+                                </form>
+                                <form action="/admin/orders" method="POST" style="display:inline;">
+                                    <input type="hidden" name="order_id" value="{{ order[0] }}">
+                                    <input type="hidden" name="action" value="cancel">
+                                    <button type="submit" class="cancel">Cancel Order</button>
+                                </form>
+                            </div>
                         </li>
                     {% endfor %}
                 </ul>
-
             {% else %}
                 <p>No orders found.</p>
             {% endif %}
