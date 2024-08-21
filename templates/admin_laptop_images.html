@@ -2,115 +2,239 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ product_id }} - Laptop Images</title>
+    <title>Upload Laptop Images - Admin Panel</title>
+    <link rel="stylesheet" href="styles.css">
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
         }
+
         header {
-            background-color: #333;
-            color: white;
-            padding: 1rem;
+            background-image: url('../images/background.png');
+            background-color: white;
+            background-size: cover;
+            background-position: center;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 120px;
+            padding: 20px 0;
             text-align: center;
         }
-        nav ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        nav ul li {
-            display: inline;
-            margin: 0 10px;
-        }
-        nav ul li a {
-            color: white;
-            text-decoration: none;
-        }
-        main {
-            padding: 20px;
-        }
-        .image-container {
+
+        .navbar {
             display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: center;
+            justify-content:flex-end;
+            gap: 80px;
+            margin-top: 35px;
+            padding-right: 100px;
+            
         }
-        .image-container img {
-            max-width: 300px;
+
+        .home-button {
+            position: absolute;
+            top: 20px;
+            left: 110px;
+            width: 300px;
+            display: flex;
+        }
+
+        .home-button img {
+            width: 70%;
             height: auto;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+        }
+
+        .manage_laptop {
+            background-color: white;
+            color: #5875DE;
+            text-decoration: none;
+            padding: 15px 40px;
+            font-size: 16.71px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .manage_laptop:hover {
+            background-color: #f2f2f2;
+        }
+
+        .setting_icon {
+            width: 65px;
+            margin-top: -13px;
+        }
+
+        main {
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        label {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"],
+        input[type="file"] {
             padding: 10px;
-            background: white;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .upload-form, .delete-form {
             margin-bottom: 20px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            width: 100%;
+            max-width: 500px;
         }
-        .back-button {
+
+        .image-upload-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            width: 100%;
             margin-top: 20px;
-            text-align: center;
         }
-        .delete-button {
-            background-color: red;
+
+        .image-container {
+            position: relative;
+            width: 100%;
+            padding-top: 75%; /* Aspect Ratio 4:3 */
+            overflow: hidden;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-container img {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        .remove-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
             color: white;
             border: none;
-            padding: 5px 10px;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            border-radius: 4px;
+            transition: background-color 0.3s ease;
         }
-        footer {
-            background-color: #333;
+
+        .remove-btn:hover {
+            background-color: rgba(255, 0, 0, 0.7);
+        }
+
+        .update-btn {
+            background-color: #28a745;
             color: white;
-            text-align: center;
-            padding: 10px;
-            position: fixed;
-            bottom: 0;
-            width: 100%;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-left: 20px;
         }
+
+        .update-btn:hover {
+            background-color: #218838;
+        }
+
+        
     </style>
 </head>
 <body>
     <header>
-        <h1>Images for {{ product_id }}</h1>
-        <nav>
-            <ul>
-                <li><a href="{{ url_for('admin_laptop') }}">Laptop Page</a></li>
-                <li><a href="{{ url_for('admin_reviews') }}">Manage Reviews</a></li>
-                <li><a href="{{ url_for('admin_feedback_send') }}">Send Feedback</a></li>
-                <li><a href="{{ url_for('admin_orders') }}">Manage Orders</a></li>
-            </ul>
+        <nav class="navbar">
+            <div>
+                <a href="homepage.html" class="home-button">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="logo">
+                </a>
+            </div>
+            <a href="/admin/laptop" class="manage_laptop">MANAGE LAPTOPS</a>
+            <a href="{{ url_for('setting_profile') }}" class="icon-link">
+                <img src="{{ url_for('static', filename='images/setting.png') }}" alt="Icon" class="setting_icon">
+            </a>
         </nav>
     </header>
     <main>
-        <div class="upload-form">
-            <form action="{{ url_for('laptop_images', product_id=product_id) }}" method="post" enctype="multipart/form-data">
-                <input type="file" name="image_file" accept="image/*" required>
-                <button type="submit">Upload Image</button>
-            </form>
-        </div>
-        <div class="image-container">
-            {% for image in images %}
-            <div class="image-wrapper">
-                <img src="{{ image[1] }}" alt="Laptop Image {{ loop.index }}">
-                <form action="{{ url_for('laptop_images', product_id=product_id) }}" method="post" style="margin-top: 10px;">
-                    <input type="hidden" name="delete_pic_id" value="{{ image[0] }}">
-                    <button type="submit" class="delete-button">Delete Image</button>
-                </form>
+        <form action="/admin/laptop_images/" method="POST" enctype="multipart/form-data">
+            <label for="laptop_id">Laptop ID:</label>
+            <input type="text" id="laptop_id" name="laptop_id" required>
+
+            <div class="image-upload-container">
+                <label for="images">Select 4 images:</label>
+                <input type="file" id="images" name="images" multiple required>
+                <button type="submit" class="update-btn">Update</button>
             </div>
-            {% endfor %}
-        </div>
-        <div class="back-button">
-            <a href="{{ url_for('admin_laptop') }}">
-                <button type="button">Back</button>
-            </a>
-        </div>
+
+            <div class="image-grid">
+                <!-- Empty containers for selected images -->
+                <div class="image-container" id="container-1"></div>
+                <div class="image-container" id="container-2"></div>
+                <div class="image-container" id="container-3"></div>
+                <div class="image-container" id="container-4"></div>
+            </div>
+        </form>
     </main>
-    <footer>
-        <p>&copy; Copyright 2024 - LAPTOP KAW KAW</p>
-    </footer>
+
+    <script>
+        document.getElementById('images').addEventListener('change', function(event) {
+            const files = event.target.files;
+            const containers = [
+                document.getElementById('container-1'),
+                document.getElementById('container-2'),
+                document.getElementById('container-3'),
+                document.getElementById('container-4')
+            ];
+    
+            containers.forEach((container, index) => {
+                if (files[index]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        container.innerHTML = '';
+                        container.appendChild(img);
+                    };
+                    reader.readAsDataURL(files[index]);
+                } else {
+                    container.innerHTML = '';
+                }
+            });
+        });
+    </script>
+    
 </body>
 </html>
