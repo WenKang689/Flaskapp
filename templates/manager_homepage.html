@@ -66,14 +66,7 @@
                     <td>{{ laptop[10] }}</td>
                     <td>{{ laptop[12] if laptop[12] is not none else 'N/A' }}</td>
                     <td>{{ 'Active' if laptop[13] == 1 else 'Inactive' }}</td>
-                    <td>
-                        {% if laptop[11] %}
-                        <a href="{{ url_for('laptop_images', product_id=laptop[0]) }}">
-                            <img src="{{ laptop[11] }}" alt="Laptop Image">
-                        </a>
-                        {% else %}
-                        <a href="{{ url_for('laptop_images', product_id=laptop[0]) }}">No image</a>
-                        {% endif %}
+                    <td><img src="{{ laptop[11] }}" alt="Laptop Image">
                     </td>
                 </tr>
                 {% endfor %}

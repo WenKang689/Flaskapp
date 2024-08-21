@@ -188,23 +188,27 @@ def staff_login():
         staff_id=userdata["stf_id"]
         staff_psw=userdata["stf_psw"]
         cur=mysql.connection.cursor()
-        value=cur.execute("SELECT stf_id, stf_psw, stf_role FROM user WHERE stf_id=%s",(staff_id,))
+        value=cur.execute("SELECT stf_id, stf_psw, stf_role FROM staff WHERE stf_id=%s",(staff_id,)) 
 
         if value>0:
             data=cur.fetchone()
-            passw=data["stf_psw"]
-            role=data["stf_role"]
+            passw=data[1]
+            role=data[2]
             if staff_psw==passw:
                 if role=="Manager":
                     session["logged_in"]=True
                     session["staff_id"]=staff_id
+                    session["role"]=role
                     flash("Login Successful","success")
                     return redirect("/manager/homepage")
                 elif role=="Admin":
                     session["logged_in"]=True
                     session["staff_id"]=staff_id
+                    session["role"]=role
                     flash("Login Successful","success")
                     return redirect("/admin/homepage")
+            else:
+                flash("Password incorrect.")
         else:
             flash("User not found.")
         cur.close()
