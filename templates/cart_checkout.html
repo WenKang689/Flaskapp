@@ -313,63 +313,59 @@
             <br>
 
             <h2>Payment Details</h2>
-            {% if payment_methods %}
-                <label for="payment_method">Select Payment Method:</label>
-                <select id="payment_method" name="payment_method" required onchange="toggleNewPayment(this)">
-                    {% for method in payment_methods %}
-                        <option value="{{ method[0] }}">
-                            {{ method[1][-4:] }} - {{ method[3] }} (Expires: {{ method[2] }})
-                        </option>
-                    {% endfor %}
-                    <option value="new">Add New Payment Method</option>
-                </select>
-            {% else %}
-                <input type="hidden" name="payment_method" value="new">
-            {% endif %}
+            <form action="{{ url_for('setting_payment_edit') }}" method="POST">
+                {% if payment_methods %}
+                    <label for="payment_method">Select Payment Method:</label>
+                    <select id="payment_method" name="payment_method" required onchange="handlePaymentMethodChange(this)">
+                        {% for method in payment_methods %}
+                            <option value="{{ method[0] }}">
+                                {{ method[1][-4:] }} - {{ method[3] }} (Expires: {{ method[2] }})
+                            </option>
+                        {% endfor %}
+                        {% if payment_methods|length < 3 %}
+                            <option value="new">Add New Payment Method</option>
+                        {% endif %}
+                    </select>
+                {% else %}
+                    <input type="hidden" name="payment_method" value="new">
+                    <input type="hidden" name="return_url" value="{{ return_url or url_for('cart_checkout') }}">
+                    <script>
+                        window.location.href = "{{ url_for('setting_payment_edit', return_url=return_url) }}";
+                    </script>
+                {% endif %}
+                
+                
+                <!-- Display errors -->
+                <div class="error-message {{ 'hidden' if not errors.pay_email else '' }}" id="payEmailError">{{ errors.pay_email if errors.pay_email else '' }}</div>
+                <div class="error-message {{ 'hidden' if not errors.name_on_card else '' }}" id="nameOnCardError">{{ errors.name_on_card if errors.name_on_card else '' }}</div>
+                <div class="error-message {{ 'hidden' if not errors.card_no_format else '' }}" id="cardNoFormatError">{{ errors.card_no_format if errors.card_no_format else '' }}</div>
+                <div class="error-message {{ 'hidden' if not errors.cvv else '' }}" id="cvvError">{{ errors.cvv if errors.cvv else '' }}</div>
+                <div class="error-message {{ 'hidden' if not errors.expiry_date else '' }}" id="expiryDateError">{{ errors.expiry_date if errors.expiry_date else '' }}</div>
+                <div class="error-message {{ 'hidden' if not errors.card_no_exists else '' }}" id="cardNoExistsError">{{ errors.card_no_exists if errors.card_no_exists else '' }}</div>
             
-            <div id="new_payment" style="display: {% if payment_methods %}none{% else %}block{% endif %}">
-                <label for="pay_email">Email:</label>
-                <input type="email" id="pay_email" name="pay_email" value="{{ form_data.pay_email if form_data else '' }}" placeholder="example@example.com">
-                <span class="error-message hidden" id="emailError">Invalid email address.</span>
-                <br>
-                
-                <label for="name_on_card">Name on Card:</label>
-                <input type="text" id="name_on_card" name="name_on_card" value="{{ form_data.name_on_card if form_data else '' }}" placeholder="Name on card">
-                <br>
-                
-                <label for="card_no">Card Number:</label>
-                <input type="text" id="card_no" name="card_no" value="{{ form_data.card_no if form_data else '' }}" placeholder="xxxx xxxx xxxx xxxx" maxlength="19">
-                <span class="error-message hidden" id="cardNoError">Card number must be 16 digits.</span>
-                <br>
-                
-                <label for="cvv">CVV:</label>
-                <input type="text" id="cvv" name="cvv" value="{{ form_data.cvv if form_data else '' }}" placeholder="3-digit CVV" maxlength="3">
-                <span class="error-message hidden" id="cvvError">CVV must be 3 digits.</span>
-                <br>
-                
-                <label for="expiry_date">Expiry Date (MM/YY):</label>
-                <input type="text" id="expiry_date" name="expiry_date" value="{{ form_data.expiry_date if form_data else '' }}" placeholder="MM/YY">
-                <span class="error-message hidden" id="expiryDateError">Expiry date must be in MM/YY format and not in the past.</span>
-                <br>
-                    
-            </div>
-
-            <button type="submit">Submit Order</button>
-        </form>
-    </div>
-
+                <button type="submit">Submit Order</button>
+            </form>
+            
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <script>
-        function toggleNewPayment(select) {
-            var newPaymentDiv = document.getElementById('new_payment');
-            if (select.value === 'new') {
-                newPaymentDiv.style.display = 'block';
-            } else {
-                newPaymentDiv.style.display = 'none';
+        function handlePaymentMethodChange(selectElement) {
+            if (selectElement.value === 'new') {
+                // Store the current page in the session via AJAX call
+                $.ajax({
+                    url: "{{ url_for('store_previous_url') }}",
+                    method: "POST",
+                    data: {
+                        'previous_url': "{{ url_for('cart_checkout') }}"
+                    },
+                    success: function() {
+                        // Redirect to the add new payment method page
+                        window.location.href = "{{ url_for('setting_payment_edit') }}";
+                    }
+                });
             }
         }
-
+            
         $(function() {
             $('#expiry_date').datepicker({
                 changeMonth: true,
@@ -465,6 +461,7 @@
                         cardNo.classList.remove('error');
                         cardNoError.classList.add('hidden');
                     }
+            
 
                     const cvv = document.getElementById('cvv');
                     const cvvError = document.getElementById('cvvError');

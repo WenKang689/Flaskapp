@@ -1,8 +1,9 @@
 .error {
-    border-color: red;
+    border: 1px solid red;
 }
 .error-message {
     color: red;
+    font-size: 0.8em;
 }
 .error-message.hidden {
     display: none;
@@ -79,7 +80,7 @@ main {
     display: flex;
     justify-content: center; 
     align-items: center; 
-    min-height: 100vh; 
+    min-height: 80vh; 
     background-color: #f8f9fa; 
     margin: 0;
 }
@@ -136,4 +137,18 @@ input[type="email"]:focus {
     width: auto; 
     transition: background-color 0.3s;
     text-align: center;
+}
+
+.flash-message { 
+    border: 1px solid #ccc; 
+    padding: 10px; 
+    margin: 10px 0;
+    border-radius: 10px;
+    background-color: rgb(255, 0, 0);
+    color:white;
+    position: relative;
+}
+
+.flash-danger { 
+    background-color: #f50000; 
 }

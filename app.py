@@ -479,38 +479,64 @@ def setting_payment():
 def setting_payment_edit():
     current_username = session.get('username')
     saved_card_id = generate_next_saved_card_id()
+    
+    # Retrieve previous URL from session
+    previous_url = session.get('previous_url', None)
 
+             
+    # Initialize errors dictionary
+    errors = {
+        "pay_email": False,
+        "name_on_card": False,
+        "card_no_format": False,
+        "cvv": False,
+        "expiry_date": False,
+        "card_no_exists": False
+    }
+    
     if request.method == "POST":
         action = request.form.get('action')
         
         if action == "add":
-            render_template("setting_payment_edit.html")
-
             cur = mysql.connection.cursor()
 
-            pay_email = request.form.get('pay_email','')
-            name_on_card = request.form.get('name_on_card','')
-            card_no = request.form.get('card_no','').replace(" ", "")  # Remove spaces from card number
-            cvv = request.form.get('cvv','')
-            expiry_date = request.form.get('expiry_date','')
+            pay_email = request.form.get('pay_email', '')
+            name_on_card = request.form.get('name_on_card', '')
+            card_no = request.form.get('card_no', '').replace(" ", "")  # Remove spaces from card number
+            cvv = request.form.get('cvv', '')
+            expiry_date = request.form.get('expiry_date', '')
 
             # Input validation
-            errors = {
-                "pay_email": not is_valid_email(pay_email),
-                "card_no": not is_valid_card_number(card_no),
-                "cvv": not is_valid_cvv(cvv),
-                "expiry_date": not is_valid_expiry_date(expiry_date)
-            }
+            errors["pay_email"] = "Invalid email address." if not is_valid_email(pay_email) else None
+            errors["name_on_card"] = "This field is required." if not name_on_card.strip() else None
+            errors["card_no_format"] = "Card number must be 16 digits." if not is_valid_card_number(card_no) else None
+            errors["cvv"] = "CVV must be 3 digits." if not is_valid_cvv(cvv) else None
+            errors["expiry_date"] = "Invalid expiry date." if not is_valid_expiry_date(expiry_date) else None
 
+            # If there are any errors, render the template with errors
             if any(errors.values()):
                 return render_template("setting_payment_edit.html", errors=errors, form_data=request.form)
+            
+            # Check if card number already exists
+            if card_exists(card_no):
+                errors["card_no_exists"] = "Card number already exists."
+                flash("This card number is already in use.", "danger")
+                return render_template("setting_payment_edit.html", errors=errors, form_data=request.form)
+
+            # Proceed with the database insert if all fields are valid
+            cur = mysql.connection.cursor()
+            cur.execute("INSERT INTO payment (saved_card_id, username, pay_email, name_on_card, card_no, cvv, expiry_date, status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", 
+                        (saved_card_id, current_username, pay_email, name_on_card, card_no, cvv, expiry_date, 1))
+            mysql.connection.commit()
+            cur.close()
+
+            flash("Payment method added successfully.", "success")
+
+            # Redirect based on previous URL or fallback
+            if previous_url:
+                session.pop('previous_url', None)  # Clear the session after use
+                return redirect(previous_url)
             else:
-                # Proceed with the database insert if all fields are valid
-                cur = mysql.connection.cursor()
-                cur.execute("INSERT INTO payment (saved_card_id, username, pay_email, name_on_card, card_no, cvv, expiry_date, status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (saved_card_id, current_username, pay_email, name_on_card, card_no, cvv, expiry_date, 1))
-                mysql.connection.commit()
-                flash("Payment method added successfully.", "success")
-                cur.close()
                 return redirect("/user/setting/payment")
 
         elif action == "remove":
@@ -528,9 +554,22 @@ def setting_payment_edit():
         
         else:
             flash("Invalid action.", "danger")
-            return render_template("setting_payment_edit.html")
     
-    return render_template("setting_payment_edit.html")
+    # Render template with errors initialized
+    return render_template("setting_payment_edit.html", errors=errors)
+
+@app.route('/store_previous_url', methods=['POST'])
+def store_previous_url():
+    previous_url = request.form.get('previous_url')
+    session['previous_url'] = previous_url
+    return '', 204  # Return no content
+
+def card_exists(card_no):
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT COUNT(*) FROM payment WHERE card_no = %s AND status = 1", [card_no])
+    exists = cur.fetchone()[0] > 0
+    cur.close()
+    return exists
 
 def generate_next_saved_card_id(): #generate next saved card id
     cur = mysql.connection.cursor()
@@ -1579,40 +1618,17 @@ def cart_checkout():
         order_id = generate_next_order_id()
         ship_id = generate_next_ship_id()
         saved_card_id = request.form.get('payment_method')
+        return_url = request.form.get('return_url', url_for('cart_checkout'))  # Default to current page if not provided
 
-        # Handle payment method insertion if 'new' is selected
         if saved_card_id == 'new':
-            pay_email = request.form.get('pay_email', '')
-            name_on_card = request.form.get('name_on_card', '')
-            card_no = request.form.get('card_no', '').replace(" ", "")
-            cvv = request.form.get('cvv', '')
-            expiry_date = request.form.get('expiry_date', '')
+            # Store the current URL to the session
+            session['previous_url'] = url_for('cart_checkout')
+            # Redirect to the payment settings page
+            return redirect(url_for('setting_payment_edit', return_url=return_url))
+        else:
+            # Handle payment method selection and checkout process
+            pass
 
-            errors.update({
-                "pay_email": not is_valid_email(pay_email),
-                "card_no": not is_valid_card_number(card_no),
-                "cvv": not is_valid_cvv(cvv),
-                "expiry_date": not is_valid_expiry_date(expiry_date)
-            })
-
-            if any(errors.values()):
-                print(f"Validation errors: {errors}")
-                return render_template("cart_checkout.html", errors=errors, form_data=request.form, selected_items=selected_items, checkout_total_price=checkout_total_price)
-
-            try:
-                with mysql.connection.cursor() as cur:
-                    new_saved_card_id = generate_next_saved_card_id()
-                    cur.execute("""
-                        INSERT INTO payment (saved_card_id, username, pay_email, name_on_card, card_no, cvv, expiry_date, status)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                    """, (new_saved_card_id, username, pay_email, name_on_card, card_no, cvv, expiry_date, 1))
-                    mysql.connection.commit()
-                    saved_card_id = new_saved_card_id
-            except Exception as e:
-                print(f"Error inserting into payment table: {e}")
-                mysql.connection.rollback()
-                return "Error processing payment details"
-            
         # Calculate the total price for the selected items
         with mysql.connection.cursor() as cur:
             for product_id, quantity in selected_items:
