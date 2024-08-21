@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Feedback</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .feedback-box {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .feedback-box:hover {
+            background-color: #f9f9f9;
+        }
+        .feedback-id {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>View Feedback</h1>
+    {% for feedback in feedback_list %}
+    <form action="/manager/reply_feedback" method="get" style="display: inline;">
+        <input type="hidden" name="feedback_id" value="{{ feedback[0] }}">
+        <div class="feedback-box" onclick="this.closest('form').submit();">
+            <p class="feedback-id">Feedback ID: {{ feedback[0] }}</p>
+            <p>Staff ID: {{ feedback[1] }}</p>
+            <p>Feedback: {{ feedback[2] }}</p>
+            <p>Feedback Time: {{ feedback[3] }}</p>
+        </div>
+    </form>
+    {% endfor %}
+</body>
+</html>

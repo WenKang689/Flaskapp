@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager - Account Detail</title>
+    <link rel="stylesheet" href="styles.css"> 
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/laptop_filter.html">Find a Laptop</a></li>
+            <li><a href="/manager/homepage">Manager Homepage</a></li>
+            <li><a href="/manager/account">Manage Account</a></li>
+            <li><a href="/manager/reports">Reports</a></li>
+            <li><a href="/manager/feedback">Manage Feedback</a></li>
+        </ul>
+    </nav>
+    <style>
+        .admin-details {
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            max-width: 600px;
+            background-color: #f9f9f9;
+        }
+        .admin-details h2 {
+            margin-top: 0;
+        }
+        .admin-details p {
+            margin: 8px 0;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            color: #007bff;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Account Detail</h1>
+    <div class="account-details">
+        <h2>Details for Staff ID: {{ admin['stf_id'] }}</h2>
+        <p><strong>Name:</strong> {{ admin['stf_name'] }}</p>
+        <p><strong>Role:</strong> {{ admin['stf_role'] }}</p>
+        <p><strong>Email:</strong> {{ admin['stf_email'] }}</p>
+        <p><strong>Phone:</strong> {{ admin['stf_phone'] }}</p>
+        <p><strong>Date of Birth:</strong> {{ admin['stf_dob'] }}</p>
+        <p><strong>Address:</strong> {{ admin['stf_address'] }}</p>
+        <p><strong>Emergency Contact:</strong> {{ admin['stf_emer_contact'] }}</p>
+        <div class="admin-actions">
+            <form method="GET" action="/manager/account/edit/{{ admin.stf_id }}" style="display:inline;">
+                <button type="submit">Edit</button>
+            </form>
+        </div>
+        <a href="/manager/account" class="back-link">Back to Manage Accounts</a>
+    </div>
+</body>
+</html>
