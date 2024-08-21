@@ -332,25 +332,36 @@ def admin_orders():
 @app.route("/manager/homepage", methods=["GET", "POST"])
 def manager_homepage():
     if not session.get('logged_in'):
-        return redirect('/login')
-    
-    if request.method == "POST":
-        action = request.form.get("action")
-        if action == "Home":
-            return redirect("/")
-        elif action == "Browser Laptop":
-            if request.form['search'] == 'search':
-                search_query = request.form['query']
-                session['homepage_search_query'] = search_query
-                return redirect("/laptop",search_query=search_query)
-        elif action == "Manage account":
-            return redirect("/manager/account")
-        elif action == "Reports":
-            return redirect("/manager/reports")
-        elif action == "Manage feedback":
-            return redirect("/manager/feedback")
+        return redirect('/staff/login')
+        
+    search_query = ''
+    if request.method == 'POST':
+        if request.form.get('action') == 'search':
+            search_query = request.form.get('query', '')
+            session['manager_homepage_search_query'] = search_query
+            return redirect(f"/manager/homepage?search={search_query}")
 
-    return render_template("manager_homepage.html")
+    # Default to the search query from the URL if no POST data
+    search_query = request.args.get('search', search_query)
+    
+    sql_query = """
+    SELECT p.product_id, p.product_name, p.brand, p.price, p.memory, p.graphics, p.storage, p.battery, p.processor, p.os, p.weight, pic.pic_url, p.stock, p.status
+    FROM product p
+    LEFT JOIN (
+        SELECT product_id, MIN(pic_url) as pic_url
+        FROM product_pic
+        GROUP BY product_id
+    ) pic ON p.product_id = pic.product_id
+    WHERE (p.product_name LIKE %s OR p.brand LIKE %s OR p.processor LIKE %s)
+    """
+
+    search_term = f'%{search_query}%'
+    cur = mysql.connection.cursor()
+    cur.execute(sql_query, (search_term, search_term, search_term))
+    all_laptops = cur.fetchall()
+    cur.close()
+
+    return render_template("manager_homepage.html", laptops=all_laptops, search_query=search_query)
     
 
 #M-laptop
