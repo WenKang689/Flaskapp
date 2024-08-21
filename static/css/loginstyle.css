@@ -1,0 +1,186 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto', sans-serif;
+    background-image: url('../images/background.png');
+    background-size: cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.user-container{
+    position: absolute;
+    top: 0px;
+}
+
+.login-container {
+    background: rgba(236, 234, 234, 0.2);
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border-color: #fdfdfd;
+    padding: 20px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2); 
+    width: 400px;
+    text-align: center;
+    border: 1px solid rgb(255, 255, 255);
+    position:relative;
+}
+
+.login-container p {
+    color: #000000;
+    margin-bottom: 20px;
+
+}
+
+.tabs {
+    display: flex;
+    width: 100%;
+    z-index: 1;
+}
+
+.tab {
+    background: transparent;
+    color: #000000; 
+    padding: 20px; 
+    cursor: pointer; 
+    flex: 1; 
+    text-align: center;
+    transition: background 0.3s, transform 0.2s, border-color 0.3s; 
+    font-size:24px;
+    border: 0.5px solid white;
+    text-decoration: none;
+    margin-top: 20px;
+
+}
+
+.tab.active {
+    background: transparent; 
+    background-color: rgb(255, 255, 255, 0.7);
+    color: #000000; 
+    font-size: 24px;
+    margin-top: 20px;
+
+
+}
+
+.logo {
+    position: relative; 
+    top: 55px; 
+    right:145px;
+    width: 300.44px; 
+    height: 169px; 
+    padding: 0;
+    margin: 0;
+    
+}
+
+.greetings {
+    color:#000000;
+    text-align: left;
+    font-weight: 100;
+}
+
+h2 {
+    font-size: 18px;
+    margin: 5px 0;
+    text-align: left;
+    font-weight: 50;
+}
+
+h3 {
+    font-size: 18px;
+    margin: 5px 0;
+    text-align: left;
+    font-weight: 50;
+}
+
+p {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+input {
+    width: 100%; 
+    margin-bottom: 5px;
+    padding: 10px;
+    background: rgba(236, 234, 234, 0.2);
+    border-radius: 5px;
+    box-sizing: border-box; 
+    border: 1px solid white;
+}
+
+input:focus {
+    border-color: #000000; 
+    outline: none;
+}
+
+.continue-btn {
+    background: #6200ea;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    font-size: 16px;
+    margin-top: 10px;
+}
+
+.register{
+    color:black;
+}
+
+.register a {
+    color: #a20fd2;
+    font-size: 14px;
+}
+
+.btn {
+    background-color: rgb(185, 105, 231); 
+    color: white; 
+    padding: 10px; 
+    border: none; 
+    border-radius: 5px; 
+    cursor: pointer; 
+    width: 100%; 
+    transition: background-color 0.3s;
+    font-size: 18px;
+}
+
+.btnf {
+    background: none; 
+    border: none; 
+    color: #0057a8; 
+    text-decoration: underline; 
+    cursor: pointer; 
+    font-size: inherit; 
+    padding: 5px; 
+    display: block;
+    text-align: left;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.flash-message { 
+    border: 1px solid #ccc; 
+    padding: 10px; 
+    margin: 10px 0;
+    border-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color:white;
+    position: relative;
+}
+
+.flash-danger { 
+    background-color: #f2dede; 
+}
+
+.close-btn { 
+    position: absolute; 
+    top: 5px; 
+    right: 10px; 
+    cursor: pointer; 
+}

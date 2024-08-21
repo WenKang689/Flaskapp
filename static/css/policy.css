@@ -1,0 +1,118 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto', sans-serif;
+    background-image: url('../images/background.png');
+    background-size: cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.privacy-container {
+    background: rgba(236, 234, 234, 0.2);
+    border-color: #fdfdfd;
+    padding: 10px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+    width: 700px;
+    height: 600px;
+    border: 1px solid rgb(255, 255, 255);
+    position: relative;
+    border-radius: 5px;
+    overflow: hidden; /* Prevent content from leaking out */
+}
+
+.scrollable-container {
+    height: 100%; /* Ensure it takes the full height of the parent container */
+    overflow-y: auto; /* Enable vertical scrolling */
+    padding: 20px; /* Optional: add some padding */
+    box-sizing: border-box; /* Include padding in the element's total width and height */
+}
+
+.scrollable-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.scrollable-container::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 4px;
+}
+
+.scrollable-container::-webkit-scrollbar-track {
+    background-color: #f9f9f9;
+}
+
+.button-container {
+    display: flex;
+    flex-direction: column;
+
+
+}
+
+.btnap {
+    background-color: #9747FF;
+    color: white;
+    text-decoration: bold;
+    padding: 16px 20px;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    opacity: 0.9;
+    border-radius: 5px;
+    font-weight: bold; 
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
+
+.btnrp {
+    background-color:black;
+    color: white;
+    text-decoration: bold;
+    padding: 16px 20px;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    opacity: 0.9;
+    border-radius: 5px;
+    font-weight: bold; 
+}
+
+h1 {
+    text-decoration: underline;
+    padding-bottom: 5px; 
+    margin-bottom: 10px; 
+    line-height: 1.2; 
+    font-size: 28px;
+}
+
+label[for="accept_policy"] {
+    margin-top: 20px; /* Adjust the value as needed */
+    display: inline-block; /* Keep the label inline with the checkbox */
+    padding-top: 0; /* Remove padding if not needed */
+}
+
+.flash-message { 
+    border: 1px solid #ccc; 
+    padding: 10px; 
+    margin: 10px 0;
+    border-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10; 
+    top: 100px;
+}
+
+.flash-success { 
+    background-color: #4cb423; 
+}
+
+.close-btn { 
+    position: absolute; 
+    top: 5px; 
+    right: 10px; 
+    cursor: pointer; 
+}

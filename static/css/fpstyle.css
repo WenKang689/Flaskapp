@@ -1,0 +1,97 @@
+body {
+    background-image: url('../images/background.png');
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: 'Noyh Medium', sans-serif;
+    background-size: cover; 
+    background-position: center; 
+    display: flex;
+
+}
+
+.container {
+    background: transparent; 
+    border-radius: 5px;
+    border-color: #fdfdfd;
+    padding: 20px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2); 
+    width: 300px;
+    text-align: left;
+    border: 1px solid rgb(255, 255, 255);
+    align-items: center;
+    position: absolute;
+}
+
+.card-header {
+    border-bottom: 1px solid rgb(255, 255, 255);
+    width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+
+.form-group {
+    margin-bottom: 15px;
+    padding-top: 5px;
+}
+
+
+.form-control {
+    text-align: left;
+    display: block;
+    width: 100%;
+    padding: 5px;
+    box-sizing: border-box;
+    border-radius: 5px;
+    border-color: white;
+}
+
+.btn {
+    background-color: #007BFF; 
+    color: white; 
+    padding: 10px; 
+    border: none; 
+    border-radius: 5px; 
+    cursor: pointer; 
+    width: 100%; 
+    transition: background-color 0.3s; 
+}
+
+.btn:hover {
+    background-color: #0056b3; 
+}
+
+.flash-container{
+    position: relative;
+    width: auto;
+    top: 160px;
+}
+
+.flash-message { 
+    color: white; 
+    background-color: rgba(0, 0, 0, 0.5);
+    margin: 20px 0;
+    padding: 10px; 
+    display: block; 
+    width: auto; 
+    border-radius: 5px; 
+}
+
+.flash-success {
+    background-color: #dff0d8; 
+}
+
+.flash-danger { 
+    background-color: #f2dede; 
+}
+
+.close-btn { 
+    position: absolute; 
+    top: 15px; 
+    right: 4px;
+    cursor: pointer; 
+    font-weight: bold; 
+    color: #ffffff; 
+    font-size: 1.2em;
+}

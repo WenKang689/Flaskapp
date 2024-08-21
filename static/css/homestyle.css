@@ -1,0 +1,381 @@
+.flash-message { 
+    border: 1px solid #ccc; 
+    padding: 10px; 
+    margin: 10px 0;
+    border-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10; /* Ensure it's above other content */
+}
+
+.flash-success { 
+    background-color: #4cb423; 
+}
+
+.flash-danger { 
+    background-color: #f2dede; 
+}
+
+.close-btn { 
+    position: absolute; 
+    top: 5px; 
+    right: 10px; 
+    cursor: pointer; 
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f5f5;
+}
+
+header {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 120px;
+    padding: 20px 0;
+    text-align: left;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: white;
+    background-size: cover;
+    background-position: center;
+    z-index: 2;
+}
+
+.home-button {
+    position: absolute;
+    top: 20px;
+    left: 50px;
+    width: 300px;
+    display: flex;
+}
+
+.home-button img {
+    width: 70%;
+    height: auto;
+}
+
+.icons {
+    display: flex;
+    gap: 40px;
+    padding-top: 36px;
+}
+
+.icons a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.all_laptop_icon {
+    width: 130px;
+}
+
+.cart_icon {
+    width: 50px;
+    margin-top: -5px;
+}
+
+.profile_icon {
+    width: 41.83px;
+    margin-left: 10px;
+}
+
+.setting_icon {
+    width: 65px;
+    margin-top: -12px;
+}
+
+.navbar {
+    padding-right: 100px;
+    display: flex;
+    font-size: 40px;
+    justify-content: space-between;
+    align-items: center;
+}
+
+
+.hero {
+    padding: 0;
+}
+
+.hero-content {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    padding: 0;
+}
+
+.slideshow-container {
+    position: relative;
+    width: 100%;
+    height: 100%; 
+    overflow: hidden; 
+}
+
+.slideshow-images {
+    display: flex; 
+    width: 100%; 
+    height: 100%; 
+    transition: transform 3s ease-in-out; 
+}
+
+.slide {
+    min-width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.slide img {
+    width: 100%; /* Scale the width to the container */
+    height: 100%; /* Scale the height to the container */
+    object-fit: cover; /* Cover the container while maintaining aspect ratio */
+}
+
+.hero-buttons button {
+    background-color: white;
+    color: #007bff;
+    border: none;
+    padding: 10px 20px;
+    margin: 10px;
+    cursor: pointer;
+}
+
+
+.recommendations {
+    padding: 20px;
+    background-color: white;
+}
+
+.recommendations-header {
+    display: flex;
+    align-items: center; /* Vertically center items */
+    justify-content: center; /* Center items horizontally */
+    margin-bottom: 20px;
+    gap: 20px; /* Space between header and search bar */
+    font-size: 1.5em;
+}
+
+.image-text {
+    font-size: 6em; /* Adjust font size as needed */
+    font-weight: bold;
+    color: transparent;
+    background-image: url('../images/button_background.png'); /* Path to your image */
+    background-size: cover; /* Cover the text with the image */
+    background-clip: text; /* Clip the background to the text */
+    -webkit-background-clip: text; /* Webkit-specific property for text clipping */
+    display: inline-block;
+    text-align: center; /* Center text within its container */
+    margin-left: 370px;
+}
+
+.search-bar {
+    display: flex;
+    align-items: center; /* Align items vertically centered */
+    background-color: white;
+    justify-content: right;
+    margin-left: 120px;
+}
+
+.search-button {
+    background-image: url('../images/search_icon.png'); /* Adjust path as needed */
+    background-size: contain; /* Ensure the image fits within the button */
+    background-repeat: no-repeat;
+    background-position: center; /* Center the image within the button */
+    border: none;
+    width: 40px; /* Adjust size if needed */
+    height: 40px; /* Ensure the height matches the input */
+    cursor: pointer;
+    background-color: transparent; /* Ensure background is transparent */
+    outline: none; /* Remove any default outline */
+    padding: 0; /* Remove any default padding */
+    margin: 0; /* Remove any default margin */
+    margin-right: 10px; /* Space between button and input */
+    box-sizing: border-box; /* Include padding and border in element's width and height */
+    vertical-align: middle; /* Align with the middle of the input */
+}
+
+.search-bar input {
+    width: 70%; /* Set the width of the search bar */
+    padding: 10px; /* Adjust padding if needed */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box; /* Include padding and border in element's width and height */
+    height: 40px; /* Match the button's height */
+    margin: 0; /* Ensure no extra margin affects alignment */
+    vertical-align: middle; /* Align with the middle of the button */
+}
+
+
+.recommendation-item {
+    margin-top: 20px;
+    position: relative;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+}
+
+.recommendation-item.large {
+    width: 500px;
+    height: 600px;
+}
+
+.recommendation-item.small {
+    width: 360px;
+    height: 500px ;
+}
+
+.recommendation-img-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.recommendation-img {
+    object-fit: contain;
+}
+
+.recommendation-img.large {
+    max-width: 380px;
+    max-height: 380px;
+}
+
+.recommendation-img.small {
+    max-width: 250px;
+    max-height: 250px;
+}
+
+.recommendation-text-container {
+    text-align: center;
+    margin-bottom: 10px;
+    font-size: 0.9em;
+}
+
+.view-more-button {
+    display: inline-block;
+    margin-top: 10px;
+    background-color: #ff0a0a;
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    font-size: 0.9em;
+    border-radius: 10px;
+}
+
+.view-more {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    margin-top: 20px;
+    justify-items: center;
+    border-radius: 10px;
+}
+
+.recommendations h2 {
+    font-size: 1.5em;
+    margin-bottom: 20px;
+}
+
+.recommendation-list {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    margin-bottom: 20px; /* Adds space between the top 3 and View More button */
+}
+
+.recommendation-item {
+    position: relative; /* Ensure the circle is positioned relative to the container */
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+}
+
+.recommendation-rank {
+    position: absolute;
+    top: -40px;
+    left: -20px;
+    background-image: url('../images/button_background.png');
+    background-size: cover;
+    background-position: center;
+    color: white;
+    font-weight: bold;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.8em;
+}
+
+.recommendation-item.large .recommendation-rank {
+    width: 100px;
+    height: 100px;
+    font-size: 1.4em;
+}
+
+.recommendation-item.small .recommendation-rank {
+    width: 80px;
+    height: 80px;
+    font-size: 1.1em;
+}
+
+.small-text {
+    font-size: 0.8em; 
+    text-align: center;
+}
+
+.highlight-text {
+    color: #3392ff; 
+    text-decoration: underline; 
+}
+
+.recommendations-form {
+    display: flex;
+    justify-content: center; /* Center the form horizontally */
+    margin-top: 20px;
+}
+
+
+footer {
+    position: relative;
+    background-image: url('../images/background.png');
+    background-size: cover;
+    padding: 150px 20px;
+    text-align: center;
+    color: white;
+    overflow: hidden;
+}
+
+footer nav a {
+    color: white;
+    margin: 0 60px;
+    font-size: 20px;
+    text-decoration: none;
+    position: relative;
+    z-index: 1;
+}
+
+footer p {
+    margin-top: 50px;
+    position: relative;
+    z-index: 1;
+}
