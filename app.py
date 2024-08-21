@@ -328,7 +328,7 @@ def admin_orders():
     return render_template("admin_orders.html")
 
 #Manager section (Ying Xin)
-#M-home page
+#M-home page (browser and view laptop)
 @app.route("/manager/homepage", methods=["GET", "POST"])
 def manager_homepage():
     if not session.get('logged_in'):
