@@ -84,10 +84,10 @@ header {
 }
 
 .btnf {
-    background-color: #9747FF;
-    color: white; 
+    background-color: #ffffff;
+    color: #32d500; 
     padding: 10px; 
-    border: none; 
+    border: none;
     border-radius: 5px; 
     cursor: pointer; 
     width: 110px; 
@@ -95,18 +95,30 @@ header {
     margin-right: 10px;
     margin-left: 10px;
     margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.btnf:hover {
+    background-color: #32d500;
+    color: white;
 }
 
 .btncf {
-    background-color: #9747FF;
-    color: white; 
+    background-color: #ffffff;
+    color: #05000c; 
     padding: 10px; 
-    border: none; 
+    border: none;
     border-radius: 5px; 
     cursor: pointer; 
     width: 110px; 
     transition: background-color 0.3s;
+    font-weight: bold;
+    margin-top: 10px;
+}
 
+.btncf:hover {
+    background-color: #020005;
+    color: white;
 }
 
 .laptop-detail {
@@ -167,15 +179,51 @@ header {
     cursor: pointer; 
 }
 
-
 .filter-bar output {
-    font-weight: bold; 
-    margin-left: 10px; 
+    font-weight: normal; 
+    font-size: 12px;
+    text-align: right;
+    display: block;
+}
+
+
+/* Price Sliders */
+#min_price,
+#max_price {
+    /* Specific styles for price sliders */
+    border-color: #007bff; /* Example: change border color */
+    background-color: #ffffff;
+    margin-bottom: 0%;
+}
+
+.filter-bar label.non-bold {
+    font-weight: normal; /* Non-bold for specific labels */
+    font-size: 14px;
+}
+
+
+#min_price::-webkit-slider-thumb,
+#max_price::-webkit-slider-thumb {
+    background: #007bff; /* Example: thumb color */
+}
+
+/* Weight Sliders */
+#min_weight,
+#max_weight {
+    /* Specific styles for weight sliders */
+    border-color: #28a745; /* Example: change border color */
+    background-color: #ffffff;
+    margin-bottom: 0%;
+}
+
+#min_weight::-webkit-slider-thumb,
+#max_weight::-webkit-slider-thumb {
+    background: #28a745; /* Example: thumb color */
 }
 
 .laptop-grid {
     display: grid; 
-    grid-template-columns: repeat(3, 1fr); 
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 60px; 
     margin-top: 30px;
     margin-left: 50px;
@@ -194,8 +242,9 @@ header {
     flex-direction: column;
     text-align: left;
     position: relative;
-    width: 400px;
-    height: 400px;
+    width: 100%;  /* Adjust to be more flexible */
+    max-width: 400px; /* Set a maximum width */
+    height: 400px; /* Adjust height automatically */
     align-items: center;
 }
 
@@ -244,7 +293,7 @@ header {
     color: #9747ff; 
     padding: 10px; 
     padding-bottom: 10px;
-    border: 1px solid purple; 
+    border: 1px solid #9747ff; 
     border-radius: 5px; 
     cursor: pointer; 
     width: 30%; 

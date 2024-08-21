@@ -368,93 +368,102 @@
 
     <!-- Main Part -->
     <div class="container">
-        <!-- Breadcrumb -->
-        <div class="breadcrumb">
-            <a href="{{ url_for('homepage') }}">Home</a> / <a href="{{ url_for('cart') }}">Shopping Cart</a> / <a>Product Page</a>
-        </div>
-        
-        <main>
-            <!-- Product Image -->
-            {% if product_details.images %}
-                <div class="product-gallery">
-                    <div class="main-image-container">
-                        <button id="prev" class="nav-button">&lt;</button>
-                        <img id="main-image" src="{{ image_url }}" alt="{{ product_details.product_name }} picture">
-                        <button id="next" class="nav-button">&gt;</button>
-                    </div>
-                    <div class="thumbnail-container">
-                        {% for image_url in product_details.images %}
-                        <img class="thumbnail" src="{{ image_url }}" alt="Thumbnail {{ loop.index }}">
-                        {% endfor %}
-                    </div>
-                </div>
-            {% else %}
-                <p>No images available for this product.</p>
-            {% endif %}
-
-            <!-- Product Info -->
-            <div class="product-info">
-                <h1>{{ product_details.product_name }}</h1>
-                <p><span class="{{ 'out-of-stock' if product_details.stock_status == 'Out of Stock' else '' }}" style="color: red;">{{ product_details.stock_status }}</span></p>
-                <p class="price">RM {{ product_details.price }}</p>
-                <div class="specs">
-                    <p>Brand: {{ product_details.brand }}</p>
-                    <p>Processor: {{ product_details.processor }}</p>
-                    <p>Graphics: {{ product_details.graphics }}</p>
-                    <p>Dimensions: {{ product_details.dimensions }}</p>
-                    <p>Weight: {{ product_details.weight }}</p>
-                    <p>OS: {{ product_details.os }}</p>
-                    <p>Memory: {{ product_details.memory }}</p>
-                    <p>Storage: {{ product_details.storage }}</p>
-                    <p>Power Supply: {{ product_details.power_supply }}</p>
-                    <p>Battery: {{ product_details.battery }}</p>
-                </div>
-
-                <form method="POST" action="/laptop/{{ product_details.product_id }}">
-                    <div class="controls">
-                        <label for="quantity">Quantity:</label>
-                        <div class="quantity">
-                            <input type="number" id="quantityInput" name="quantity" min="1" value="1">
-                        </div>
-                    {% if product_details.stock_status == "In Stock" %}
-                            <button id="addToCartButton" type="submit" name="action" value="add_to_cart">Add to Cart</button>
-                    </div>
-                        <button id="buyNowBtn" type="submit" name="action" value="buy_now">Buy Now</button>
-                    {% else %}
-                        <p class="out-of-stock" style="color: red;">This product is out of stock.</p>
-                    {% endif %}
-                </form>
+        {% if product_details.status == 1 %}
+            <!-- Breadcrumb -->
+            <div class="breadcrumb">
+                <a href="{{ url_for('homepage') }}">Home</a> / <a href="{{ url_for('cart') }}">Shopping Cart</a> / <a>Product Page</a>
             </div>
-        </main>
-
-        <!-- Product Reviews -->
-    <div style="padding: 30px 60px;">
-        <h2 style="font-family: Inter, sans-serif; margin-bottom: 20px;">Product Reviews</h2>
-        {% if product_details.reviews %}
-            <ul style="list-style-type: none; padding-left: 0;">
-                {% for review in product_details.reviews %}
-                    <li class="review" style="border-bottom: 1px solid #ddd; padding: 20px 0;">
-                        <strong style="font-size: 1.1em;">User: {{ review.username }}</strong><br>
-                        <div style="font-size: 1.2em; margin: 10px 0;">
-                            Rating:
-                            {% for i in range(1, 6) %}
-                                <span class="fa fa-star {% if i <= review.rating %}checked{% endif %}"></span>
+            
+            <main>
+                <!-- Product Image -->
+                {% if product_details.images %}
+                    <div class="product-gallery">
+                        <div class="main-image-container">
+                            <button id="prev" class="nav-button">&lt;</button>
+                            <img id="main-image" src="{{ image_url }}" alt="{{ product_details.product_name }} picture">
+                            <button id="next" class="nav-button">&gt;</button>
+                        </div>
+                        <div class="thumbnail-container">
+                            {% for image_url in product_details.images %}
+                            <img class="thumbnail" src="{{ image_url }}" alt="Thumbnail {{ loop.index }}">
                             {% endfor %}
                         </div>
-                        <p style="font-family: Inter, sans-serif; margin: 10px 0;">Review: {{ review.review }}</p>
-                        <p style="font-size: 0.9em; color: #555;">Date: {{ review.date }}</p>
-                        {% if 'reply' in review %}
-                            <p style="font-family: Inter, sans-serif; color: #333; background-color: #f9f9f9; padding: 10px; border-left: 3px solid #ccc;">
-                                Laptop Kaw Kaw's Response: {{ review.reply }}
-                            </p>
+                    </div>
+                {% else %}
+                    <p>No images available for this product.</p>
+                {% endif %}
+
+                <!-- Product Info -->
+                <div class="product-info">
+                    <h1>{{ product_details.product_name }}</h1>
+                    <p><span class="{{ 'out-of-stock' if product_details.stock_status == 'Out of Stock' else '' }}" style="color: red;">{{ product_details.stock_status }}</span></p>
+                    <p class="price">RM {{ product_details.price }}</p>
+                    <div class="specs">
+                        <p>Brand: {{ product_details.brand }}</p>
+                        <p>Processor: {{ product_details.processor }}</p>
+                        <p>Graphics: {{ product_details.graphics }}</p>
+                        <p>Dimensions: {{ product_details.dimensions }}</p>
+                        <p>Weight: {{ product_details.weight }}</p>
+                        <p>OS: {{ product_details.os }}</p>
+                        <p>Memory: {{ product_details.memory }}</p>
+                        <p>Storage: {{ product_details.storage }}</p>
+                        <p>Power Supply: {{ product_details.power_supply }}</p>
+                        <p>Battery: {{ product_details.battery }}</p>
+                    </div>
+
+                    <form method="POST" action="/laptop/{{ product_details.product_id }}">
+                        <div class="controls">
+                            <label for="quantity">Quantity:</label>
+                            <div class="quantity">
+                                <input type="number" id="quantityInput" name="quantity" min="1" value="1">
+                            </div>
+                        {% if product_details.stock_status == "In Stock" %}
+                                <button id="addToCartButton" type="submit" name="action" value="add_to_cart">Add to Cart</button>
+                        </div>
+                            <button id="buyNowBtn" type="submit" name="action" value="buy_now">Buy Now</button>
+                        {% else %}
+                            <p class="out-of-stock" style="color: red;">This product is out of stock.</p>
                         {% endif %}
-                    </li>
-                {% endfor %}
-            </ul>
+                    </form>
+                </div>
+            </main>
+
+        <!-- Product Reviews -->
+        <div style="padding: 30px 60px;">
+            <h2 style="font-family: Inter, sans-serif; margin-bottom: 20px;">Product Reviews</h2>
+            {% if product_details.reviews %}
+                <ul style="list-style-type: none; padding-left: 0;">
+                    {% for review in product_details.reviews %}
+                        <li class="review" style="border-bottom: 1px solid #ddd; padding: 20px 0;">
+                            <strong style="font-size: 1.1em;">User: {{ review.username }}</strong><br>
+                            <div style="font-size: 1.2em; margin: 10px 0;">
+                                Rating:
+                                {% for i in range(1, 6) %}
+                                    <span class="fa fa-star {% if i <= review.rating %}checked{% endif %}"></span>
+                                {% endfor %}
+                            </div>
+                            <p style="font-family: Inter, sans-serif; margin: 10px 0;">Review: {{ review.review }}</p>
+                            <p style="font-size: 0.9em; color: #555;">Date: {{ review.date }}</p>
+                            {% if 'reply' in review %}
+                                <p style="font-family: Inter, sans-serif; color: #333; background-color: #f9f9f9; padding: 10px; border-left: 3px solid #ccc;">
+                                    Laptop Kaw Kaw's Response: {{ review.reply }}
+                                </p>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p style="font-family: Inter, sans-serif; font-size: 1.1em;">No reviews yet.</p>
+            {% endif %}
+        </div>
         {% else %}
-            <p style="font-family: Inter, sans-serif; font-size: 1.1em;">No reviews yet.</p>
-        {% endif %}
-    </div>
+        <div class="unavailable-message">
+            <h2>Sorry, the laptop is unavailable now.</h2>
+            <a href="{{ url_for('laptop') }}">View laptops here</a>
+
+        </div>
+    {% endif %}
+</div>
 
 
     <!-- Swiper JS -->

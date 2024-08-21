@@ -327,11 +327,11 @@
                         {% endif %}
                     </select>
                 {% else %}
+                    <!-- No payment methods available, show only the option to add a new one -->
+                    <label for="payment_method">No Payment Method Available</label>
                     <input type="hidden" name="payment_method" value="new">
                     <input type="hidden" name="return_url" value="{{ return_url or url_for('cart_checkout') }}">
-                    <script>
-                        window.location.href = "{{ url_for('setting_payment_edit', return_url=return_url) }}";
-                    </script>
+                    <button type="submit">Add New Payment Method</button>
                 {% endif %}
                 
                 

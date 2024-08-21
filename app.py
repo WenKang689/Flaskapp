@@ -816,8 +816,9 @@ def fetch_data():
     SELECT 
         product_id, product_name, brand, processor, graphics, 
         dimensions, weight, os, memory, storage, 
-        power_supply, battery, price
+        power_supply, battery, price, status
     FROM product
+    WHERE status = 1
     """
     cur.execute(query)
     data= cur.fetchall()
@@ -827,7 +828,7 @@ def fetch_data():
     df = pd.DataFrame(data, columns=[
         'Product ID', 'Product Name', 'Brand', 'Processor', 'Graphics', 
         'Dimensions', 'Weight (g)', 'Operating System', 'Memory', 'Storage', 
-        'Power Supply', 'Battery', 'Price (MYR)'
+        'Power Supply', 'Battery', 'Price (MYR)','Status'
     ])
 
     return df
@@ -1094,8 +1095,9 @@ def get_laptops_from_db():
         SELECT 
             product_id, product_name, brand, processor, graphics, 
             dimensions, weight, os, memory, storage, 
-            power_supply, battery, price
+            power_supply, battery, price, status
         FROM product
+        WHERE status = 1
         GROUP BY product_id
     """
     cur.execute(query)
@@ -1245,7 +1247,7 @@ def laptop():
     # Fetch laptops and their first picture from the database
     cur = mysql.connection.cursor()
     cur.execute("""
-        SELECT p.product_id, p.product_name, p.brand, p.price, p.memory, p.graphics, p.storage, p.battery, p.processor, p.os, p.weight, pic.pic_url, r.score
+        SELECT p.product_id, p.product_name, p.brand, p.price, p.memory, p.graphics, p.storage, p.battery, p.processor, p.os, p.weight, p.status, pic.pic_url, r.score
         FROM product p
         LEFT JOIN (
             SELECT product_id, MIN(pic_url) as pic_url
@@ -1254,6 +1256,7 @@ def laptop():
         ) pic ON p.product_id = pic.product_id
         LEFT JOIN recommendation r ON p.product_id = r.product_id
         AND r.username = %s
+        WHERE p.status = 1
     """, (username,))
     all_laptops = cur.fetchall()
 
@@ -1403,6 +1406,11 @@ def laptop_detail(product_id):
 
         if not product:
             return render_template("laptop_detail.html", message="Laptop not found.", product_details={})
+        
+        # Check product status
+        if product[14] == 0: 
+            return render_template("laptop_detail.html", message="Sorry, the laptop is unavailable now.", product_details={})
+
 
         # Fetch laptop images
         cur.execute("SELECT pic_url FROM product_pic WHERE product_id = %s", (product_id,))
@@ -1455,7 +1463,8 @@ def laptop_detail(product_id):
         'price': product[12],
         'stock_status': stock_status,
         'images': [image[0] for image in images],
-        'reviews': reviews_list
+        'reviews': reviews_list,
+        'status': product[14]
     }
 
     # Pass laptop_details to the template
@@ -1515,7 +1524,7 @@ def cart():
 
         elif action == 'checkout':
             # Extract selected items from form data
-            selected_items = [key.split('_')[1] for key in request.form if key.startswith('select_')]
+            selected_items = [key.split('')[1] for key in request.form if key.startswith('select')]
             print("Selected items for checkout:", selected_items)  # Debug print
 
             if not selected_items:
@@ -1532,14 +1541,20 @@ def cart():
                             p.product_name, 
                             p.price, 
                             c.quantity,
-                            (SELECT pic_url FROM product_pic pp WHERE pp.product_id = p.product_id LIMIT 1) AS pic_url
+                            (SELECT pic_url FROM product_pic pp WHERE pp.product_id = p.product_id LIMIT 1) AS pic_url,
+                            p.status
                         FROM cart c
                         JOIN product p ON c.product_id = p.product_id
                         WHERE c.username = %s AND c.product_id = %s
                     """, (username, product_id))
                     item = cur.fetchone()
+                    
+                    # Check if product is available (status = 1)
                     if item:
+                        if item[5] == 0:
+                            flash(f"Sorry, the product '{item[1]}' is currently unavailable.", 'error')
                         cart_items.append(item)
+
             print("Fetched cart items:", cart_items)  # Debug print
 
            # Calculate the total price of selected items
@@ -1593,12 +1608,19 @@ def cart():
                 p.price, 
                 c.quantity, 
                 (SELECT pic_url FROM product_pic pp WHERE pp.product_id = c.product_id LIMIT 1) AS pic_url,
-                (SELECT stock FROM product p WHERE p.product_id = c.product_id) AS stock
+                (SELECT stock FROM product p WHERE p.product_id = c.product_id) AS stock,
+                p.status
             FROM cart c
             JOIN product p ON c.product_id = p.product_id
             WHERE c.username = %s
         """, (username,))
         cart_items = cur.fetchall()
+    
+    # Check for unavailable products in the cart
+    for item in cart_items:
+        if item[6] == 0:  # Assuming status is the 7th column (index 6)
+            flash(f"Sorry, the product '{item[1]}' is currently unavailable.", 'error')
+
 
     item_count = len(cart_items)
     cart_total_price = sum(item[2] * item[3] for item in cart_items if f'select_{item[0]}' in request.form)

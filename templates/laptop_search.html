@@ -5,6 +5,7 @@
     <title>Laptop Search</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/laptop_search.css') }}">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
 {% with messages = get_flashed_messages(with_categories=true) %}
@@ -44,7 +45,7 @@
                 <form method="get" action="{{ url_for('laptop') }}">
                     <!-- Search Bar -->
                     <label for="search">Search:</label>
-                    <input type="text" id="search" name="search" value="{{ request.args.get('search', '') }}"><br>
+                    <input type="text" id="search" placeholder="Enter Laptop Name" name="search" value="{{ request.args.get('search', '') }}"><br>
             
                     <!-- Sort by Score -->
                     <label>
@@ -118,12 +119,12 @@
                     <!-- Price Range Slider -->
                     <label for="price_range">Price Range:</label>
                     <div>
-                        <label for="min_price">Min:</label>
+                        <label class="non-bold" for="min_price">Min</label>
                         <input type="range" id="min_price" name="min_price" min="{{ min_price }}" max="{{ max_price }}" value="{{ request.args.get('min_price', min_price) }}" oninput="document.getElementById('min_price_output').value = this.value">
                         <output id="min_price_output">{{ request.args.get('min_price', min_price) }}</output>
                     </div>
                     <div>
-                        <label for="max_price">Max:</label>
+                        <label class="non-bold" for="max_price">Max</label>
                         <input type="range" id="max_price" name="max_price" min="{{ min_price }}" max="{{ max_price }}" value="{{ request.args.get('max_price', max_price) }}" oninput="document.getElementById('max_price_output').value = this.value">
                         <output id="max_price_output">{{ request.args.get('max_price', max_price) }}</output>
                     </div><br>
@@ -131,12 +132,12 @@
                     <!-- Weight Range Slider -->
                     <label for="weight_range">Weight Range:</label>
                     <div>
-                        <label for="min_weight">Min:</label>
+                        <label class="non-bold" for="min_weight">Min</label>
                         <input type="range" id="min_weight" name="min_weight" min="{{ min_weight }}" max="{{ max_weight }}" value="{{ request.args.get('min_weight', min_weight) }}" oninput="document.getElementById('min_weight_output').value = this.value">
                         <output id="min_weight_output">{{ request.args.get('min_weight', min_weight) }}</output>
                     </div>
                     <div>
-                        <label for="max_weight">Max:</label>
+                        <label class="non-bold" for="max_weight">Max</label>
                         <input type="range" id="max_weight" name="max_weight" min="{{ min_weight }}" max="{{ max_weight }}" value="{{ request.args.get('max_weight', max_weight) }}" oninput="document.getElementById('max_weight_output').value = this.value">
                         <output id="max_weight_output">{{ request.args.get('max_weight', max_weight) }}</output>
                     </div><br>
@@ -147,7 +148,7 @@
                     <button type="submit" class="btnf">Filter</button>
             
                     <!-- Clear Filters Button -->
-                    <button type="submit" class="btncf" name="clear_filters" value="true">Clear Filters</button>
+                    <button type="submit" class="btncf" name="clear_filters" value="true">Clear</button>
             
                 </form> 
             </div>
@@ -157,8 +158,8 @@
                 {% if laptops %}
                     {% for laptop in laptops %}
                         <div class="laptop-content">
-                            {% if laptop[11] %}
-                                <img src="{{ laptop[11] }}" alt="{{ laptop[1] }}" class="lapimage">
+                            {% if laptop[12] %}
+                                <img src="{{ laptop[12] }}" alt="{{ laptop[1] }}" class="lapimage">
                                 <h2>{{ laptop[1] }}</h2>
                                 <p>RM{{ laptop[3] }}</p>
                             {% else %}
