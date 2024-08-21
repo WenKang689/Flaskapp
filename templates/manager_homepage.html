@@ -14,22 +14,71 @@
             <li><a href="/manager/account">Manage Account</a></li>
             <li><a href="/manager/reports">Reports</a></li>
             <li><a href="/manager/feedback">Manage Feedback</a></li>
-            <!-- Add more navigation links as needed -->
         </ul>
     </header>
 
     <main>
-        <section>
-            <h2>Find the Perfect Laptop for You</h2>
-            <p>Not sure which laptop suits your needs? Use our comprehensive laptop filtering tool to find the best match based on your preferences.</p>
-        </section>
-
-        <section>
-            <form action="/laptop" method="get"> <!-- Assuming the search route is /search -->
-                <input type="text" name="query" placeholder="Search laptops...">
+        <h1>Laptop Search</h1>
+        <div class="search-container">
+            <form action="/manager/homepage" method="get"> <!-- Assuming the search route is /search -->
+                <input type="text" name="query" placeholder="Search laptops..." value="{{ search_query }}">
                 <button type="submit">Search</button>
             </form>
-        </section>
+        </div>
+
+        {% if search_query %}
+        <p>Showing results for: <strong>{{ search_query }}</strong></p>
+        {% endif %}
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Brand</th>
+                    <th>Price</th>
+                    <th>Memory</th>
+                    <th>Graphics</th>
+                    <th>Storage</th>
+                    <th>Battery</th>
+                    <th>Processor</th>
+                    <th>OS</th>
+                    <th>Weight</th>
+                    <th>Stock</th>
+                    <th>Status</th>
+                    <th>Image</th>
+                    <th class="actions-column">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for laptop in laptops %}
+                <tr>
+                    <td>{{ laptop[0] }}</td>
+                    <td>{{ laptop[1] }}</td>
+                    <td>{{ laptop[2] }}</td>
+                    <td>RM{{ laptop[3] }}</td>
+                    <td>{{ laptop[4] }}</td>
+                    <td>{{ laptop[5] }}</td>
+                    <td>{{ laptop[6] }}</td>
+                    <td>{{ laptop[7] }}</td>
+                    <td>{{ laptop[8] }}</td>
+                    <td>{{ laptop[9] }}</td>
+                    <td>{{ laptop[10] }}</td>
+                    <td>{{ laptop[12] if laptop[12] is not none else 'N/A' }}</td>
+                    <td>{{ 'Active' if laptop[13] == 1 else 'Inactive' }}</td>
+                    <td>
+                        {% if laptop[11] %}
+                        <a href="{{ url_for('laptop_images', product_id=laptop[0]) }}">
+                            <img src="{{ laptop[11] }}" alt="Laptop Image">
+                        </a>
+                        {% else %}
+                        <a href="{{ url_for('laptop_images', product_id=laptop[0]) }}">No image</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </main>
 
     <footer>
