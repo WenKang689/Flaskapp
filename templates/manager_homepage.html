@@ -20,8 +20,8 @@
     <main>
         <h1>Laptop Search</h1>
         <div class="search-container">
-            <form action="/manager/homepage" method="get"> <!-- Assuming the search route is /search -->
-                <input type="text" name="query" placeholder="Search laptops..." value="{{ search_query }}">
+            <form action="{{ url_for('manager_homepage') }}" method="get">
+                <input type="text" name="search" placeholder="Search laptops..." value="{{ search_query }}">
                 <button type="submit">Search</button>
             </form>
         </div>
@@ -47,7 +47,6 @@
                     <th>Stock</th>
                     <th>Status</th>
                     <th>Image</th>
-                    <th class="actions-column">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -66,8 +65,7 @@
                     <td>{{ laptop[10] }}</td>
                     <td>{{ laptop[12] if laptop[12] is not none else 'N/A' }}</td>
                     <td>{{ 'Active' if laptop[13] == 1 else 'Inactive' }}</td>
-                    <td><img src="{{ laptop[11] }}" alt="Laptop Image">
-                    </td>
+                    <td><img src="{{ laptop[11] }}" alt="Laptop Image" style="width: 100px; height: auto;"></td>
                 </tr>
                 {% endfor %}
             </tbody>

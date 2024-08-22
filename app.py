@@ -332,7 +332,7 @@ def admin_orders():
 def manager_homepage():
     if not session.get('logged_in'):
         return redirect('/staff/login')
-        
+    
     search_query = ''
     if request.method == 'POST':
         if request.form.get('action') == 'search':
@@ -360,14 +360,14 @@ def manager_homepage():
     all_laptops = cur.fetchall()
     cur.close()
 
-    return render_template("manager_homepage.html", laptops=all_laptops, search_query=search_query)
+    return render_template('manager_homepage.html', laptops=all_laptops, search_query=search_query)
     
 
 #M-manage account
 @app.route("/manager/account", methods=["GET","POST"])
 def manager_account():
     cur = mysql.connection.cursor()
-    cur.execute("SELECT stf_id, stf_name, stf_role FROM staff WHERE stf_role='admin'")
+    cur.execute("SELECT stf_id, stf_name, stf_role FROM staff WHERE stf_role='admin' AND status=1")
     staff= cur.fetchall()
     cur.close()
 
@@ -394,7 +394,7 @@ def manager_account():
 @app.route("/manager/account/detail/<string:stf_id>", methods=["GET", "POST"])
 def manager_view_account(stf_id):
     cur = mysql.connection.cursor()
-    cur.execute("SELECT * FROM staff WHERE stf_id = %s", (stf_id,))
+    cur.execute("SELECT * FROM staff WHERE stf_id = %s AND status=1", (stf_id,))
     admin = cur.fetchone()
     cur.close()
 
@@ -437,8 +437,6 @@ def generate_stf_id():
         new_id = "ST0001"
     return new_id
 
-from datetime import datetime
-
 @app.route("/manager/account/new", methods=["GET","POST"])
 def manager_account_new():
     if request.method == "POST":
@@ -453,15 +451,10 @@ def manager_account_new():
         stf_emer_contact = staffdata.get("Emergency Contact")
         stf_role = staffdata.get("Role")
         
-        if stf_dob:
-            try:
-                datetime.strptime(stf_dob, '%Y-%m-%d')  # Validate date format
-            except ValueError:
-                return "Invalid date format. Please use YYYY-MM-DD."
         try: 
             cur = mysql.connection.cursor()
-            cur.execute("INSERT INTO staff (stf_id, stf_psw, stf_name, stf_email, stf_phone, stf_dob, stf_address, stf_emer_contact, stf_role) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", 
-                    (stf_id, stf_psw, stf_name, stf_email, stf_phone, stf_dob, stf_address, stf_emer_contact, stf_role))
+            cur.execute("INSERT INTO staff (stf_id, stf_psw, stf_name, stf_email, stf_phone, stf_dob, stf_address, stf_emer_contact, stf_role, status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", 
+                    (stf_id, stf_psw, stf_name, stf_email, stf_phone, stf_dob, stf_address, stf_emer_contact, stf_role,1))
             mysql.connection.commit()
             cur.close()
             print("Data inserted successfully.")
