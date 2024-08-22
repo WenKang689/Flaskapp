@@ -9,6 +9,7 @@ import boto3
 from datetime import datetime
 from flask import request, render_template, redirect, flash
 from urllib.parse import urlparse
+import re
 
 app= Flask(__name__)
 
@@ -185,35 +186,38 @@ def reset_password():
     return render_template("reset_password.html")
 
 #staff login
+#staff login
 @app.route("/staff/login", methods=["GET", "POST"])
 def staff_login():
     if request.method == "POST":
-        userdata = request.form
-        staff_id = userdata.get("stf_id")
-        staff_psw = userdata.get("stf_psw")
-        cur = mysql.connection.cursor()
-        value = cur.execute("SELECT stf_id, stf_psw, stf_role FROM staff WHERE stf_id=%s", (staff_id,))
+        if request.form['action'] == 'login':
+            userdata = request.form
+            staff_id = userdata.get("stf_id")
+            staff_psw = userdata.get("stf_psw")
+            cur = mysql.connection.cursor()
+            value = cur.execute("SELECT stf_id, stf_psw, stf_role FROM staff WHERE stf_id=%s", (staff_id,))
 
-        if value > 0:
-            data = cur.fetchone()
-            passw = data[1]
-            role = data[2]
-            if staff_psw == passw:
-                session["logged_in"] = True
-                session["staff_id"] = staff_id
-                if role == "Manager":
-                    flash("Login Successful", "success")
-                    return redirect("/manager/homepage")
-                elif role == "Admin":
-                    flash("Login Successful", "success")
-                    return redirect("/admin/laptop")
+            if value > 0:
+                data = cur.fetchone()
+                passw = data[1]
+                role = data[2]
+                if staff_psw == passw:
+                    session["logged_in"] = True
+                    session["staff_id"] = staff_id
+                    if role == "manager":
+                        flash("Login Successful", "success")
+                        return redirect("/manager/homepage")
+                    elif role == "admin":
+                        flash("Login Successful", "success")
+                        return redirect("/admin/laptop")
+                else:
+                    flash("Invalid staff ID or password.")
             else:
                 flash("Invalid staff ID or password.")
-        else:
-            flash("Invalid staff ID or password.")
-        cur.close()
+            cur.close()
+        elif request.form['action'] == 'forgot_password':
+            return redirect("/admin/forgot_password")
     return render_template("staff_login.html")
-
 
 #Admin section (Zhi Xian)
 #A-homepage(laptop mainpage)
@@ -250,6 +254,93 @@ def admin_laptop():
     cur.close()
 
     return render_template('admin_laptop_search.html', laptops=all_laptops, search_query=search_query)
+
+#A-forgot password
+@app.route("/admin/forgot_password", methods=["GET", "POST"])
+def admin_forgot_password():
+    if request.method == "POST":
+        userdata = request.form
+        staff_id = userdata["stf_id"]
+        email = userdata["stf_email"]
+        cur = mysql.connection.cursor()
+        value = cur.execute("SELECT stf_id, stf_email FROM staff WHERE stf_id=%s AND stf_email=%s", (staff_id, email))
+
+        if value > 0:
+            # Admin found, prepare to send email
+            try:
+                token = generate_token(email)
+                reset_link = f"http://localhost:5000/admin/reset_password?token={token}"
+                # Set up the SMTP server
+                server = smtplib.SMTP('smtp-mail.outlook.com', 587)
+                server.starttls()
+                server.login('laptopkawkaw@outlook.com', 'kawkawlaptop123')
+
+                # Create the email
+                msg = MIMEMultipart()
+                msg['From'] = 'laptopkawkaw@outlook.com'
+                msg['To'] = email
+                msg['Subject'] = "Admin Password Reset"
+                body = f"Here is your admin password reset link: {reset_link}"
+                msg.attach(MIMEText(body, 'plain'))
+
+                # Send the email
+                server.send_message(msg)
+                del msg  # Clean up
+                
+                flash("Password reset link has been sent to your email.")
+            except Exception as e:
+                flash("An error occurred while sending the email.")
+                print(e)  # For debugging purposes
+            finally:
+                server.quit()
+        else:
+            flash("Staff ID or email incorrect. Please try again.")
+        cur.close()
+    return render_template("admin_forgot_password.html")
+
+#A-reset password
+@app.route("/admin/reset_password", methods=["GET", "POST"])
+def admin_reset_password():
+    token = request.args.get("token")
+    if request.method == 'GET':
+        error, email = verify_token(token)
+        if error:
+            return render_template("admin_reset_password.html")
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT stf_id FROM staff WHERE stf_email=%s", (email,))
+        staff = cur.fetchone()
+        if staff:
+            session['staff_id_for_password_reset'] = staff[0]
+            return render_template("admin_reset_password.html", email=email)
+    elif request.method == "POST":
+        userdata = request.form
+        password = userdata["password"]
+        confirm_password = userdata["confirm_password"]
+        staff_id = userdata["staff_id"]
+        session_staff_id = session.get('staff_id_for_password_reset')
+        
+        if not session_staff_id or staff_id != session_staff_id:
+            flash("Staff ID incorrect, please try again.")
+            return redirect("/admin/reset_password")
+        if len(password) < 8 or len(password) > 20:
+            flash("Password must be between 8 and 20 characters.")
+            return redirect("/admin/reset_password")
+        if not re.match(r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$', password):
+            flash("Password must contain at least one letter, one number, and one special character.")
+            return redirect("/admin/reset_password")
+        
+        if password != confirm_password:
+            flash("Passwords do not match. Please try again.")
+            return render_template("admin_reset_password.html")
+        
+        cur = mysql.connection.cursor()
+        cur.execute("UPDATE staff SET stf_psw=%s WHERE stf_id=%s", (password, staff_id))
+        mysql.connection.commit()
+        flash("Password reset successful.")
+        cur.close()
+        session.pop('staff_id_for_password_reset', None)
+        return redirect("/staff/login")
+    return render_template("admin_reset_password.html")
 
 #A-toggle laptop status
 @app.route('/admin/laptop/toggle_status/<product_id>', methods=['POST'])
@@ -315,7 +406,6 @@ def admin_laptop_add():
                      (product_id, product_name, brand, processor, graphics, dimensions, weight, os, memory, storage, power_supply, battery, price, stock))
 
         mysql.connection.commit()
-        print(f"New laptop added with ID: {product_id}, Name: {product_name}")
         cur.close()
 
         # Print statement after successful save
