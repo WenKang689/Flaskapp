@@ -6,7 +6,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 import boto3
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import os
 
 app= Flask(__name__)
@@ -188,7 +188,7 @@ def staff_login():
         staff_id=userdata["stf_id"]
         staff_psw=userdata["stf_psw"]
         cur=mysql.connection.cursor()
-        value=cur.execute("SELECT stf_id, stf_psw, stf_role FROM staff WHERE stf_id=%s",(staff_id,)) 
+        value=cur.execute("SELECT stf_id, stf_psw, stf_role FROM staff WHERE stf_id=%s AND status=1",(staff_id,)) 
 
         if value>0:
             data=cur.fetchone()
@@ -429,12 +429,12 @@ def generate_stf_id():
     cur.close()
     if last_id:
         # Extract the numeric part of the ID and increment it
-        last_num = int(last_id[0][2:])  # Assuming ID format is PC000X
+        last_num = int(last_id[0][2:])  # Assuming ID format is SF000X
         new_num = last_num + 1
-        new_id = f"ST{new_num:04d}"  # Keeps the leading zeros, making the numeric part 4 digits long
+        new_id = f"SF{new_num:04d}"  # Keeps the leading zeros, making the numeric part 4 digits long
     else:
-        # If there are no entries, start with PC0001
-        new_id = "ST0001"
+        # If there are no entries, start with SF0001
+        new_id = "SF0001"
     return new_id
 
 @app.route("/manager/account/new", methods=["GET","POST"])
@@ -522,7 +522,7 @@ def manager_account_remove():
         #confirm button
         if action == "Confirm":
             cur = mysql.connection.cursor()
-            cur.execute("DELETE FROM staff WHERE stf_id = %s", (stf_id,))
+            cur.execute("UPDATE staff SET status=0 WHERE stf_id = %s AND status=1", (stf_id,))
             mysql.connection.commit()
             cur.close()
             return redirect ("/manager/account")
@@ -545,41 +545,24 @@ def manager_account_remove():
 
     return render_template("manager_account_remove.html", staff=staff)
 
-#M-manage reports
-def create_report_table():
-    cur = mysql.connection.cursor()
-    create_table_query = """
-            CREATE TABLE IF NOT EXISTS report (
-                order_id CHAR(8) PRIMARY KEY,
-                date_day DATE,
-                date_week DATE,
-                date_month DATE,
-                date_year DATE,
-                sales DECIMAL(10, 2),
-                product_sold INT,
-                product_id CHAR(6),
-                product_name VARCHAR(100),
-                total_order INT,
-                total_user INT,
-                new_user INT
-            )
-        """
-    cur.execute(create_table_query)
-    mysql.connection.commit()
-    cur.close()
-
-import datetime
+@app.route("/manager/reports", methods=["GET","POST"])
+def manager_reports():
+    if request.method == "POST":
+        action = request.form.get("action")
+        if action == "Daily":
+            return redirect("/manager/reports/daily")
+        elif action == "Weekly":
+            return redirect("/manager/reports/weekly")
+        elif action == "Monthly":
+            return redirect("/manager/reports/monthly")
+        elif action == "Yearly":
+            return redirect("/manager/reports/yearly")
+    
+    update_report_table()
+    return render_template("manager_reports.html")
 
 def update_report_table():
     cur = mysql.connection.cursor()
-
-    # Create or ensure the existence of the user_tracking table
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS user_tracking (
-            id INT PRIMARY KEY,
-            previous_total_user INT
-        )
-    """)
 
     # Initialize the tracking table if it does not have an entry
     cur.execute("INSERT IGNORE INTO user_tracking (id, previous_total_user) VALUES (1, 0)")
@@ -599,7 +582,7 @@ def update_report_table():
 
         # Calculate date values
         date_day = pur_date.strftime("%Y-%m-%d")
-        start_of_week = pur_date - datetime.timedelta(days=pur_date.weekday())
+        start_of_week = pur_date - timedelta(days=pur_date.weekday())
         date_week = start_of_week.strftime("%Y-%m-%d")
         date_month = pur_date.replace(day=1).strftime("%Y-%m-%d")
         date_year = pur_date.replace(month=1, day=1).strftime("%Y-%m-%d")
@@ -641,24 +624,6 @@ def update_report_table():
 
     mysql.connection.commit()
     cur.close()
-
-@app.route("/manager/reports", methods=["GET","POST"])
-def manager_reports():
-    if request.method == "POST":
-        action = request.form.get("action")
-        if action == "Daily":
-            return redirect("/manager/reports/daily")
-        elif action == "Weekly":
-            return redirect("/manager/reports/weekly")
-        elif action == "Monthly":
-            return redirect("/manager/reports/monthly")
-        elif action == "Yearly":
-            return redirect("/manager/reports/yearly")
-    
-    create_report_table()
-    update_report_table()
-
-    return render_template("manager_reports.html")
 
 #M-reports/daily
 @app.route("/manager/reports/daily", methods=["GET", "POST"])
@@ -931,77 +896,49 @@ def manager_reports_yearly():
                            sales_growth=sales_growth,retention_rate=retention_rate)
 
 #M-view feedbacks
-@app.route("/manager/feedback", methods=["GET"])
+@app.route("/manager/feedback", methods=["GET","POST"])
 def view_feedback():
     if not session.get('logged_in'):
         return redirect('/login')
     
+    if request.method == "POST":
+        feedback_id = request.form.get('feedback_id')
+        return redirect(f"/manager/feedback/reply?feedback_id={feedback_id}")
+
     # Fetch feedback from the database
     cur = mysql.connection.cursor()
     cur.execute("""
         SELECT feedback_id, stf_id, feedback, feedback_time
         FROM feedback
+        WHERE reply IS NULL
     """)
     feedback_list = cur.fetchall()
     cur.close()
 
     return render_template("manager_view_feedback.html", feedback_list=feedback_list)
 
-#M-reply feedback
-def generate_feedback_id():
-    cur = mysql.connection.cursor()
-    cur.execute("SELECT feedback_id FROM feedback WHERE feedback_id LIKE 'RP%' ORDER BY feedback_id DESC LIMIT 1")
-    last_id = cur.fetchone()
-    cur.close()
-    if last_id:
-        # Extract the numeric part of the ID and increment it
-        last_num = int(last_id[0][2:])  # Assuming ID format is PC000X
-        new_num = last_num + 1
-        new_id = f"RP{new_num:04d}"  # Keeps the leading zeros, making the numeric part 4 digits long
-    else:
-        # If there are no entries, start with PC0001
-        new_id = "RP0001"
-    return new_id
-
-@app.route("/manager/reply_feedback", methods=["GET", "POST"])
+@app.route("/manager/feedback/reply", methods=["GET", "POST"])
 def reply_feedback():
     if not session.get('logged_in'):
         return redirect('/login')
     
-    feedback_id = request.args.get('feedback_id')
-    if not feedback_id:
-        return redirect('/manager/feedback')
-    
-    if not feedback_id.startswith('FD'):
-        flash("Invalid feedback ID. You can only reply to feedback starting with 'FD'.", "error")
-        return redirect('/manager/feedback')
-
     if request.method == 'POST':
-        reply = request.form['reply']
-        staff_id = session.get('staff_id')
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT stf_id FROM staff WHERE stf_id=%s", (staff_id,))
-        result = cur.fetchone()
-        cur.close()        
-        if result:
-            stf_id = result[0]
-        else:
-            flash("Staff ID not found. Please log in again.", "error")
-            return redirect('/login')
-        feedback_time = datetime.now()
-        new_feedback_id = generate_feedback_id()
+        reply = request.form.get('reply')
+        feedback_id = request.form.get('feedback_id')
 
         # Insert the reply into the database
         cur = mysql.connection.cursor()
         cur.execute("""
-            INSERT INTO feedback (feedback_id, stf_id, feedback, feedback_time)
-            VALUES (%s, %s, %s, %s)
-        """, (new_feedback_id, stf_id, reply, feedback_time))
+            UPDATE feedback SET reply = %s WHERE feedback_id = %s
+        """, (reply, feedback_id))
         mysql.connection.commit()
         cur.close()
 
         return redirect('/manager/feedback')  # Redirect to the feedback list after submitting
 
+    feedback_id = request.args.get('feedback_id')
+    if not feedback_id:
+        return redirect('/manager/feedback')
 
     # Fetch the specific feedback from the database
     cur = mysql.connection.cursor()
@@ -1011,6 +948,7 @@ def reply_feedback():
         WHERE feedback_id = %s
     """, (feedback_id,))
     feedback = cur.fetchone()
+    cur.close()
 
     return render_template("manager_reply_feedback.html", feedback=feedback)
 

@@ -49,20 +49,14 @@
 </head>
 <body>
     <h1>Reply to Feedback</h1>
-    <div class="chat-box">
-        <div class="feedback-message">
-            <p><strong>Feedback ID:</strong> {{ feedback[0] }}</p>
-            <p><strong>Staff ID:</strong> {{ feedback[1] }}</p>
-            <p><strong>Feedback:</strong> {{ feedback[2] }}</p>
-            <p><strong>Feedback Time:</strong> {{ feedback[3] }}</p>
-        </div>
-        <!-- Display replies here if needed -->
-    </div>
-    <div class="reply-box">
-        <form action="/manager/reply_feedback?feedback_id={{ feedback[0] }}" method="POST">
-            <textarea name="reply" required></textarea>
-            <button type="submit">Send Feedback</button>
-        </form>
-    </div>
+    <form action="{{url_for('reply_feedback')}}" method="POST">
+        <input type="hidden" name="feedback_id" value="{{ feedback[0] }}">
+        <p>Feedback ID: {{ feedback[0] }}</p>
+        <p>Staff ID: {{ feedback[2] }}</p>
+        <p>Feedback: {{ feedback[1] }}</p>
+        <p>Feedback Time: {{ feedback[3] }}</p>
+        <textarea name="reply" rows="4" cols="50" placeholder="Enter your reply here" required></textarea>
+        <button type="submit">Submit Reply</button>
+    </form>
 </body>
 </html>

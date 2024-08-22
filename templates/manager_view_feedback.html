@@ -31,7 +31,7 @@
 <body>
     <h1>View Feedback</h1>
     {% for feedback in feedback_list %}
-    <form action="/manager/reply_feedback" method="get" style="display: inline;">
+    <form action="{{url_for('view_feedback')}}" method="post" style="display: inline;">
         <input type="hidden" name="feedback_id" value="{{ feedback[0] }}">
         <div class="feedback-box" onclick="this.closest('form').submit();">
             <p class="feedback-id">Feedback ID: {{ feedback[0] }}</p>
@@ -39,6 +39,7 @@
             <p>Feedback: {{ feedback[2] }}</p>
             <p>Feedback Time: {{ feedback[3] }}</p>
         </div>
+        <button type="submit" class="reply_feedback">Reply</button>
     </form>
     {% endfor %}
 </body>
