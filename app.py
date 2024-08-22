@@ -201,10 +201,10 @@ def staff_login():
             if staff_psw == passw:
                 session["logged_in"] = True
                 session["staff_id"] = staff_id
-                if role == "manager":
+                if role == "Manager":
                     flash("Login Successful", "success")
                     return redirect("/manager/homepage")
-                elif role == "admin":
+                elif role == "Admin":
                     flash("Login Successful", "success")
                     return redirect("/admin/laptop")
             else:
