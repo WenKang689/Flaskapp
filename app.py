@@ -259,21 +259,27 @@ def admin_laptop():
 @app.route("/admin/forgot_password", methods=["GET", "POST"])
 def admin_forgot_password():
     if request.method == "POST":
+        print("Received POST request for forgot password.")
         userdata = request.form
         staff_id = userdata["stf_id"]
         email = userdata["stf_email"]
         cur = mysql.connection.cursor()
+        print(f"Looking for staff ID: {staff_id} and email: {email}")
         value = cur.execute("SELECT stf_id, stf_email FROM staff WHERE stf_id=%s AND stf_email=%s", (staff_id, email))
 
         if value > 0:
-            # Admin found, prepare to send email
+            print("Staff ID and email found in the database.")
             try:
                 token = generate_token(email)
                 reset_link = f"http://localhost:5000/admin/reset_password?token={token}"
+                print(f"Generated reset link: {reset_link}")
+                
                 # Set up the SMTP server
                 server = smtplib.SMTP('smtp-mail.outlook.com', 587)
                 server.starttls()
+                print("SMTP server connection established.")
                 server.login('laptopkawkaw@outlook.com', 'kawkawlaptop123')
+                print("Logged in to SMTP server.")
 
                 # Create the email
                 msg = MIMEMultipart()
@@ -282,18 +288,22 @@ def admin_forgot_password():
                 msg['Subject'] = "Admin Password Reset"
                 body = f"Here is your admin password reset link: {reset_link}"
                 msg.attach(MIMEText(body, 'plain'))
+                print("Email prepared for sending.")
 
                 # Send the email
                 server.send_message(msg)
                 del msg  # Clean up
+                print("Password reset email sent.")
                 
                 flash("Password reset link has been sent to your email.")
             except Exception as e:
                 flash("An error occurred while sending the email.")
-                print(e)  # For debugging purposes
+                print(f"Error occurred: {e}")  # For debugging purposes
             finally:
                 server.quit()
+                print("SMTP server connection closed.")
         else:
+            print("Staff ID or email not found in the database.")
             flash("Staff ID or email incorrect. Please try again.")
         cur.close()
     return render_template("admin_forgot_password.html")
@@ -302,17 +312,22 @@ def admin_forgot_password():
 @app.route("/admin/reset_password", methods=["GET", "POST"])
 def admin_reset_password():
     token = request.args.get("token")
+    print(f"Received token: {token}")
     if request.method == 'GET':
+        print("Processing GET request for password reset.")
         error, email = verify_token(token)
         if error:
+            print("Token verification failed.")
             return render_template("admin_reset_password.html")
         cur = mysql.connection.cursor()
         cur.execute("SELECT stf_id FROM staff WHERE stf_email=%s", (email,))
         staff = cur.fetchone()
         if staff:
+            print(f"Email {email} found in database, associated with staff ID: {staff[0]}")
             session['staff_id_for_password_reset'] = staff[0]
             return render_template("admin_reset_password.html", email=email)
     elif request.method == "POST":
+        print("Processing POST request for password reset.")
         userdata = request.form
         password = userdata["password"]
         confirm_password = userdata["confirm_password"]
@@ -320,22 +335,27 @@ def admin_reset_password():
         session_staff_id = session.get('staff_id_for_password_reset')
         
         if not session_staff_id or staff_id != session_staff_id:
+            print("Staff ID mismatch or session expired.")
             flash("Staff ID incorrect, please try again.")
             return redirect("/admin/reset_password")
         if len(password) < 8 or len(password) > 20:
+            print("Password length validation failed.")
             flash("Password must be between 8 and 20 characters.")
             return redirect("/admin/reset_password")
         if not re.match(r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$', password):
+            print("Password complexity validation failed.")
             flash("Password must contain at least one letter, one number, and one special character.")
             return redirect("/admin/reset_password")
         
         if password != confirm_password:
+            print("Password and confirm password do not match.")
             flash("Passwords do not match. Please try again.")
             return render_template("admin_reset_password.html")
         
         cur = mysql.connection.cursor()
         cur.execute("UPDATE staff SET stf_psw=%s WHERE stf_id=%s", (password, staff_id))
         mysql.connection.commit()
+        print(f"Password updated for staff ID: {staff_id}")
         flash("Password reset successful.")
         cur.close()
         session.pop('staff_id_for_password_reset', None)
@@ -406,6 +426,7 @@ def admin_laptop_add():
                      (product_id, product_name, brand, processor, graphics, dimensions, weight, os, memory, storage, power_supply, battery, price, stock))
 
         mysql.connection.commit()
+        print(f"New laptop added with ID: {product_id}, Name: {product_name}")
         cur.close()
 
         # Print statement after successful save
