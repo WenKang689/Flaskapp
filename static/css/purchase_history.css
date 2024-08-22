@@ -3,22 +3,75 @@
 }
 
 .popup {
-    position: fixed;
+    position: fixed; 
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: none;
+    width: 100%; 
+    height: 100%; 
+    background: rgba(0, 0, 0, 0.5); 
+    display: none; 
     justify-content: center;
-    align-items: center;
+    align-items: center; 
+    z-index: 1000;
 }
+
+
+.review-container {
+    display: flex;
+    flex-direction: column; 
+    align-items: flex-start;
+    width: 100%;
+    
+}
+
+
+.review-container label {
+    margin-bottom: 10px; 
+    font-size: 24px; 
+    font-weight: bold;
+}
+
+
+.review-container textarea {
+    width: 100%; 
+    max-width: 800px; 
+    height: 150px; 
+    padding: 10px; 
+    font-size: 14px; 
+    border: 1px solid #ccc; 
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    border-radius: 4px; 
+    box-sizing: border-box; 
+    resize: none; 
+    margin-bottom: 20px;
+    font-family: 'Roboto', sans-serif;
+}
+
+.stars {
+    display: flex;
+    gap: 5px;
+    cursor: pointer;
+}
+
+.stars-container {
+    display: block;
+    font-size: 24px;
+    color: black;
+    text-align: left;
+    font-weight: bold;
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+
 
 .popup-content {
     background: white;
     padding: 20px;
     border-radius: 5px;
     position: relative;
+    width: 800px;
+    height: 350px;
+    size: 100vh;
 }
 
 .close-btn {
@@ -36,7 +89,7 @@
 
 .star {
     font-size: 30px;
-    color: gray;
+    color: lightgrey;
 }
 
 .star.selected {
@@ -62,6 +115,16 @@ body {
     padding: 0;
 }
 
+.product-link {
+    color: #007bff; /* Replace with your desired color */
+    text-decoration: none; /* Optional: remove underline */
+}
+
+.product-link:hover {
+    color: #0056b3; /* Optional: color on hover */
+    text-decoration: underline; /* Optional: underline on hover */
+}
+
 header {
     top: 0;
     left: 0;
@@ -74,7 +137,6 @@ header {
     background-color: white;
     background-size: cover;
     background-position: center;
-    z-index: 2;
 }
 
 .navbar {
@@ -128,6 +190,8 @@ header {
     max-width: 1500px;
     margin: 0 auto;
     padding-top: 20px;
+    padding-bottom: 20px;
+    padding-right: 20px;
 }
 
 
@@ -171,13 +235,6 @@ header {
 
 .profilebtn {
     color: #666666;
-}
-
-.logoutbtn {
-    color: #5875DE;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .header-links {
@@ -240,8 +297,6 @@ header {
     position: relative;
     display: flex;
     left: 70px;
-
-
 }
 
 .scrollable-container {
@@ -319,4 +374,21 @@ header {
     top: 5px; 
     right: 10px; 
     cursor: pointer; 
+}
+
+.submit-container {
+    display: flex;
+    justify-content: center;
+    text-align: center;
+}
+.sbtn {
+    background-color: #9747FF;
+    color: white; 
+    padding: 10px; 
+    border: none; 
+    border-radius: 5px; 
+    cursor: pointer; 
+    width: 100%; 
+    transition: background-color 0.3s;
+    text-align: center;
 }

@@ -30,7 +30,7 @@
 
         .cart-header th:nth-child(2) {
             text-align: left;
-            padding-left: 57px; /* Adjust the value as needed */
+            padding-left: 50px; /* Adjust the value as needed */
         }
 
         .navbar {
@@ -108,7 +108,7 @@
 
         table {
             width: 100%;
-            border-spacing: 0;
+            border-spacing: 0 20px;
             border-collapse: collapse;
             table-layout: fixed;
         }
@@ -134,13 +134,48 @@
         .cart-item {
             align-items: center;
             padding: 10px;
-            border-bottom: 1px solid #eaeaea;
+            padding-bottom: 20px; /* Add space below each cart item */
+            margin-bottom: 20px; /* Space between each cart item */
+            border-bottom: 1px solid #cacaca; /* Line below each cart item */
             position: flex;
             align-items: center;
+            justify-content: space-between;
+        }
+
+        .cart-item-image {
+            text-align: center; /* Center the image horizontally */
+            vertical-align: middle; /* Center the image vertically */
+            padding-left: 0;
+            padding-right: 50px;
+        }
+
+        .product-image {
+            max-width: 100%; /* Ensure the image doesn't exceed its container's width */
+            height: 150px; /* Set a fixed height for all images */
+            object-fit: contain;
+            display: block; /* Ensure that the image is treated as a block element */
+            margin: 0 auto; /* Center the image horizontally */
+        }
+
+        table {
+            width: 100%;
+            border-spacing: 0 10px; /* Adds space between rows */
+            border-collapse: separate;
+            border-color: #cacaca;
+        }
+
+        table tr {
+            border: 1px solid #cacaca; /* Adds border around each row */
+        }
+
+        table td {
+            padding: 10px; /* Adds padding inside each cell */
+            border-bottom: 1px solid #cacaca; /* Optional: Adds a bottom border to each cell */
         }
 
         .cart-item .select-all {
             padding-left: 41px;
+            padding-right: 0%;
         }
 
         .cart-item .product-name {
@@ -192,7 +227,7 @@
         .cart-item .action .remove-button {
             background: none;
             border: none;
-            color: red;
+            color: rgb(255, 0, 17);
             font-size: 20px;
             cursor: pointer;
         }
@@ -239,7 +274,7 @@
         }
 
         .rm-spacing {
-            margin-left: 130px; /* Adjust the value as needed */
+            margin-left: 160px; /* Adjust the value as needed */
         }
 
         .cart-totals {
@@ -367,9 +402,9 @@
                         <td class="cart-item-image">
                             <a href="{{ url_for('laptop_detail', product_id=item[0]) }}">
                                 {% if item[4] %}
-                                <img src="{{ item[4] }}" alt="Product Image" width="160" height="160">
+                                <img src="{{ item[4] }}" alt="Product Image" class="product-image">
                                 {% else %}
-                                <img src="default_image_url" alt="Default Image" width="160" height="160">
+                                <img src="default_image_url" alt="Default Image" class="product-image">
                                 {% endif %}
                             </a>
                         </td>

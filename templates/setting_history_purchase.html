@@ -58,15 +58,15 @@
                         {% for order_id, details in orders.items() %}
                             <div class="order-container"> 
                                 <div class="order">
-                                    <h2>Order ID: {{ order_id }}</h2>
-                                    <p>Purchase Date: {{ details.date }}</p>
-                                    <p>Order Status: {{ details.status }}</p>
+                                    <h2><strong>Order ID:</strong> {{ order_id }}</h2>
+                                    <p><strong>Purchase Date:</strong> {{ details.date }}</p>
+                                    <p><strong>Order Status:</strong> {{ details.status }}</p>
                                     
                                         {% for product in details.products %}
-                                            
-                                                <p>Product Name: <a href="{{ url_for('laptop_detail', product_id=product.product_id) }}">{{ product.name }}</a></p>
-                                                <p>Purchase Amount: RM {{ product.amount }}</p>
-                                                <p>Purchase Quantity: {{ product.quantity }}</p>
+                                                <br>
+                                                <p><strong>Product Name:</strong> <a href="{{ url_for('laptop_detail', product_id=product.product_id) }}" class="product-link">{{ product.name }}</a></p>
+                                                <p><strong>Purchase Amount:</strong> RM {{ product.amount }}</p>
+                                                <p><strong>Purchase Quantity:</strong> {{ product.quantity }}</p>
                                                 {% if product.pic_url %}
                                                     <a href="{{ url_for('laptop_detail', product_id=product.product_id) }}">
                                                         <img src="{{ product.pic_url }}" alt="Product Image" class="lapimage">
@@ -75,10 +75,10 @@
                                                     <p>No image available</p>
                                                 {% endif %}
                                                 {% if (order_id, product.product_id) in existing_reviews %}
-                                                    <p>Review: {{ existing_reviews[(order_id, product.product_id)]['review'] }}</p>
-                                                    <p>Rating: {{ existing_reviews[(order_id, product.product_id)]['rating'] }} / 5</p>
+                                                    <p><strong>Review:</strong> {{ existing_reviews[(order_id, product.product_id)]['review'] }}</p>
+                                                    <p><strong>Rating:</strong> {{ existing_reviews[(order_id, product.product_id)]['rating'] }} / 5</p>
                                                     {% if existing_reviews[(order_id, product.product_id)].reply %}
-                                                        <p>Responses: {{ existing_reviews[(order_id, product.product_id)].reply }}</p>
+                                                        <p><strong>Responses:</strong> {{ existing_reviews[(order_id, product.product_id)].reply }}</p>
                                                     {% endif %}
                                                 {% else %}
                                                     <br>
@@ -101,9 +101,12 @@
                                 <form action="{{ url_for('setting_history_purchase') }}" method="post" class="review-form">
                                     <input type="hidden" id="product-id" name="product_id">
                                     <input type="hidden" id="order-id" name="order_id">
-                                    <label for="review">Review:</label>
-                                    <input type="text" id="review" name="review" required>
-                                    <label for="rating">Rating:</label>
+                                    <div class="review-container">
+                                        <label for="review">Review</label>
+                                        <textarea id="review" name="review" placeholder="Leave your review here!"required></textarea>
+                                    </div>
+                                    <div class="stars-container">
+                                        <label for="rating">Rating</label>
                                     <div class="stars">
                                         <span class="star" data-value="1">&#9733;</span>
                                         <span class="star" data-value="2">&#9733;</span>
@@ -111,7 +114,10 @@
                                         <span class="star" data-value="4">&#9733;</span>
                                         <span class="star" data-value="5">&#9733;</span>
                                         <input type="hidden" id="rating" name="rating" required>
-                                        <button type="submit">Submit</button>
+                                    </div>
+                                    </div>
+                                    <div class="submit-container">
+                                        <button type="submit" class="sbtn">Submit</button>
                                     </div>
                                 </form>
                             </div>
