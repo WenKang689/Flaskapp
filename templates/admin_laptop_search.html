@@ -283,7 +283,7 @@
                     <td>
                         {% if laptop[11] %}
                         <a href="{{ url_for('laptop_images', product_id=laptop[0]) }}">
-                            <img src="{{ laptop[11] }}" alt="Laptop Image">
+                            <img src="{{ laptop[11] }}?v={{time}}" alt="Laptop Image">
                         </a>
                         {% else %}
                         <a href="{{ url_for('laptop_images', product_id=laptop[0]) }}">No image</a>

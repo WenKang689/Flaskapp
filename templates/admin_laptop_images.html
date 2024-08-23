@@ -261,8 +261,8 @@
         <div class="image-container">
             {% for image in images %}
             <div class="image-wrapper">
-                <img src="{{ image[1] }}" alt="Laptop Image {{ loop.index }}">
-                <form action="{{ url_for('laptop_images', product_id=product_id) }}" method="post">
+                <img src="{{ image[1] }}?v={{time}}" alt="Laptop Image {{ loop.index }}">
+                <form action="{{ url_for('laptop_images', product_id=product_id) }}?v={{time}}" method="post">
                     <input type="hidden" name="delete_pic_id" value="{{ image[0] }}">
                     <button type="submit" class="delete-button">Delete Image</button>
                 </form>
