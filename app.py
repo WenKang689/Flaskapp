@@ -251,7 +251,7 @@ def homepage():
         # Fetch top 3 recommended laptops with their first picture and score
         cur = mysql.connection.cursor()
         cur.execute("""
-            SELECT p.product_id, p.product_name, p.price, r.score, pic.pic_url
+            SELECT p.product_id, p.product_name, p.price, r.score, pic.pic_url, p.status
             FROM recommendation r
             JOIN product p ON r.product_id = p.product_id
             LEFT JOIN (
@@ -259,8 +259,8 @@ def homepage():
                 FROM product_pic
                 GROUP BY product_id
             ) pic ON p.product_id = pic.product_id
-            WHERE r.username = %s
-            ORDER BY r.score DESC
+            WHERE r.username = %s and p.status = 1
+            ORDER BY r.score DESC 
             LIMIT 3
         """, (session.get('username'),))
         top_recommendations = cur.fetchall()
@@ -356,11 +356,8 @@ def edit_profile():
         if len(new_username) > 30:
             flash("Username must be 30 characters or fewer.", "danger")
             return redirect("/user/setting/profile/edit")
-        if len(password) > 20 and len(password) < 8:
-            flash("Password must be 8 or more characters with a mix of letters, numbers & symbols", "danger")
-            return redirect("/user/setting/profile/edit")
-        if not re.match(r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$', password):
-            flash("Password must contain at least one letter, one number, and one special character.", "danger")
+        if not re.match(r'^(?=.[A-Za-z])(?=.\d)(?=.[@$!%?&])[A-Za-z\d@$!%*?&]{8,}$', password):
+            flash("Use 8 or more characters with a mix of letters, numbers & symbols.", "danger")
             cur.close()
             return redirect("/user/setting/profile/edit")
         if len(name) > 30:
@@ -828,7 +825,7 @@ def fetch_data():
     df = pd.DataFrame(data, columns=[
         'Product ID', 'Product Name', 'Brand', 'Processor', 'Graphics', 
         'Dimensions', 'Weight (g)', 'Operating System', 'Memory', 'Storage', 
-        'Power Supply', 'Battery', 'Price (MYR)','Status'
+        'Power Supply', 'Battery', 'Price (MYR)', 'Status'
     ])
 
     return df

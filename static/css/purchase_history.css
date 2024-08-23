@@ -147,6 +147,11 @@ header {
     align-items: center;
 }
 
+.logoutbtn {
+    color: #5875DE; /* Change this to the desired color */
+    text-decoration: none;
+}
+
 .home-button {
     position: absolute;
     top: 20px;

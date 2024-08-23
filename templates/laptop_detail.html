@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -181,6 +180,14 @@
             display: flex;
             align-items: center;
         }
+
+        .in-stock {
+            color: green;
+        }
+
+        .out-of-stock {
+            color: red;
+        }
             
         .product-info .quantity {
             display: flex;
@@ -197,6 +204,7 @@
             line-height: 30px;
             width: 20px;
             text-align: center;
+            margin-right: 20px;
         }
 
         .quantity input {
@@ -205,7 +213,7 @@
         }
 
         #addToCartButton {
-            background-image: url('../images/background.png');
+            background-image: url('../static/images/background.png');
             color: white;
             border: none;
             padding: 10px 60px;
@@ -225,12 +233,17 @@
             font-size: 16px;
             cursor: pointer;
             transition: background-color 0.3s ease;
-            border: 2px solid #ccc;
-            background-color: white;
+            background-color: #9747FF;
+            width: 457px;
+            color: white;
+            box-sizing: border-box;
         }
 
-        button:hover {
-            background-color: #807F86;
+        #buyNowBtn:hover {
+            background-color: #ffffff;
+            color: #9747FF;
+            border: #9747FF solid 2px;
+            padding: 8px 194px;
         }
 
         .modal {
@@ -396,7 +409,9 @@
                 <!-- Product Info -->
                 <div class="product-info">
                     <h1>{{ product_details.product_name }}</h1>
-                    <p><span class="{{ 'out-of-stock' if product_details.stock_status == 'Out of Stock' else '' }}" style="color: red;">{{ product_details.stock_status }}</span></p>
+                    <p class="{% if product_details.stock_status == 'In Stock' %}in-stock{% else %}out-of-stock{% endif %}">
+                        {{ product_details.stock_status }}
+                    </p>
                     <p class="price">RM {{ product_details.price }}</p>
                     <div class="specs">
                         <p>Brand: {{ product_details.brand }}</p>
@@ -413,7 +428,7 @@
 
                     <form method="POST" action="/laptop/{{ product_details.product_id }}">
                         <div class="controls">
-                            <label for="quantity">Quantity:</label>
+                            <label for="quantity" style="margin-right: 10px;">Quantity: </label>
                             <div class="quantity">
                                 <input type="number" id="quantityInput" name="quantity" min="1" value="1">
                             </div>
@@ -422,7 +437,7 @@
                         </div>
                             <button id="buyNowBtn" type="submit" name="action" value="buy_now">Buy Now</button>
                         {% else %}
-                            <p class="out-of-stock" style="color: red;">This product is out of stock.</p>
+                            <p class="out-of-stock" style="color: red;"> This product is out of stock.</p>
                         {% endif %}
                     </form>
                 </div>
