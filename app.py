@@ -336,7 +336,9 @@ def manager_homepage():
     search_query = ''
     if request.method == 'POST':
         if request.form.get('action') == 'search':
-            search_query = request.form.get('query', '')
+            print("Search button clicked")
+            search_query = request.form.get('query')
+            print(f"Search query: {search_query}")
             session['manager_homepage_search_query'] = search_query
             return redirect(f"/manager/homepage?search={search_query}")
 
@@ -367,26 +369,24 @@ def manager_homepage():
 @app.route("/manager/account", methods=["GET","POST"])
 def manager_account():
     cur = mysql.connection.cursor()
-    cur.execute("SELECT stf_id, stf_name, stf_role FROM staff WHERE stf_role='admin' AND status=1")
+    cur.execute("SELECT stf_id, stf_name, stf_role, status FROM staff WHERE stf_role='admin'")
     staff= cur.fetchall()
     cur.close()
 
     staff = [
-        {'stf_id': row[0], 'stf_name': row[1], 'stf_role': row[2]}
+        {'stf_id': row[0], 'stf_name': row[1], 'stf_role': row[2], 'status': row[3]}
         for row in staff
     ]
 
     #add button
     if request.method == "POST":
-        action = request.form("action")
-        if action == "add":
-            return redirect ("/manager/account/new")
-        
-    #remove button
-    if request.method == "POST":
-        action = request.form("action")
-        if action == "remove":
-            return redirect ("/manager/account/remove")
+        action = request.form.get("action")
+        stf_id = request.form.get("stf_id")
+        print(stf_id) 
+        if action == "activate":
+            return redirect(url_for("manager_account_remove", action=action, stf_id=stf_id))
+        elif action == "deactivate":
+            return redirect(url_for("manager_account_remove", action=action, stf_id=stf_id))
 
     return render_template("manager_account.html",staff=staff)
     
@@ -513,16 +513,34 @@ def manager_account_edit(stf_id):
 #M-remove account
 @app.route("/manager/account/remove", methods=["GET","POST"])
 def manager_account_remove():
+    if request.method == "GET":
+        stf_id = request.args.get("stf_id")
+        act=request.args.get("action")
+        if act == "activate":
+            status = 1
+        elif act == "deactivate":
+            status = 0
+        
     if request.method == "POST":
-        stf_id = request.form.get("stf_id")
         action = request.form.get("action")
+        sta = request.form.get("status")
+        stf_id = request.form.get("stf_id")
+
+        if sta == "activate":
+            status = 1
+            current_status = 0
+        elif sta == "deactivate":
+            status = 0
+            current_status = 1
+
         #cancel button
         if action == "Cancel":
             return redirect ("/manager/account")
         #confirm button
         if action == "Confirm":
             cur = mysql.connection.cursor()
-            cur.execute("UPDATE staff SET status=0 WHERE stf_id = %s AND status=1", (stf_id,))
+            cur.execute("UPDATE staff SET status=%s WHERE stf_id = %s AND status = %s", (status, stf_id, current_status))
+            print("Data updated successfully.")
             mysql.connection.commit()
             cur.close()
             return redirect ("/manager/account")
@@ -543,7 +561,7 @@ def manager_account_remove():
         'stf_role': staff[8]
     }
 
-    return render_template("manager_account_remove.html", staff=staff)
+    return render_template("manager_account_remove.html", staff=staff, action=act)
 
 @app.route("/manager/reports", methods=["GET","POST"])
 def manager_reports():
@@ -899,7 +917,7 @@ def manager_reports_yearly():
 @app.route("/manager/feedback", methods=["GET","POST"])
 def view_feedback():
     if not session.get('logged_in'):
-        return redirect('/login')
+        return redirect('/staff/login')
     
     if request.method == "POST":
         feedback_id = request.form.get('feedback_id')
