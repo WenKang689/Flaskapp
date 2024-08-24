@@ -433,7 +433,7 @@ def admin_laptop_add():
         print(f"Laptop successfully added with ID {product_id}.")
 
         flash(f"Laptop added successfully with ID {product_id}.", "success")
-        return redirect("/admin/laptop")
+        return redirect(f"/admin/laptop_images/{product_id}")
 
     return render_template("admin_laptop_add.html")
 
