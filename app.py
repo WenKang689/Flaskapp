@@ -31,7 +31,7 @@ S3= boto3.client('s3') #AWS S3 credentials and bucket configuration
 S3_BUCKET = 'sourc-wk-sdp-project' 
 S3_LOCATION = 'https://sourc-wk-sdp-project.s3.amazonaws.com/User+Profile+Picture/'
 
-#login for all (html left)
+#login for all (DONE)-----------------------------------------------------------------------------------------------------------------
 @app.route("/", methods=["GET","POST"])
 def login():
     if request.method == "POST":
@@ -240,7 +240,7 @@ def staff_login():
             return redirect("/staff/forgot_password")
     return render_template("staff_login.html")
 
-#Staff-forgot password
+#staff forgot password
 @app.route("/staff/forgot_password", methods=["GET", "POST"])
 def staff_forgot_password():
     if request.method == "POST":
@@ -293,7 +293,7 @@ def staff_forgot_password():
         cur.close()
     return render_template("staff_forgot_password.html")
 
-#Staff-reset password
+#staff reset password
 @app.route("/staff/reset_password", methods=["GET", "POST"])
 def staff_reset_password():
     token = request.args.get("token")
@@ -385,7 +385,7 @@ def homepage():
 
     return render_template('homepage.html', top_recommendations=top_recommendations)
 
-#C-setting/profile (flash message left)
+#C-setting/profile (DONE)-----------------------------------------------------------------------------------------------------------------
 @app.route("/user/setting/profile", methods=["GET","POST"])
 def setting_profile():
     if 'logged_in' in session:
@@ -422,7 +422,7 @@ def setting_profile():
         flash("Please log in to view this page.", "warning")
         return render_template('login.html')
 
-#C-setting/profile/edit profile (flash message left)
+#C-setting/profile/edit profile (DONE)-----------------------------------------------------------------------------------------------------------------
 @app.route("/user/setting/profile/edit", methods=["GET","POST"])
 def edit_profile():
     current_username = session["username"]
@@ -710,7 +710,7 @@ def is_valid_expiry_date(expiry_date):
         return month.isdigit() and year.isdigit() and 1 <= int(month) <= 12
     return False
 
-#C-setting/history(default purchase) (html left)
+#C-setting/history(default purchase) (DONE)-----------------------------------------------------------------------------------------------------------------
 @app.route("/user/setting/history/purchase", methods=["GET","POST"])
 def setting_history_purchase():
     username = session.get("username")
@@ -835,7 +835,7 @@ def mask_username(username): # Function to mask the username
     else:
         return username[0] + '*' * (len(username) - 2) + username[-1]  # Mask all characters except first and last
 
-#C-setting/history/search history (html left)
+#C-setting/history/search history (DONE)-----------------------------------------------------------------------------------------------------------------
 @app.route("/user/setting/history/search", methods=["GET","POST"])
 def setting_history_search():
     username = session.get('username')
@@ -868,7 +868,7 @@ def generate_next_search_id(): #generate search_id
         new_id = "SC0001"
     return new_id
 
-#C-recommend options (html left)
+#C-recommend options (DONE)-----------------------------------------------------------------------------------------------------------------
 @app.route("/recommend", methods=["GET", "POST"])
 def recommend():
     if not session.get('logged_in'):
@@ -883,7 +883,7 @@ def recommend():
     
     return render_template('recommend.html')
     
-#C-survey/fill in survey
+#C-survey/fill in survey (DONE)-----------------------------------------------------------------------------------------------------------------
 @app.route("/recommend/survey/form", methods=["GET","POST"])
 def survey_form():
     if request.method == "POST":    
@@ -1122,7 +1122,7 @@ def get_categories():
     }
     return categories
 
-#C-auto recommend page
+#C-auto recommend page (DONE)-----------------------------------------------------------------------------------------------------------------
 @app.route("/recommend/auto", methods=["GET","POST"])
 def recommend_auto():
     if request.method == 'POST':
@@ -1288,7 +1288,7 @@ def save_recommendations_to_db(username,recommendations):
     finally:
         cur.close()
 
-#C-laptop (display all laptop + search result + filter) (html sent)
+#C-laptop (display all laptop + search result + filter) (DONE)-----------------------------------------------------------------------------------------------------------------
 @app.route("/laptop", methods=["GET","POST"])
 def laptop():
     username = session.get('username')
@@ -1453,7 +1453,7 @@ def laptop():
 
     return render_template('laptop_search.html', laptops=filtered_laptops, brands=brands, memories=memories, graphics_options=graphics_options, storages=storages, batteries=batteries, processors=processors, operating_systems=operating_systems, message=message, min_price=min_price_db, max_price=max_price_db, min_weight=min_weight_db, max_weight=max_weight_db)
 
-#C-laptop/detail (html sent)
+#C-laptop/detail (DONE)-----------------------------------------------------------------------------------------------------------------
 @app.route("/laptop/<product_id>", methods=["GET","POST"])
 def laptop_detail(product_id):
     
@@ -1578,7 +1578,7 @@ def laptop_detail(product_id):
     # Pass laptop_details to the template
     return render_template("laptop_detail.html", product_details=product_details)
 
-#C-cart(all) (html sent)
+#C-cart(all) (DONE)-----------------------------------------------------------------------------------------------------------------
 @app.route("/cart", methods=["GET","POST"])
 def cart():
     username = session.get('username')
@@ -1735,7 +1735,7 @@ def cart():
 
     return render_template("cart.html", cart_items=cart_items, cart_total_price=cart_total_price, item_count=item_count)
 
-#C-cart/checkout(choose payment method,address) (html sent)
+#C-cart/checkout(choose payment method,address) (DONE)-----------------------------------------------------------------------------------------------------------------
 @app.route("/cart/checkout", methods=["GET","POST"])
 def cart_checkout():
     username = session.get('username')
@@ -1979,7 +1979,7 @@ def get_cart_quantity(username, product_id):
     cur.close()
     return result[0] if result else 0
 
-#C-cart/payment success (html sent)
+#C-cart/payment success (DONE)-----------------------------------------------------------------------------------------------------------------
 @app.route("/cart/payment/success", methods=["GET","POST"])
 def cart_payment_success():
     order_id = request.args.get('order_id') or session.get('order_id')
