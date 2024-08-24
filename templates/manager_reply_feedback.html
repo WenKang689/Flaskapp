@@ -4,59 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reply to Feedback</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        h1 {
-            color: #333;
-        }
-        .chat-box {
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 15px;
-            margin-bottom: 10px;
-        }
-        .feedback-message {
-            margin-bottom: 10px;
-        }
-        .reply-box {
-            margin-top: 20px;
-        }
-        textarea {
-            width: 100%;
-            height: 100px;
-            padding: 10px;
-            box-sizing: border-box;
-        }
-        button {
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .error-message {
-            color: red;
-            margin-top: 10px;
-        }
-    </style>
+    <link rel="stylesheet" href="{{url_for('static', filename='css/manager_reply_feedback.css')}}">
 </head>
 <body>
     <h1>Reply to Feedback</h1>
-    <form action="{{url_for('reply_feedback')}}" method="POST">
-        <input type="hidden" name="feedback_id" value="{{ feedback[0] }}">
-        <p>Feedback ID: {{ feedback[0] }}</p>
-        <p>Staff ID: {{ feedback[2] }}</p>
-        <p>Feedback: {{ feedback[1] }}</p>
-        <p>Feedback Time: {{ feedback[3] }}</p>
-        <textarea name="reply" rows="4" cols="50" placeholder="Enter your reply here" required></textarea>
-        <button type="submit">Submit Reply</button>
-    </form>
+    <div reply-container>
+        <form action="{{url_for('reply_feedback')}}" method="POST">
+            <input type="hidden" name="feedback_id" value="{{ feedback[0] }}">
+            <p><strong>Feedback ID: </strong> {{ feedback[0] }}</p>
+            <p><strong>Staff ID: </strong> {{ feedback[2] }}</p>
+            <p><strong>Feedback: </strong> {{ feedback[1] }}</p>
+            <p><strong>Feedback Time: </strong> {{ feedback[3] }}</p>
+            <textarea name="reply" rows="4" cols="50" placeholder="Enter your reply here" required></textarea>
+            <button type="submit">Submit Reply</button>
+        </form>
+    </div>
 </body>
 </html>

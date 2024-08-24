@@ -6,31 +6,76 @@
     <title>Edit Account</title>
 </head>
 <body>
-    <h1>Edit Account</h1>
-    <form method="POST" action="{{ url_for('manager_account_edit', stf_id=admin['stf_id']) }}">
-        <label for="stf_name">Name:</label>
-        <input type="text" id="stf_name" name="stf_name" value="{{ admin['stf_name'] }}" required><br><br>
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <span class="close-btn" onclick="this.parentElement.style.display='none';">&times;</span>  
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+    <header>
+        <div class="navbar">
+            <div>
+                <a href="{{ url_for('manager_homepage') }}" class="home-button">
+                    <img src="{{ url_for('static', filename='images/logo_home.png') }}" alt="Logo" class="logo">
+                </a>
+            </div>
+            <div class="icons">
+                <a href="{{ url_for('manager_account')}}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/manage_account.png') }}" alt="Icon" class="ma_icon">
+                </a>
+                <a href="{{ url_for('manager_reports')}}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/report.png') }}" alt="Icon" class="report_icon">
+                </a>
+                <a href="{{ url_for('view_feedback')}}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/feedback.png') }}" alt="Icon" class="manage_feedback_icon">
+                </a>
+                <a href="{{ url_for('login') }}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/logouticon.png') }}" alt="logouticon" class="logouticon">
+                </a>
+            </div>
+        </div>
+    </header>
+    <main>
+        <div class="container">
+            <div class="sidebar">
+                <a href="{{ url_for('setting_profile') }}" class="profilebtn">PROFILE</a>
+                <a href="{{ url_for('setting_payment') }}" class="paymentbtn">PAYMENT DETAILS</a>
+                <a href="{{ url_for('setting_history_purchase') }}" class="historybtn">HISTORY</a>
+                <a href="{{ url_for('login') }}" class="logoutbtn"><img src="{{ url_for('static', filename='images/logouticon.png') }}" alt="logouticon" style="padding-right: 15px; width: 19px; height: 20px; vertical-align: middle;">LOG OUT</a>
+            </div>
+        </div>
 
-        <label for="stf_email">Email:</label>
-        <input type="email" id="stf_email" name="stf_email" value="{{ admin['stf_email'] }}" required><br><br>
-
-        <label for="stf_phone">Phone:</label>
-        <input type="text" id="stf_phone" name="stf_phone" value="{{ admin['stf_phone'] }}" required><br><br>
-
-        <label for="stf_dob">Date of Birth:</label>
-        <input type="date" id="stf_dob" name="stf_dob" value="{{ admin['stf_dob'] }}" required><br><br>
-
-        <label for="stf_address">Address:</label>
-        <input type="text" id="stf_address" name="stf_address" value="{{ admin['stf_address'] }}" required><br><br>
-
-        <label for="stf_emer_contact">Emergency Contact:</label>
-        <input type="text" id="stf_emer_contact" name="stf_emer_contact" value="{{ admin['stf_emer_contact'] }}" required><br><br>
-
-        <label for="stf_role">Role:</label>
-        <input type="text" id="stf_role" name="stf_role" value="{{ admin['stf_role'] }}" required><br><br>
-
-        <button type="submit" name="action" value="Done">Done</button>
-        <button type="submit" name="action" value="Cancel">Cancel</button>
-    </form>
+        <div class="content-area">
+            <h1>Edit Account</h1>
+            <form method="POST" action="{{ url_for('manager_account_edit', stf_id=admin['stf_id']) }}">
+                <label for="stf_name">Name:</label>
+                <input type="text" id="stf_name" name="stf_name" value="{{ admin['stf_name'] }}" required><br><br>
+        
+                <label for="stf_email">Email:</label>
+                <input type="email" id="stf_email" name="stf_email" value="{{ admin['stf_email'] }}" required><br><br>
+        
+                <label for="stf_phone">Phone:</label>
+                <input type="text" id="stf_phone" name="stf_phone" value="{{ admin['stf_phone'] }}" required><br><br>
+        
+                <label for="stf_dob">Date of Birth:</label>
+                <input type="date" id="stf_dob" name="stf_dob" value="{{ admin['stf_dob'] }}" required><br><br>
+        
+                <label for="stf_address">Address:</label>
+                <input type="text" id="stf_address" name="stf_address" value="{{ admin['stf_address'] }}" required><br><br>
+        
+                <label for="stf_emer_contact">Emergency Contact:</label>
+                <input type="text" id="stf_emer_contact" name="stf_emer_contact" value="{{ admin['stf_emer_contact'] }}" required><br><br>
+        
+                <label for="stf_role">Role:</label>
+                <input type="text" id="stf_role" name="stf_role" value="{{ admin['stf_role'] }}" required><br><br>
+        
+                <button type="submit" name="action" value="Done">Done</button>
+                <button type="submit" name="action" value="Cancel">Cancel</button>
+            </form>
+        </div>
 </body>
 </html>

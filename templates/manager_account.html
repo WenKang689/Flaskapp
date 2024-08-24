@@ -4,57 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manager - Manage Account</title>
-    <link rel="stylesheet" href="styles.css"> <!-- If you have a stylesheet -->
-    <nav>
-        <ul>
-            <li><a href="/">Home</a></li>
-            <li><a href="/laptop_filter.html">Find a Laptop</a></li>
-            <li><a href="/manager/homepage">Manager Homepage</a></li>
-            <li><a href="/manager/account">Manage Account</a></li>
-            <li><a href="/manager/reports">Reports</a></li>
-            <li><a href="/manager/feedback">Manage Feedback</a></li>
-            <!-- Add more navigation links as needed -->
-        </ul>
-    </nav>
-    <style>
-        .staff-account-container {
-            display: block;
-            text-decoration: none;
-        }
-        .staff-account {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            padding: 10px;
-            border: 1px solid #000;
-            cursor: pointer;
-            align-items: center; /* Center items vertically */
-            text-decoration: none; /* Remove underline from links */
-            color: inherit; /* Inherit text color from parent */
-            position: relative; /* For absolute positioning of actions */
-        }
-        .staff-details {
-            flex: 1;
-        }
-        .staff-actions {
-            display: flex;
-            gap: 10px; /* Space between action buttons */
-            position: absolute; /* Position buttons absolutely */
-            right: 10px; /* Align buttons to the right */
-            top: 50%; /* Vertically center buttons */
-            transform: translateY(-50%); /* Adjust vertical alignment */
-        }
-        .staff-account:hover {
-            background-color: #f0f0f0;
-        }
-        .staff-actions button {
-            margin: 0;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/manager_accountstyles.css') }}"> 
+
 </head>
 <body>
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <span class="close-btn" onclick="this.parentElement.style.display='none';">&times;</span>  
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+    <header>
+        <div class="navbar">
+            <div>
+                <a href="{{ url_for('manager_homepage') }}" class="home-button">
+                    <img src="{{ url_for('static', filename='images/logo_home.png') }}" alt="Logo" class="logo">
+                </a>
+            </div>
+            <div class="icons">
+                <a href="{{ url_for('manager_account')}}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/manage_account.png') }}" alt="Icon" class="ma_icon">
+                </a>
+                <a href="{{ url_for('manager_reports')}}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/report.png') }}" alt="Icon" class="report_icon">
+                </a>
+                <a href="{{ url_for('view_feedback')}}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/feedback.png') }}" alt="Icon" class="manage_feedback_icon">
+                </a>
+                <a href="{{ url_for('login') }}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/logouticon.png') }}" alt="logouticon" class="logouticon">
+                </a>
+            </div>
+        </div>
+    </header>
     <h1>Manage Accounts</h1>
-    <li><a href="/manager/account/new">Add Account</a></li>
+    <div class="button-container">
+        <a href='/manager/account/detail/{{ staff.stf_id }}' class="aabtn">View Account</a>
+        <a href="/manager/account/new" class="aabtn">Add Account</a>
+    </div>
     <div>
         {% for staff in staff %}
         <div class="staff-account" onclick="location.href='/manager/account/detail/{{ staff.stf_id }}'">
