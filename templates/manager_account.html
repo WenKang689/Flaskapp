@@ -43,7 +43,6 @@
     </header>
     <h1>Manage Accounts</h1>
     <div class="button-container">
-        <a href='/manager/account/detail/{{ staff.stf_id }}' class="aabtn">View Account</a>
         <a href="/manager/account/new" class="aabtn">Add Account</a>
     </div>
     <div>
@@ -55,9 +54,15 @@
                     <span>Role: {{ staff.stf_role }}</span>
             </div>
             <div class="staff-actions">
-                <form method="POST" action="/manager/account/remove" style="display:inline;">
+                <form method="POST" action="/manager/account" style="display:inline;">
                     <input type="hidden" name="stf_id" value="{{ staff.stf_id }}">
+                    {% if staff.status == 1 %}
+                    <input type="hidden" name="action" value="deactivate">
                     <button type="submit">Deactivate</button>
+                    {% elif staff.status == 0 %}
+                    <input type="hidden" name="action" value="activate">
+                    <button type="submit">Activate</button>
+                    {% endif %}
                 </form>
             </div>
         </div>

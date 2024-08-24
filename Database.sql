@@ -69,7 +69,7 @@ CREATE TABLE `feedback` (
 
 LOCK TABLES `feedback` WRITE;
 /*!40000 ALTER TABLE `feedback` DISABLE KEYS */;
-INSERT INTO `feedback` VALUES ('FB0001','SF0002','wfawf','2024-08-20 13:08:00',NULL),('FB0002','SF0002','hi','2024-08-22 11:43:59','ok'),('FB0003','SF0002','awsd','2024-08-22 16:43:59','okk');
+INSERT INTO `feedback` VALUES ('FB0001','SF0002','wfawf','2024-08-20 13:08:00',NULL),('FB0002','SF0002','hi','2024-08-22 11:43:59',NULL),('FB0003','SF0002','awsd','2024-08-22 16:43:59',NULL),('FB0004','SF0002','aflasjhfolifwhifawdawdsawdaswdawsdawsdwdawsdawdawsdawsdawsdwsdsawdawsdawdawd','2024-08-23 16:43:59',NULL),('FB0005','SF0003','fsefesfdfsedf','2024-08-15 05:02:59',NULL),('FB0006','SF0004','aawfw','2024-08-20 16:43:59',NULL);
 /*!40000 ALTER TABLE `feedback` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -389,7 +389,7 @@ CREATE TABLE `staff` (
 
 LOCK TABLES `staff` WRITE;
 /*!40000 ALTER TABLE `staff` DISABLE KEYS */;
-INSERT INTO `staff` VALUES ('SF0001','wk','manager','braynchong590@gmail.com','0166893432','2004-12-16','dsdf','0111112345','Manager',1),('SF0002','wk','Wen Kang','work.cwk689@gmail.com','0169139121','2004-12-16','Pudu Impian 1','0127448144','Admin',1),('SF0003','WKWK','Chong Wen Kang','braynchongwenakng590@gmail.com','0166893432','2000-07-16','109-3-2 Jalan Pudu Ulu, Pudu Impian 1','0158985435','Admin',0);
+INSERT INTO `staff` VALUES ('SF0001','wk','manager','braynchong590@gmail.com','0166893432','2004-12-16','dsdf','0111112345','Manager',1),('SF0002','wk','Wen Kang','work.cwk689@gmail.com','0169139121','2004-12-16','Pudu Impian 1','0127448144','Admin',1),('SF0003','WKWK','Chong Wen Kang','braynchongwenakng590@gmail.com','0166893432','2000-07-16','109-3-2 Jalan Pudu Ulu, Pudu Impian 1','0158985435','Admin',1),('SF0004','wk','swdd','dawudh@gmail.com','0168493203','2000-06-15','11, JALAN BEDARA','0166893432','Admin',1),('SF0005','wk','Kai Hong','kh@gmail.com','0176849234','2000-07-16','wds','0167843053','Admin',1);
 /*!40000 ALTER TABLE `staff` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -445,7 +445,7 @@ CREATE TABLE `user_tracking` (
 
 LOCK TABLES `user_tracking` WRITE;
 /*!40000 ALTER TABLE `user_tracking` DISABLE KEYS */;
-INSERT INTO `user_tracking` VALUES (1,6);
+INSERT INTO `user_tracking` VALUES (1,7);
 /*!40000 ALTER TABLE `user_tracking` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -466,4 +466,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-08-23 23:00:15
+-- Dump completed on 2024-08-25  1:59:25

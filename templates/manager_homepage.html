@@ -43,7 +43,8 @@
     <main>
         <h1>Laptop Search</h1>
         <div class="search-container">
-            <form action="/manager/homepage" method="get"> <!-- Assuming the search route is /search -->
+            <form action="/manager/homepage" method="post"> <!-- Assuming the search route is /search -->
+                <input type="hidden" name="action" value="search">
                 <input type="text" name="query" placeholder="Search laptops..." value="{{ search_query }}">
                 <button type="submit" class="sbtn">Search</button>
             </form>

@@ -61,6 +61,7 @@
 
         <form method="POST" action="{{ url_for('manager_account_remove') }}">
             <input type="hidden" name="stf_id" value="{{ staff.stf_id }}">
+            <input type="hidden" name="status" value="{{action}}">
             <button type="submit" name="action" value="Confirm">Confirm</button>
             <button type="submit" name="action" value="Cancel" class="cancel-button">Cancel</button>
         </form>
