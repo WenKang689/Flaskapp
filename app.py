@@ -1328,12 +1328,10 @@ def laptop():
         for i, laptop in enumerate(filtered_laptops):
             product_id = laptop[0]
             filtered_laptops[i] = laptop + (user_recommendation_dict.get(product_id, 0),)
-            print(filtered_laptops[i])
-
 
     # Sort the laptops by score if the filter is applied
     if sort_by_score == 'on' and username:
-        filtered_laptops.sort(key=lambda x: x[12], reverse=True)  # Descending
+        filtered_laptops.sort(key=lambda x: x[-1] if x[-1] is not None else float('-inf'), reverse=True)  # Descending
 
 
     message = None
