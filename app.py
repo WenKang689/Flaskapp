@@ -1328,6 +1328,7 @@ def laptop():
         for i, laptop in enumerate(filtered_laptops):
             product_id = laptop[0]
             filtered_laptops[i] = laptop + (user_recommendation_dict.get(product_id, 0),)
+            print(filtered_laptops[i])
 
 
     # Sort the laptops by score if the filter is applied
