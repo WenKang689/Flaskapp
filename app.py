@@ -211,33 +211,34 @@ def reset_password():
 @app.route("/staff/login", methods=["GET","POST"])
 def staff_login():
     if request.method == "POST":
-        if request.form['action'] == 'login':
-            userdata = request.form
-            staff_id = userdata.get("stf_id")
-            staff_psw = userdata.get("stf_psw")
-            cur = mysql.connection.cursor()
-            value = cur.execute("SELECT stf_id, stf_psw, stf_role FROM staff WHERE stf_id=%s", (staff_id,))
+        userdata=request.form
+        staff_id=userdata["stf_id"]
+        staff_psw=userdata["stf_psw"]
+        cur=mysql.connection.cursor()
+        value=cur.execute("SELECT stf_id, stf_psw, stf_role FROM staff WHERE stf_id=%s AND status=1",(staff_id,)) 
 
-            if value > 0:
-                data = cur.fetchone()
-                passw = data[1]
-                role = data[2]
-                if staff_psw == passw:
-                    session["logged_in"] = True
-                    session["staff_id"] = staff_id
-                    if role == "Manager":
-                        flash("Login Successful", "success")
-                        return redirect("/manager/homepage")
-                    elif role == "Admin":
-                        flash("Login Successful", "success")
-                        return redirect("/admin/laptop")
-                else:
-                    flash("Invalid staff ID or password.")
+        if value>0:
+            data=cur.fetchone()
+            passw=data[1]
+            role=data[2]
+            if staff_psw==passw:
+                if role=="Manager":
+                    session["logged_in"]=True
+                    session["staff_id"]=staff_id
+                    session["role"]=role
+                    flash("Login Successful","success")
+                    return redirect("/manager/homepage")
+                elif role=="Admin":
+                    session["logged_in"]=True
+                    session["staff_id"]=staff_id
+                    session["role"]=role
+                    flash("Login Successful","success")
+                    return redirect("/admin/laptop")
             else:
-                flash("Invalid staff ID or password.")
-            cur.close()
-        elif request.form['action'] == 'forgot_password':
-            return redirect("/staff/forgot_password")
+                flash("Password incorrect.")
+        else:
+            flash("User not found.")
+        cur.close()
     return render_template("staff_login.html")
 
 #staff forgot password
@@ -2473,10 +2474,10 @@ def admin_feedback_send():
         cur.execute("SELECT MAX(feedback_id) FROM feedback")
         result = cur.fetchone()
 
-        last_id = result[0] if result[0] is not None else 'F0000'
-        last_number = int(last_id[1:])  # Get the numeric part and convert to integer
+        last_id = result[0] if result[0] is not None else 'FB0000'
+        last_number = int(last_id[2:])  # Get the numeric part and convert to integer
         next_number = last_number + 1
-        feedback_id = f'F{next_number:04d}'  # Format as F#### with leading zeros
+        feedback_id = f'FB{next_number:04d}'  # Format as F#### with leading zeros
 
         try:
             # Insert feedback into the database
