@@ -172,3 +172,38 @@ label {
     height: 60px; 
     padding-left: 10px;
 }
+
+.dropdown-container {
+    position: relative; /* Position relative for the arrow */
+}
+
+.dropdown {
+    width: 100%; 
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    appearance: none; /* Remove default styling */
+    background-color: white; /* Background color */
+    font-size: 16px; /* Font size */
+}
+
+.arrow {
+    position: absolute;
+    right: 10px;
+    top: 40%;
+    transform: translateY(-50%);
+    pointer-events: none; /* Prevent interaction with the arrow */
+    font-size: 16px; /* Adjust size as needed */
+}
+
+
+.dropdown::after {
+    content: '▼'; 
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none; 
+}

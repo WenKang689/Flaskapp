@@ -68,8 +68,14 @@
                 <input type="text" name="Emergency Contact" id="Emergency Contact" maxlength="10">
         
                 <label for="Role">Role</label>
-                <input type="text" name="Role" id="Role" maxlength="10">
-        
+                <div class="dropdown-container">
+                    <select name="role" id="role" class="dropdown">
+                        <option value="Admin">Admin</option>
+                        <option value="Manager">Manager</option>
+                    </select>
+                    <span class="arrow">▼</span>
+                </div>
+
                 <button type="submit" class="btnap">Create New Account</button>
             </form>
         </div>
