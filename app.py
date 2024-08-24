@@ -356,8 +356,8 @@ def edit_profile():
         if len(new_username) > 30:
             flash("Username must be 30 characters or fewer.", "danger")
             return redirect("/user/setting/profile/edit")
-        if not re.match(r'^(?=.[A-Za-z])(?=.\d)(?=.[@$!%?&])[A-Za-z\d@$!%*?&]{8,}$', password):
-            flash("Use 8 or more characters with a mix of letters, numbers & symbols.", "danger")
+        if not re.search(r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$', password):
+            flash("Use 8 or more characters with a mix of capital letters, small letters, numbers and symbols for password.", "danger")
             cur.close()
             return redirect("/user/setting/profile/edit")
         if len(name) > 30:
@@ -1520,7 +1520,7 @@ def cart():
 
         elif action == 'checkout':
             # Extract selected items from form data
-            selected_items = [key.split('')[1] for key in request.form if key.startswith('select')]
+            selected_items = [key.split('_')[1] for key in request.form if key.startswith('select')]
             print("Selected items for checkout:", selected_items)  # Debug print
 
             if not selected_items:
