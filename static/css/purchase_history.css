@@ -3,6 +3,7 @@
 }
 
 .popup {
+<<<<<<< HEAD
     position: fixed; 
     top: 0;
     left: 0;
@@ -64,14 +65,30 @@
 }
 
 
+=======
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+>>>>>>> admin_auto
 .popup-content {
     background: white;
     padding: 20px;
     border-radius: 5px;
     position: relative;
+<<<<<<< HEAD
     width: 800px;
     height: 350px;
     size: 100vh;
+=======
+>>>>>>> admin_auto
 }
 
 .close-btn {
@@ -89,7 +106,11 @@
 
 .star {
     font-size: 30px;
+<<<<<<< HEAD
     color: lightgrey;
+=======
+    color: gray;
+>>>>>>> admin_auto
 }
 
 .star.selected {
@@ -115,6 +136,7 @@ body {
     padding: 0;
 }
 
+<<<<<<< HEAD
 .product-link {
     color: #007bff; /* Replace with your desired color */
     text-decoration: none; /* Optional: remove underline */
@@ -125,6 +147,8 @@ body {
     text-decoration: underline; /* Optional: underline on hover */
 }
 
+=======
+>>>>>>> admin_auto
 header {
     top: 0;
     left: 0;
@@ -137,6 +161,10 @@ header {
     background-color: white;
     background-size: cover;
     background-position: center;
+<<<<<<< HEAD
+=======
+    z-index: 2;
+>>>>>>> admin_auto
 }
 
 .navbar {
@@ -147,11 +175,14 @@ header {
     align-items: center;
 }
 
+<<<<<<< HEAD
 .logoutbtn {
     color: #5875DE; /* Change this to the desired color */
     text-decoration: none;
 }
 
+=======
+>>>>>>> admin_auto
 .home-button {
     position: absolute;
     top: 20px;
@@ -195,8 +226,11 @@ header {
     max-width: 1500px;
     margin: 0 auto;
     padding-top: 20px;
+<<<<<<< HEAD
     padding-bottom: 20px;
     padding-right: 20px;
+=======
+>>>>>>> admin_auto
 }
 
 
@@ -242,6 +276,16 @@ header {
     color: #666666;
 }
 
+<<<<<<< HEAD
+=======
+.logoutbtn {
+    color: #5875DE;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+>>>>>>> admin_auto
 .header-links {
     display: flex;
     gap: 20px;
@@ -302,6 +346,11 @@ header {
     position: relative;
     display: flex;
     left: 70px;
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> admin_auto
 }
 
 .scrollable-container {
@@ -379,6 +428,7 @@ header {
     top: 5px; 
     right: 10px; 
     cursor: pointer; 
+<<<<<<< HEAD
 }
 
 .submit-container {
@@ -396,4 +446,6 @@ header {
     width: 100%; 
     transition: background-color 0.3s;
     text-align: center;
+=======
+>>>>>>> admin_auto
 }

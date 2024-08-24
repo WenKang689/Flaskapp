@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Orders</title>
+    <link rel="stylesheet" href="/static/styles.css"> <!-- Path to your CSS -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-image: url('/static/images/nav_background.png');
+            background-color: white;
+            background-size: cover;
+            background-position: center;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 120px;
+            padding: 20px 0;
+            text-align: center;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content:flex-end;
+            gap: 80px;
+            margin-top: 35px;
+            padding-right: 100px;
+            
+        }
+
+        .home-button {
+            position: absolute;
+            top: 20px;
+            left: 110px;
+            width: 300px;
+            display: flex;
+        }
+
+        .home-button img {
+            width: 70%;
+            height: auto;
+        }
+
+        .manage_review {
+            background-color: white;
+            color: #5875DE;
+            text-decoration: none;
+            padding: 15px 40px;
+            font-size: 16.71px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .manage_review:hover {
+            background-color: #f2f2f2;
+        }
+
+        .manage_order {
+            background-color: white;
+            color: #5875DE;
+            text-decoration: none;
+            padding: 15px 40px;
+            font-size: 16.71px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .manage_order:hover {
+            background-color: #f2f2f2;
+        }
+
+        .manage_laptop {
+            background-color: white;
+            color: #5875DE;
+            text-decoration: none;
+            padding: 15px 40px;
+            font-size: 16.71px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .manage_laptop:hover {
+            background-color: #f2f2f2;
+        }
+
+        .leave_feedback {
+            background-color: white;
+            color: #5875DE;
+            text-decoration: none;
+            padding: 15px 40px;
+            font-size: 16.71px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .leave_feedback:hover {
+            background-color: #f2f2f2;
+        }
+
+        .logoutbtn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-top: 9px;
+            width: 30px; 
+            height: 32px;
+        }
+
+        main {
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            padding-bottom: 20px;
+        }
+
+        section {
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        h2 {
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+
+        ul {
+            padding: 0;
+            margin: 0;
+            list-style-type: none;
+        }
+
+        li {
+            margin-bottom: 20px;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        li p {
+            margin: 5px 0;
+        }
+
+        .btn-container {
+            margin-top: 10px;
+        }
+
+        button {
+            background-color: #5cb85c;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin-right: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button.cancel {
+            background-color: #d9534f;
+        }
+
+        button.cancel:hover {
+            background-color: #c9302c;
+        }
+
+        button.complete:hover {
+            background-color: #4cae4c;
+        }
+
+        .pagination {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .pagination a {
+            color: #333;
+            text-decoration: none;
+            padding: 10px 20px;
+            margin: 0 5px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .pagination a:hover {
+            background-color: #ddd;
+        }
+
+        .pagination span {
+            padding: 10px 20px;
+            margin: 0 5px;
+        }
+        
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div>
+                <a class="home-button">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="logo">
+                </a>
+            </div>
+            <a href="/admin/reviews" class="manage_review">MANAGE REVIEWS</a>
+            <a href="/admin/orders" class="manage_order">MANAGE ORDERS</a>
+            <a href="/admin/laptop" class="manage_laptop">MANAGE LAPTOPS</a>
+            <a href="/admin/feedback/send" class="leave_feedback">LEAVE FEEDBACK</a>
+            <a href="{{ url_for('login') }}"><img src="{{ url_for('static', filename='images/black_logouticon.png') }}" alt="logouticon" class="logoutbtn"></a>
+        </nav>
+    </header>
+    <main>
+        <h1>Manage Orders</h1>
+        <section>
+            <h2>All Orders</h2>
+            {% if orders %}
+                <ul>
+                    {% for order in orders %}
+                        <li>
+                            <p><strong>Order ID:</strong> {{ order[0] }}</p>
+                            <p><strong>Username:</strong> {{ order[1] }}</p>
+                            <p><strong>Purchase Date:</strong> {{ order[2] }}</p>
+                            <p><strong>Total Amount:</strong> {{ order[3] }}</p>
+                            <p><strong>Status:</strong> {{ order[4] }}</p>
+                            <p><strong>Shipping Address:</strong> {{ order[5] }}</p>
+                            <p><strong>Receiver Name:</strong> {{ order[6] }}</p>
+                            <p><strong>Receiver Phone:</strong> {{ order[7] }}</p>
+                            <p><strong>Shipping Status:</strong> {{ order[8] }}</p>
+                            <p><strong>Shipping Time:</strong> {{ order[9] }}</p>
+                            <div class="btn-container">
+                                <form action="/admin/orders" method="POST" style="display:inline;">
+                                    <input type="hidden" name="order_id" value="{{ order[0] }}">
+                                    <input type="hidden" name="action" value="complete">
+                                    <button type="submit" class="complete">Complete Order</button>
+                                </form>
+                                <form action="/admin/orders" method="POST" style="display:inline;">
+                                    <input type="hidden" name="order_id" value="{{ order[0] }}">
+                                    <input type="hidden" name="action" value="cancel">
+                                    <button type="submit" class="cancel">Cancel Order</button>
+                                </form>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No orders found.</p>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>

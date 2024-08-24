@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Laptop - Admin Panel</title>
+    <link rel="stylesheet" href="/static/styles.css"> <!-- Path to your CSS -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-image: url('/static/images/nav_background.png');
+            background-color: white;
+            background-size: cover;
+            background-position: center;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 120px;
+            padding: 20px 0;
+            text-align: center;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content:flex-end;
+            gap: 80px;
+            margin-top: 35px;
+            padding-right: 100px;
+            
+        }
+
+        .home-button {
+            position: absolute;
+            top: 20px;
+            left: 110px;
+            width: 300px;
+            display: flex;
+        }
+
+        .home-button img {
+            width: 70%;
+            height: auto;
+        }
+
+        .manage_review {
+            background-color: white;
+            color: #5875DE;
+            text-decoration: none;
+            padding: 15px 40px;
+            font-size: 16.71px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .manage_review:hover {
+            background-color: #f2f2f2;
+        }
+
+        .manage_order {
+            background-color: white;
+            color: #5875DE;
+            text-decoration: none;
+            padding: 15px 40px;
+            font-size: 16.71px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .manage_order:hover {
+            background-color: #f2f2f2;
+        }
+
+        .manage_laptop {
+            background-color: white;
+            color: #5875DE;
+            text-decoration: none;
+            padding: 15px 40px;
+            font-size: 16.71px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .manage_laptop:hover {
+            background-color: #f2f2f2;
+        }
+
+        .leave_feedback {
+            background-color: white;
+            color: #5875DE;
+            text-decoration: none;
+            padding: 15px 40px;
+            font-size: 16.71px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .leave_feedback:hover {
+            background-color: #f2f2f2;
+        }
+
+        .logoutbtn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-top: 9px;
+            width: 30px; 
+            height: 32px;
+        }
+
+        main {
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            padding-bottom: 20px;
+        }
+
+        section {
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 800px;
+            margin: auto;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #5bc0de;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin-top: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background-color: #31b0d5;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div>
+                <a class="home-button">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="logo">
+                </a>
+            </div>
+            <a href="/admin/reviews" class="manage_review">MANAGE REVIEWS</a>
+            <a href="/admin/orders" class="manage_order">MANAGE ORDERS</a>
+            <a href="/admin/laptop" class="manage_laptop">MANAGE LAPTOPS</a>
+            <a href="/admin/feedback/send" class="leave_feedback">LEAVE FEEDBACK</a>
+            <a href="{{ url_for('login') }}"><img src="{{ url_for('static', filename='images/black_logouticon.png') }}" alt="logouticon" class="logoutbtn"></a>
+        </nav>
+    </header>
+    <main>
+        <h1>Edit Laptop Details</h1>
+        <section>
+            <form action="/admin/laptop/edit" method="POST">
+                <input type="hidden" name="product_id" value="{{ laptop['product_id'] }}">
+
+                <label for="product_name">Name:</label>
+                <input type="text" id="product_name" name="product_name" value="{{ laptop['product_name'] }}" required>
+
+                <label for="brand">Brand:</label>
+                <input type="text" id="brand" name="brand" value="{{ laptop['brand'] }}" required>
+
+                <label for="price">Price:</label>
+                <input type="number" id="price" name="price" step="0.01" value="{{ laptop['price'] }}" required>
+
+                <label for="memory">Memory:</label>
+                <input type="text" id="memory" name="memory" value="{{ laptop['memory'] }}" required>
+
+                <label for="graphics">Graphics:</label>
+                <input type="text" id="graphics" name="graphics" value="{{ laptop['graphics'] }}" required>
+
+                <label for="storage">Storage:</label>
+                <input type="text" id="storage" name="storage" value="{{ laptop['storage'] }}" required>
+
+                <label for="battery">Battery:</label>
+                <input type="text" id="battery" name="battery" value="{{ laptop['battery'] }}" required>
+
+                <label for="processor">Processor:</label>
+                <input type="text" id="processor" name="processor" value="{{ laptop['processor'] }}" required>
+
+                <label for="os">OS:</label>
+                <input type="text" id="os" name="os" value="{{ laptop['os'] }}" required>
+
+                <label for="weight">Weight:</label>
+                <input type="text" id="weight" name="weight" value="{{ laptop['weight'] }}" required>
+
+                <label for="stock">Stock:</label>
+                <input type="number" id="stock" name="stock" value="{{ laptop['stock'] }}" required>
+
+                <button type="submit">Update Laptop</button>
+            </form>
+        </section>
+    </main>
+</body>
+</html>
