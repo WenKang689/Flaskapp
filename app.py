@@ -760,13 +760,19 @@ def manager_reports_weekly():
 #M-reports/monthly
 @app.route("/manager/reports/monthly", methods=["GET", "POST"])
 def manager_reports_monthly():
-    selected_date = request.form.get("date") or datetime.now().strftime("%Y-%m-%d")
-    
+    selected_date = request.form.get("date") or datetime.now().strftime("%Y-%m")
+    print(selected_date)
+
+    if len(selected_date) == 10:  # Format: YYYY-MM-DD
+        selected_date = selected_date[:7]  # Extract YYYY-MM
+    print(f"Processed Date: {selected_date}")
+
     cur = mysql.connection.cursor()
 
     # Calculate the start of the month for the selected_date
-    selected_date_obj = datetime.strptime(selected_date, "%Y-%m-%d")
-    date_month = selected_date_obj.replace(day=1).strftime("%Y-%m-%d")
+    selected_date_obj = datetime.strptime(selected_date, "%Y-%m")
+    date_month = selected_date_obj.strftime("%Y-%m-%d")
+
 
     # Fetch the top 3 selling products for the selected month
     cur.execute("""
@@ -798,14 +804,14 @@ def manager_reports_monthly():
 
     # Fetch all monthly report data for chart
     cur.execute("""
-        SELECT date_month, 
+        SELECT DATE_FORMAT(date_month, '%Y/%m') AS formatted_date_month, 
                SUM(sales) AS total_sales, 
                SUM(product_sold) AS total_product_sold, 
                SUM(new_user) AS total_new_user,
                COUNT(order_id) AS total_orders
         FROM report
-        GROUP BY date_month
-        ORDER BY date_month
+        GROUP BY formatted_date_month
+        ORDER BY formatted_date_month
     """)
     
     monthly_chart = cur.fetchall()
@@ -823,9 +829,12 @@ def manager_reports_monthly():
     
     cur.close()
 
+    # Format the date for display as "Month Year"
+    formatted_date_month = selected_date_obj.strftime("%B %Y")
+
     return render_template("manager_reports_monthly.html", 
                            monthly_report=monthly_report, 
-                           date_month=date_month,
+                           date_month=formatted_date_month,
                            top_product=top_product, 
                            monthly_chart=monthly_chart,
                            sales_growth=sales_growth)
@@ -833,13 +842,16 @@ def manager_reports_monthly():
 #M-reports/yearly
 @app.route("/manager/reports/yearly", methods=["GET","POST"])
 def manager_reports_yearly():
-    selected_date = request.form.get("date") or datetime.now().strftime("%Y-%m-%d")
+    current_year = datetime.now().year
+
+    selected_year = request.form.get("year") or datetime.now().strftime("%Y")
     
     cur = mysql.connection.cursor()
 
-    # Calculate the start and end of the year for the selected_date
-    selected_date_obj = datetime.strptime(selected_date, "%Y-%m-%d")
-    date_year = selected_date_obj.replace(month=1, day=1).strftime("%Y-%m-%d")
+    # Set the start and end of the selected year
+    selected_date_obj = datetime.strptime(selected_year, "%Y")
+    date_year = selected_date_obj.strftime("%Y-%m-%d")
+    
 
     # Fetch the top 3 selling products for the selected year
     cur.execute("""
@@ -864,14 +876,14 @@ def manager_reports_yearly():
                COUNT(order_id) AS total_orders
         FROM report
         WHERE date_year = %s
-        GROUP BY date_year
+        GROUP BY YEAR(date_year)
     """, (date_year,))
     
     yearly_report = cur.fetchall()
 
     # Fetch all yearly report data for chart
     cur.execute("""
-        SELECT date_year, 
+        SELECT date_year,
                SUM(sales) AS total_sales, 
                SUM(product_sold) AS total_product_sold, 
                SUM(new_user) AS total_new_user,
@@ -906,12 +918,16 @@ def manager_reports_yearly():
 
     cur.close()
 
+    # Format the date for display as "Year"
+    formatted_date_year = selected_date_obj.strftime("%Y")
+
     return render_template("manager_reports_yearly.html", 
                            yearly_report=yearly_report, 
-                           date_year=date_year,
+                           date_year=formatted_date_year,
                            top_product=top_product, 
                            yearly_chart=yearly_chart,
-                           sales_growth=sales_growth,retention_rate=retention_rate)
+                           sales_growth=sales_growth,retention_rate=retention_rate,
+                           current_year=current_year)
 
 #M-view feedbacks
 @app.route("/manager/feedback", methods=["GET","POST"])

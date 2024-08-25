@@ -41,6 +41,7 @@
     </header>
     <main>
         <h1>View Feedback</h1>
+        {%if feedback_list%}
         <div class="feedback-grid">
             {% for feedback in feedback_list %}
             <form action="{{url_for('view_feedback')}}" method="post" style="display: inline;">
@@ -55,6 +56,9 @@
             </form>
             {% endfor %}
         </div>
+        {% else %}
+        <p>No feedback available.</p>
+        {% endif %}
     </main>
 </body>
 </html>
