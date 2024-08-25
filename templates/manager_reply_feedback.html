@@ -7,6 +7,16 @@
     <link rel="stylesheet" href="{{url_for('static', filename='css/manager_reply_feedback.css')}}">
 </head>
 <body>
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <span class="close-btn" onclick="this.parentElement.style.display='none';">&times;</span>  
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
     <h1>Reply to Feedback</h1>
     <div reply-container>
         <form action="{{url_for('reply_feedback')}}" method="POST">
