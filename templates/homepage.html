@@ -64,7 +64,7 @@
 
                 const slideWidth = slides[0].clientWidth; // Get the width of a single slide
                 slideshowImages.style.transition = 'transform 1s ease-in-out';
-                slideshowImages.style.transform = `translateX(-${slideWidth * currentIndex}px)`;
+                slideshowImages.style.transform = 'translateX(-${slideWidth * currentIndex}px)';
 
                 // Optional: Reset transition for the first slide
                 if (currentIndex === 0) {

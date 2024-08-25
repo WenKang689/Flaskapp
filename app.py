@@ -211,34 +211,37 @@ def reset_password():
 @app.route("/staff/login", methods=["GET","POST"])
 def staff_login():
     if request.method == "POST":
-        userdata=request.form
-        staff_id=userdata["stf_id"]
-        staff_psw=userdata["stf_psw"]
-        cur=mysql.connection.cursor()
-        value=cur.execute("SELECT stf_id, stf_psw, stf_role FROM staff WHERE stf_id=%s AND status=1",(staff_id,)) 
+        if request.form['action'] == 'login':
+            userdata=request.form
+            staff_id=userdata["stf_id"]
+            staff_psw=userdata["stf_psw"]
+            cur=mysql.connection.cursor()
+            value=cur.execute("SELECT stf_id, stf_psw, stf_role FROM staff WHERE stf_id=%s AND status=1",(staff_id,)) 
 
-        if value>0:
-            data=cur.fetchone()
-            passw=data[1]
-            role=data[2]
-            if staff_psw==passw:
-                if role=="Manager":
-                    session["logged_in"]=True
-                    session["staff_id"]=staff_id
-                    session["role"]=role
-                    flash("Login Successful","success")
-                    return redirect("/manager/homepage")
-                elif role=="Admin":
-                    session["logged_in"]=True
-                    session["staff_id"]=staff_id
-                    session["role"]=role
-                    flash("Login Successful","success")
-                    return redirect("/admin/laptop")
+            if value>0:
+                data=cur.fetchone()
+                passw=data[1]
+                role=data[2]
+                if staff_psw==passw:
+                    if role=="Manager":
+                        session["logged_in"]=True
+                        session["staff_id"]=staff_id
+                        session["role"]=role
+                        flash("Login Successful","success")
+                        return redirect("/manager/homepage")
+                    elif role=="Admin":
+                        session["logged_in"]=True
+                        session["staff_id"]=staff_id
+                        session["role"]=role
+                        flash("Login Successful","success")
+                        return redirect("/admin/laptop")
+                else:
+                    flash("Password incorrect.")
             else:
-                flash("Password incorrect.")
-        else:
-            flash("User not found.")
-        cur.close()
+                flash("User not found.")
+            cur.close()
+        elif request.form['action'] == 'forgot_password':
+            return redirect("/staff/forgot_password")
     return render_template("staff_login.html")
 
 #staff forgot password
@@ -328,11 +331,10 @@ def staff_reset_password():
             print("Password length validation failed.")
             flash("Password must be between 8 and 20 characters.")
             return redirect("/staff/reset_password")
-        if not re.match(r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$', password):
+        if not re.search(r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$', password):
             print("Password complexity validation failed.")
-            flash("Password must contain at least one letter, one number, and one special character.")
+            flash("Use 8 or more characters with a mix of capital letters, small letters, numbers and symbols for password.")
             return redirect("/staff/reset_password")
-        
         if password != confirm_password:
             print("Password and confirm password do not match.")
             flash("Passwords do not match. Please try again.")
@@ -2647,7 +2649,7 @@ def manager_account():
 @app.route("/manager/account/detail/<string:stf_id>", methods=["GET", "POST"])
 def manager_view_account(stf_id):
     cur = mysql.connection.cursor()
-    cur.execute("SELECT * FROM staff WHERE stf_id = %s AND status=1", (stf_id,))
+    cur.execute("SELECT * FROM staff WHERE stf_id = %s", (stf_id,))
     admin = cur.fetchone()
     cur.close()
 
@@ -2907,6 +2909,8 @@ def update_report_table():
 def manager_reports_daily():
     # Get the date from the form or use today as default
     selected_date = request.form.get("date") or datetime.now().strftime("%Y-%m-%d")
+    filtered_date = datetime.strptime(selected_date, '%Y-%m-%d')
+    selected_month = filtered_date.strftime('%Y-%m')
     
     cur = mysql.connection.cursor()
     
@@ -2946,9 +2950,10 @@ def manager_reports_daily():
                MAX(new_user) AS total_new_user,
                COUNT(order_id) AS total_orders
         FROM report
+        WHERE DATE_FORMAT(date_day, '%%Y-%%m') = %s
         GROUP BY date_day
         ORDER BY date_day
-    """)
+    """, (selected_month,))
     
     daily_chart = cur.fetchall()
     cur.close()
@@ -2963,6 +2968,8 @@ def manager_reports_daily():
 def manager_reports_weekly():
     # Get the date from the form or use the start of the current week as default
     selected_date = request.form.get("date") or datetime.now().strftime("%Y-%m-%d")
+    filtered_date = datetime.strptime(selected_date, '%Y-%m-%d')
+    selected_month = filtered_date.strftime('%Y-%m')
     
     cur = mysql.connection.cursor()
 
@@ -3007,9 +3014,10 @@ def manager_reports_weekly():
                SUM(new_user) AS total_new_user,
                COUNT(order_id) AS total_orders
         FROM report
+        WHERE DATE_FORMAT(date_week, '%%Y-%%m') = %s
         GROUP BY date_week
         ORDER BY date_week
-    """)
+    """, (selected_month,))
     
     weekly_chart = cur.fetchall()
     cur.close()

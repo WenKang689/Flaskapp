@@ -12,7 +12,7 @@
         <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="logo">
         <div class="tabs">
             <a href="{{ url_for('login') }}" class="tab">User</a>
-            <a href="#" class="tab active">Staff</a>
+            <a href="{{ url_for('staff_login') }}" class="tab active">Staff</a>
         </div>
         <div class="login-container">
             {% with messages = get_flashed_messages(with_categories=true) %}
@@ -25,15 +25,22 @@
                     {% endfor %}
                 {% endif %}
             {% endwith %}
-            <form method="post" action="/staff/login">
+            <form method="post" action="/staff/login" id="loginForm">
                 <h2>Staff ID</h2>
                 <input type="text" id="stf_id" name="stf_id" required><br>
                 <h3>Password</h3> 
                 <input type="password" id="stf_psw" name="stf_psw" required><br>
-                
-                <button type="submit" class="btn" name="action" value="login" style="margin-top: 20px;">Login</button>
+                <button type="submit" class="btnf" name="action" value="forgot_password">Forgot Password</button>
+                <button type="submit" class="btn" name="action" value="login">Login</button>
             </form>
-            </form>
+            <script>
+                document.getElementById('loginForm').addEventListener('keypress', function(event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        document.getElementById('loginButton').click();
+                    }
+                });
+            </script>
         </div>
     </div>
 </body>

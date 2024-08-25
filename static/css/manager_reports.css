@@ -72,8 +72,10 @@ header {
 
 .icons {
     display: flex;
-    gap: 40px;
+    gap: 100px;
     padding-top: 36px;
+    width: auto;
+    object-fit: cover;
 }
 
 .icons a {
@@ -81,23 +83,22 @@ header {
     color: inherit;
 }
 
-.all_laptop_icon {
-    width: 130px;
-}
-
 .ma_icon {
-    width: 50px;
-    margin-top: -5px;
+    height: 70px;
 }
 
 .report_icon {
-    width: 65px;
-    margin-top: -12px;
+    margin-top: -10px;
+    height: 80px;
 }
 
 .manage_feedback_icon {
-    width: 65px;
-    margin-top: -12px;
+    margin-bottom: 5px;
+    height: 60px;
+}
+
+.logouticon {
+    height: 70px; 
 }
 
 .container {
@@ -207,10 +208,4 @@ main {
 
 .rdbtn:hover, .rwbtn:hover, .rmbtn:hover, .rybtn:hover {
     background-color: darkviolet;
-}
-
-.logouticon {
-    width: 90%; 
-    height: 60px; 
-    padding-left: 10px;
 }

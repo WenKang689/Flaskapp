@@ -19,8 +19,13 @@
     {% endif %}
 {% endwith %}
     <div class="confirmation">
+        {% if action == 'deactivate' %}
         <h1>Confirm Deactivation</h1>
-        <p>Are you sure you want to deactivate this account?</p>
+            <p>Are you sure you want to deactivate this account?</p>
+        {% elif action == 'activate' %}
+        <h1>Confirm Activation</h1>
+            <p>Are you sure you want to activate this account?</p>
+        {% endif %}
 
         <table>
             <tbody>

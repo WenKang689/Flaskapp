@@ -84,17 +84,10 @@ header {
 }
 
 .btnf {
-<<<<<<< HEAD
     background-color: #ffffff;
     color: #32d500; 
     padding: 10px; 
     border: none;
-=======
-    background-color: #9747FF;
-    color: white; 
-    padding: 10px; 
-    border: none; 
->>>>>>> admin_auto
     border-radius: 5px; 
     cursor: pointer; 
     width: 110px; 
@@ -102,7 +95,6 @@ header {
     margin-right: 10px;
     margin-left: 10px;
     margin-bottom: 10px;
-<<<<<<< HEAD
     font-weight: bold;
 }
 
@@ -116,20 +108,10 @@ header {
     color: #05000c; 
     padding: 10px; 
     border: none;
-=======
-}
-
-.btncf {
-    background-color: #9747FF;
-    color: white; 
-    padding: 10px; 
-    border: none; 
->>>>>>> admin_auto
     border-radius: 5px; 
     cursor: pointer; 
     width: 110px; 
     transition: background-color 0.3s;
-<<<<<<< HEAD
     font-weight: bold;
     margin-top: 10px;
 }
@@ -137,9 +119,6 @@ header {
 .btncf:hover {
     background-color: #020005;
     color: white;
-=======
-
->>>>>>> admin_auto
 }
 
 .laptop-detail {
@@ -200,7 +179,6 @@ header {
     cursor: pointer; 
 }
 
-<<<<<<< HEAD
 .filter-bar output {
     font-weight: normal; 
     font-size: 12px;
@@ -241,21 +219,11 @@ header {
 #min_weight::-webkit-slider-thumb,
 #max_weight::-webkit-slider-thumb {
     background: #28a745; /* Example: thumb color */
-=======
-
-.filter-bar output {
-    font-weight: bold; 
-    margin-left: 10px; 
->>>>>>> admin_auto
 }
 
 .laptop-grid {
     display: grid; 
-<<<<<<< HEAD
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-=======
-    grid-template-columns: repeat(3, 1fr); 
->>>>>>> admin_auto
     gap: 60px; 
     margin-top: 30px;
     margin-left: 50px;
@@ -274,14 +242,9 @@ header {
     flex-direction: column;
     text-align: left;
     position: relative;
-<<<<<<< HEAD
     width: 100%;  /* Adjust to be more flexible */
     max-width: 400px; /* Set a maximum width */
     height: 400px; /* Adjust height automatically */
-=======
-    width: 400px;
-    height: 400px;
->>>>>>> admin_auto
     align-items: center;
 }
 
@@ -330,11 +293,7 @@ header {
     color: #9747ff; 
     padding: 10px; 
     padding-bottom: 10px;
-<<<<<<< HEAD
     border: 1px solid #9747ff; 
-=======
-    border: 1px solid purple; 
->>>>>>> admin_auto
     border-radius: 5px; 
     cursor: pointer; 
     width: 30%; 

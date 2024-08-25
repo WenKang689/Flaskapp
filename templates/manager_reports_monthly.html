@@ -36,7 +36,7 @@
                     <img src="{{ url_for('static', filename='images/feedback.png') }}" alt="Icon" class="manage_feedback_icon">
                 </a>
                 <a href="{{ url_for('login') }}" class="icon-link">
-                    <img src="{{ url_for('static', filename='images/logouticon.png') }}" alt="logouticon" class="logouticon">
+                    <img src="{{ url_for('static', filename='images/black_logouticon.png') }}" alt="logouticon" class="logouticon">
                 </a>
             </div>
         </div>
@@ -45,8 +45,8 @@
     <h1>Monthly Report for {{ date_month }}</h1>
     <!-- Form to select date -->
     <form method="post" action="/manager/reports/monthly">
-        <label for="date">Select Date:</label>
-        <input type="date" id="date" name="date" value="{{ date_month }}">
+        <label for="date">Select Month:</label>
+        <input type="month" id="date" name="date" value="{{ date_month }}">
         <input type="submit" value="Submit">
     </form>
     
@@ -120,12 +120,15 @@
 
     <!-- Charts -->
     <h4>Charts</h4>
-    <div class="charts-container">
-        <canvas id="salesChart" width="400" height="200"></canvas>
-        <canvas id="productSoldChart" width="400" height="200"></canvas>
-        <canvas id="newUserChart" width="400" height="200"></canvas>
-        <canvas id="ordersChart" width="400" height="200"></canvas>
+    <div class="scrollable-container">
+        <div class="charts-container">
+            <canvas id="salesChart" width="400" height="200"></canvas>
+            <canvas id="productSoldChart" width="400" height="200"></canvas>
+            <canvas id="newUserChart" width="400" height="200"></canvas>
+            <canvas id="ordersChart" width="400" height="200"></canvas>
+        </div>
     </div>
+
 
     <script>
         // Data for the charts
