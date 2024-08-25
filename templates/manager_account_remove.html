@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/manager_account_remove.css') }}">
+    <title>Confirm Account Removal</title>
+
+</head>
+<body>
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <span class="close-btn" onclick="this.parentElement.style.display='none';">&times;</span>  
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+    <div class="confirmation">
+        <h1>Confirm Deactivation</h1>
+        <p>Are you sure you want to deactivate this account?</p>
+
+        <table>
+            <tbody>
+                <tr>
+                    <th>ID</th>
+                    <td>{{ staff.stf_id }}</td>
+                </tr>
+                <tr>
+                    <th>Name</th>
+                    <td>{{ staff.stf_name }}</td>
+                </tr>
+                <tr>
+                    <th>Email</th>
+                    <td>{{ staff.stf_email }}</td>
+                </tr>
+                <tr>
+                    <th>Phone</th>
+                    <td>{{ staff.stf_phone }}</td>
+                </tr>
+                <tr>
+                    <th>Date of Birth</th>
+                    <td>{{ staff.stf_dob }}</td>
+                </tr>
+                <tr>
+                    <th>Address</th>
+                    <td>{{ staff.stf_address }}</td>
+                </tr>
+                <tr>
+                    <th>Emergency Contact</th>
+                    <td>{{ staff.stf_emer_contact }}</td>
+                </tr>
+                <tr>
+                    <th>Role</th>
+                    <td>{{ staff.stf_role }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <form method="POST" action="{{ url_for('manager_account_remove') }}">
+            <input type="hidden" name="stf_id" value="{{ staff.stf_id }}">
+            <input type="hidden" name="status" value="{{action}}">
+            <button type="submit" name="action" value="Confirm">Confirm</button>
+            <button type="submit" name="action" value="Cancel" class="cancel-button">Cancel</button>
+        </form>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,160 @@
+.logouticon {
+    width: 90%; 
+    height: 60px; 
+    padding-left: 10px;
+}
+
+.flash-message { 
+    border: 1px solid #ccc; 
+    padding: 10px; 
+    margin: 10px 0;
+    border-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10; 
+}
+
+.flash-success { 
+    background-color: #4cb423; 
+}
+
+.flash-danger { 
+    background-color: #f2dede; 
+}
+
+.close-btn { 
+    position: absolute; 
+    top: 5px; 
+    right: 10px; 
+    cursor: pointer; 
+}
+
+body{
+    background-image: url('../images/background.png');
+    background-size: cover;
+    font-family: Arial, sans-serif;
+}
+main {
+    display: flex;
+    justify-content: center; 
+    align-items: center; 
+    min-height: 100vh; 
+    margin: 0;
+}
+
+
+.container-add {
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1); 
+    max-width: 400px; 
+    width: 100%; 
+    box-sizing: border-box;
+    background: rgba(236, 234, 234, 0.3);
+    border: 1px solid rgb(255, 255, 255);
+}
+
+h1 {
+    text-align: center;
+    font-size: 1.5em;
+    color: black; 
+    margin-bottom: 20px;
+}
+
+.button-container {
+    display: flex; /* Use flexbox for layout */
+    justify-content: space-between; /* Space buttons evenly */
+    width: 100%; /* Full width of the parent container */
+    max-width: 400px; /* Optional: Set a max width for the button container */
+
+}
+
+.dbtn {
+    background-color: #9747FF;
+    color: white; 
+    padding: 10px; 
+    border: none; 
+    border-radius: 5px; 
+    cursor: pointer; 
+    width: 30%; 
+    transition: background-color 0.3s;
+    text-align: center;
+    font-size: 1em;
+    margin-left: 35px;
+}
+
+.cbtn {
+    background-color: #9747FF;
+    color: white; 
+    padding: 10px; 
+    border: none; 
+    border-radius: 5px; 
+    cursor: pointer; 
+    width: 30%; 
+    transition: background-color 0.3s;
+    text-align: center;
+    font-size: 1em;
+    margin-right: 35px;
+}
+
+
+.dbtn:hover, .cbtn:hover {
+    background-color: #7a2bcf; 
+}
+
+.container-add h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    text-decoration: underline;
+}
+
+.container-add label {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.container-add input {
+    width: 100%; 
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.dropdown-container {
+    position: relative; /* Position relative for the arrow */
+}
+
+.dropdown {
+    width: 100%; 
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    appearance: none; /* Remove default styling */
+    background-color: white; /* Background color */
+    font-size: 16px; /* Font size */
+}
+
+.arrow {
+    position: absolute;
+    right: 10px;
+    top: 40%;
+    transform: translateY(-50%);
+    pointer-events: none; /* Prevent interaction with the arrow */
+    font-size: 16px; /* Adjust size as needed */
+}
+
+.dropdown::after {
+    content: '▼'; 
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none; 
+}

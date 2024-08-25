@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Account</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/manager_account_new.css') }}">
+</head>
+
+<body>
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <span class="close-btn" onclick="this.parentElement.style.display='none';">&times;</span>  
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+    <header>
+        <div class="navbar">
+            <div>
+                <a href="{{ url_for('manager_homepage') }}" class="home-button">
+                    <img src="{{ url_for('static', filename='images/logo_home.png') }}" alt="Logo" class="logo">
+                </a>
+            </div>
+            <div class="icons">
+                <a href="{{ url_for('manager_account')}}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/manage_account.png') }}" alt="Icon" class="ma_icon">
+                </a>
+                <a href="{{ url_for('manager_reports')}}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/report.png') }}" alt="Icon" class="report_icon">
+                </a>
+                <a href="{{ url_for('view_feedback')}}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/feedback.png') }}" alt="Icon" class="manage_feedback_icon">
+                </a>
+                <a href="{{ url_for('login') }}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/logouticon.png') }}" alt="logouticon" class="logouticon">
+                </a>
+            </div>
+        </div>
+    </header>
+    <main>
+        <div class="container-add">
+            <h1>Create New Account</h1>
+            <form method="POST" action="{{ url_for('manager_account_new') }}">
+                
+                <label for="Name">Name</label>
+                <input type="text" name="Name" id="Name" maxlength="30">
+        
+                <label for="password">Password</label>
+                <input type="password" name="Password" required maxlength="20">
+        
+                <label for="Email">Email</label>
+                <input type="email" name="Email" id="Email" maxlength="30">
+        
+                <label for="Phone">Phone</label>
+                <input type="text" name="Phone" id="Phone" maxlength="10">
+        
+                <label for="dob">Date of Birth</label>
+                <input type="date" name="dob" id="dob">
+        
+                <label for="Address">Address</label>
+                <input type="text" name="Address" id="Address" maxlength="255">
+        
+                <label for="Emergency Contact">Emergency Contact</label>
+                <input type="text" name="Emergency Contact" id="Emergency Contact" maxlength="10">
+        
+                <label for="Role">Role</label>
+                <div class="dropdown-container">
+                    <select name="role" id="role" class="dropdown">
+                        <option value="Admin">Admin</option>
+                        <option value="Manager">Manager</option>
+                    </select>
+                    <span class="arrow">▼</span>
+                </div>
+
+                <button type="submit" class="btnap">Create New Account</button>
+            </form>
+        </div>
+    </main>
+</body>
+</html>

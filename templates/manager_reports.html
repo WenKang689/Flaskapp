@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/manager_reports.css') }}">
+    <title>Manager Homepage</title>
+</head>
+<body>
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <span class="close-btn" onclick="this.parentElement.style.display='none';">&times;</span>  
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+    <header>
+        <div class="navbar">
+            <div>
+                <a href="{{ url_for('manager_homepage') }}" class="home-button">
+                    <img src="{{ url_for('static', filename='images/logo_home.png') }}" alt="Logo" class="logo">
+                </a>
+            </div>
+            <div class="icons">
+                <a href="{{ url_for('manager_account')}}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/manage_account.png') }}" alt="Icon" class="ma_icon">
+                </a>
+                <a href="{{ url_for('manager_reports')}}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/report.png') }}" alt="Icon" class="report_icon">
+                </a>
+                <a href="{{ url_for('view_feedback')}}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/feedback.png') }}" alt="Icon" class="manage_feedback_icon">
+                </a>
+                <a href="{{ url_for('login') }}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/logouticon.png') }}" alt="logouticon" class="logouticon">
+                </a>
+            </div>
+        </div>
+    </header>
+    <main>
+        <div class="container">
+            <h1>Manager Reports</h1>
+            <div class="sidebar">
+                <form method="post">
+                    <a href="{{ url_for('manager_reports_daily') }}" class="rdbtn" button type="submit" name="action" value="Daily">Daily Report</a>
+                    <a href="{{ url_for('manager_reports_weekly') }}" class="rwbtn" button type="submit" name="action" value="Weekly">Weekly Report</a>
+                    <a href="{{ url_for('manager_reports_monthly') }}" class="rmbtn" button type="submit" name="action" value="Monthly">Monthly Report</a>
+                    <a href="{{ url_for('manager_reports_yearly') }}" class="rybtn" button type="submit" name="action" value="Yearly">Yearly Report</a>
+                </form>
+            </div>
+        </div>
+    </main>
+
+
+    </body>
+</html>

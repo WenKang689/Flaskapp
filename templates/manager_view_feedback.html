@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Feedback</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/manager_viewfeed.css') }}">
+</head>
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <span class="close-btn" onclick="this.parentElement.style.display='none';">&times;</span>  
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+    <header>
+        <div class="navbar">
+            <div>
+                <a href="{{ url_for('manager_homepage') }}" class="home-button">
+                    <img src="{{ url_for('static', filename='images/logo_home.png') }}" alt="Logo" class="logo">
+                </a>
+            </div>
+            <div class="icons">
+                <a href="{{ url_for('manager_account')}}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/manage_account.png') }}" alt="Icon" class="ma_icon">
+                </a>
+                <a href="{{ url_for('manager_reports')}}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/report.png') }}" alt="Icon" class="report_icon">
+                </a>
+                <a href="{{ url_for('view_feedback')}}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/feedback.png') }}" alt="Icon" class="manage_feedback_icon">
+                </a>
+                <a href="{{ url_for('login') }}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/logouticon.png') }}" alt="logouticon" class="logouticon">
+                </a>
+            </div>
+        </div>
+    </header>
+    <main>
+        <h1>View Feedback</h1>
+        {%if feedback_list%}
+        <div class="feedback-grid">
+            {% for feedback in feedback_list %}
+            <form action="{{url_for('view_feedback')}}" method="post" style="display: inline;">
+                <input type="hidden" name="feedback_id" value="{{ feedback[0] }}">
+                <div class="feedback-box" onclick="this.closest('form').submit();">
+                    <p class="feedback-id"><strong>Feedback ID:</strong> {{ feedback[0] }}</p>
+                    <p><strong>Staff ID:</strong> {{ feedback[1] }}</p>
+                    <p><strong>Feedback:</strong> {{ feedback[2] }}</p>
+                    <p><strong>Feedback Time:</strong> {{ feedback[3] }}</p>
+                </div>
+                <button type="submit" class="reply_feedback">Reply</button>
+            </form>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p>No feedback available.</p>
+        {% endif %}
+    </main>
+</body>
+</html>

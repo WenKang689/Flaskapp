@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/manager_home.css') }}">
+    <title>Manager Homepage</title>
+</head>
+<body>
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <span class="close-btn" onclick="this.parentElement.style.display='none';">&times;</span>  
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+    <header>
+        <div class="navbar">
+            <div>
+                <a href="{{ url_for('manager_homepage') }}" class="home-button">
+                    <img src="{{ url_for('static', filename='images/logo_home.png') }}" alt="Logo" class="logo">
+                </a>
+            </div>
+            <div class="icons">
+                <a href="{{ url_for('manager_account')}}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/manage_account.png') }}" alt="Icon" class="ma_icon">
+                </a>
+                <a href="{{ url_for('manager_reports')}}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/report.png') }}" alt="Icon" class="report_icon">
+                </a>
+                <a href="{{ url_for('view_feedback')}}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/feedback.png') }}" alt="Icon" class="manage_feedback_icon">
+                </a>
+                <a href="{{ url_for('login') }}" class="icon-link">
+                    <img src="{{ url_for('static', filename='images/logouticon.png') }}" alt="logouticon" class="logouticon">
+                </a>
+            </div>
+        </div>
+    </header>
+    <main>
+        <h1>Laptop Search</h1>
+        <div class="search-container">
+            <form action="/manager/homepage" method="post"> <!-- Assuming the search route is /search -->
+                <input type="hidden" name="action" value="search">
+                <input type="text" name="query" placeholder="Search laptops..." value="{{ search_query }}">
+                <button type="submit" class="sbtn">Search</button>
+            </form>
+        </div>
+
+        {% if search_query %}
+        <p>Showing results for: <strong>{{ search_query }}</strong></p>
+        {% endif %}
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Brand</th>
+                    <th>Price</th>
+                    <th>Memory</th>
+                    <th>Graphics</th>
+                    <th>Storage</th>
+                    <th>Battery</th>
+                    <th>Processor</th>
+                    <th>OS</th>
+                    <th>Weight</th>
+                    <th>Stock</th>
+                    <th>Status</th>
+                    <th>Image</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for laptop in laptops %}
+                <tr>
+                    <td>{{ laptop[0] }}</td>
+                    <td>{{ laptop[1] }}</td>
+                    <td>{{ laptop[2] }}</td>
+                    <td>RM{{ laptop[3] }}</td>
+                    <td>{{ laptop[4] }}</td>
+                    <td>{{ laptop[5] }}</td>
+                    <td>{{ laptop[6] }}</td>
+                    <td>{{ laptop[7] }}</td>
+                    <td>{{ laptop[8] }}</td>
+                    <td>{{ laptop[9] }}</td>
+                    <td>{{ laptop[10] }}</td>
+                    <td>{{ laptop[12] if laptop[12] is not none else 'N/A' }}</td>
+                    <td>{{ 'Active' if laptop[13] == 1 else 'Inactive' }}</td>
+                    <td><img src="{{ laptop[11] }}" alt="Laptop Image" style="width: 100px; height: auto;"></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </main>
+
+    <footer>
+        <p>&copy; 2023 Laptop Finder. All rights reserved.</p>
+    </footer>
+</body>
+</html>
