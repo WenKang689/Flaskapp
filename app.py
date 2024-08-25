@@ -233,11 +233,7 @@ def staff_login():
                     session["staff_id"]=staff_id
                     session["role"]=role
                     flash("Login Successful","success")
-<<<<<<< HEAD
                     return redirect("/admin/laptop")
-=======
-                    return redirect("/admin/homepage")
->>>>>>> manager
             else:
                 flash("Password incorrect.")
         else:
@@ -2527,7 +2523,6 @@ def admin_orders():
     if not session.get('logged_in'):
         return redirect('/login')
 
-<<<<<<< HEAD
     cur = mysql.connection.cursor()
 
     # Handle order status update
@@ -2584,13 +2579,6 @@ def admin_orders():
         flash("An error occurred while retrieving orders. Please try again later.", "error")
         return redirect("/admin/orders")
 
-if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
-    debug_mode = False
-else:
-    debug_mode = True
-
-app.run(debug=debug_mode)
-=======
 #Manager section (Ying Xin)
 #M-home page (browser and view laptop)
 @app.route("/manager/homepage", methods=["GET", "POST"])
@@ -2722,6 +2710,7 @@ def manager_account_new():
                     (stf_id, stf_psw, stf_name, stf_email, stf_phone, stf_dob, stf_address, stf_emer_contact, stf_role,1))
             mysql.connection.commit()
             cur.close()
+            flash("Account Created Successfully", "success")
             print("Data inserted successfully.")
         except Exception as e:
             mysql.connection.rollback()  # Rollback in case of error
@@ -3256,6 +3245,9 @@ def reply_feedback():
 
     return render_template("manager_reply_feedback.html", feedback=feedback)
 
-if __name__=='__main__':
-    app.run(debug=True)
->>>>>>> manager
+if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+    debug_mode = False
+else:
+    debug_mode = True
+
+app.run(debug=debug_mode)
