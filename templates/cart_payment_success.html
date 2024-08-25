@@ -261,15 +261,15 @@
                 {% for item in invoice_details %}
                 <tr>
                     <td>{{ item[0] }}</td>
-                    <td>${{ item[1] }}</td>
+                    <td>RM{{ item[1] }}</td>
                     <td>{{ item[2] }}</td>
-                    <td>${{ item[3] }}</td>
+                    <td>RM{{ item[3] }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
 
-        <p><strong>Total Order Amount:</strong> ${{ total_amount }}</p>
+        <p><strong>Total Order Amount:</strong> RM{{ total_amount }}</p>
         
         <h3>Payment Method</h3>
         <p><strong>Card Number:</strong> **** **** **** {{ card_no[-4:] }}</p>
