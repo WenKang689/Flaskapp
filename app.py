@@ -582,6 +582,11 @@ def manager_reports():
 def update_report_table():
     cur = mysql.connection.cursor()
 
+    cur.execute("TRUNCATE TABLE report")  # Clear the report table
+    print("Report table cleared.")
+    cur.execute("TRUNCATE TABLE user_tracking")  # Clear the user_tracking table
+    print("User tracking table cleared.")
+
     # Initialize the tracking table if it does not have an entry
     cur.execute("INSERT IGNORE INTO user_tracking (id, previous_total_user) VALUES (1, 0)")
 
