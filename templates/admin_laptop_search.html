@@ -290,15 +290,18 @@
                     <th>ID</th>
                     <th>Name</th>
                     <th>Brand</th>
-                    <th>Price</th>
-                    <th>Memory</th>
-                    <th>Graphics</th>
-                    <th>Storage</th>
-                    <th>Battery</th>
                     <th>Processor</th>
-                    <th>OS</th>
+                    <th>Graphics</th>
+                    <th>Dimensions</th>
                     <th>Weight</th>
+                    <th>OS</th>
+                    <th>Memory</th>
+                    <th>Storage</th>
+                    <th>Power Supply</th>
+                    <th>Battery</th>
+                    <th>Price</th>
                     <th>Stock</th>
+                    <th>Status</th>
                     <th>Image</th>
                     <th class="actions-column">Actions</th>
                 </tr>
@@ -309,7 +312,7 @@
                     <td>{{ laptop[0] }}</td>
                     <td>{{ laptop[1] }}</td>
                     <td>{{ laptop[2] }}</td>
-                    <td>RM{{ laptop[3] }}</td>
+                    <td>{{ laptop[3] }}</td>
                     <td>{{ laptop[4] }}</td>
                     <td>{{ laptop[5] }}</td>
                     <td>{{ laptop[6] }}</td>
@@ -317,11 +320,14 @@
                     <td>{{ laptop[8] }}</td>
                     <td>{{ laptop[9] }}</td>
                     <td>{{ laptop[10] }}</td>
-                    <td>{{ laptop[12] if laptop[12] is not none else 'N/A' }}</td>
+                    <td>{{ laptop[11] }}</td>
+                    <td>RM{{ laptop[12] }}</td>
+                    <td>{{ laptop[13] }}</td>
+                    <td>{{ 'Active' if laptop[14] == 1 else 'Inactive' }}</td>
                     <td>
-                        {% if laptop[11] %}
+                        {% if laptop[15] %}
                         <a href="{{ url_for('laptop_images', product_id=laptop[0]) }}">
-                            <img src="{{ laptop[11] }}?v={{time}}" alt="Laptop Image">
+                            <img src="{{ laptop[15] }}?v={{time}}" alt="Laptop Image">
                         </a>
                         {% else %}
                         <a href="{{ url_for('laptop_images', product_id=laptop[0]) }}">No image</a>
@@ -333,8 +339,8 @@
                                 <button>Edit</button>
                             </a>
                             <form action="{{ url_for('toggle_status', product_id=laptop[0]) }}" method="post" style="display:inline;">
-                                <button type="submit" class="status-button {{ 'btn-success' if laptop[13] == 1 else 'btn-danger' }}">
-                                    {% if laptop[13] == 1 %}
+                                <button type="submit" class="status-button {{ 'btn-success' if laptop[14] == 1 else 'btn-danger' }}">
+                                    {% if laptop[14] == 1 %}
                                         Deactivate
                                     {% else %}
                                         Activate
@@ -346,7 +352,7 @@
                 </tr>
                 {% endfor %}
             </tbody>
-        </table>
+        </table>        
     </main>
 </body>
 </html>

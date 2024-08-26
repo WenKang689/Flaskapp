@@ -22,7 +22,7 @@
         <div class="navbar">
             <div>
                 <a href="{{ url_for('manager_homepage') }}" class="home-button">
-                    <img src="{{ url_for('static', filename='images/logo_home.png') }}" alt="Logo" class="logo">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="logo">
                 </a>
             </div>
             <div class="icons">
@@ -122,10 +122,16 @@
     <h4>Charts</h4>
     <div class="scrollable-container">
         <div class="charts-container">
+            <h5>Total Sales</h5>
             <canvas id="salesChart" width="400" height="200"></canvas>
+            <h6>Total Product Sold</h6>
             <canvas id="productSoldChart" width="400" height="200"></canvas>
+            <h7>Total New Users</h7>
             <canvas id="newUserChart" width="400" height="200"></canvas>
+            <h8>Total Orders</h8>
             <canvas id="ordersChart" width="400" height="200"></canvas>
+            <h9>Sales Growth (%)</h9>
+            <canvas id="salesGrowthChart" width="400" height="200"></canvas>
         </div>
     </div>
 

@@ -197,6 +197,18 @@
             background-color: #6a0dad;
         }
 
+        button[type="cancel"] {
+            width: 100%;
+            padding: 15px;
+            background-color: #000000;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
         .error {
             border-color: red;
         }
@@ -344,6 +356,7 @@
                 <div class="error-message {{ 'hidden' if not errors.card_no_exists else '' }}" id="cardNoExistsError">{{ errors.card_no_exists if errors.card_no_exists else '' }}</div>
             
                 <button type="submit">Submit Order</button>
+                <button type="cancel" onclick="window.location.href='/cart'">Cancel transaction</button>
             </form>
             
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

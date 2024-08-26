@@ -84,21 +84,21 @@ header {
 }
 
 .ma_icon {
-    height: 70px;
+    height: 50px;
 }
 
 .report_icon {
-    margin-top: -10px;
-    height: 80px;
+    margin-top: -8px;
+    height: 60px;
 }
 
 .manage_feedback_icon {
     margin-bottom: 5px;
-    height: 60px;
+    height: 48px;
 }
 
 .logouticon {
-    height: 60px; 
+    height: 42px; 
 }
 
 
@@ -167,4 +167,10 @@ h4 {
 canvas {
     border: 1px solid black;
     margin-bottom: 20px;
+}
+
+h5, h6, h7, h8 {
+    font-size: 20px;
+    font-family: Arial, sans-serif;
+    font-weight: bold;
 }

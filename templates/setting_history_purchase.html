@@ -61,11 +61,11 @@
                                     <h2><strong>Order ID:</strong> {{ order_id }}</h2>
                                     <p><strong>Purchase Date:</strong> {{ details.date }}</p>
                                     <p><strong>Order Status:</strong> {{ details.status }}</p>
+                                    <p><strong>Purchase Amount:</strong> RM {{ details.amount }}</p>
                                     
                                         {% for product in details.products %}
                                                 <br>
                                                 <p><strong>Product Name:</strong> <a href="{{ url_for('laptop_detail', product_id=product.product_id) }}" class="product-link">{{ product.name }}</a></p>
-                                                <p><strong>Purchase Amount:</strong> RM {{ product.amount }}</p>
                                                 <p><strong>Purchase Quantity:</strong> {{ product.quantity }}</p>
                                                 {% if product.pic_url %}
                                                     <a href="{{ url_for('laptop_detail', product_id=product.product_id) }}">

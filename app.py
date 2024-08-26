@@ -790,12 +790,12 @@ def setting_history_purchase():
                 orders[order_id] = {
                     'date': pur_date,
                     'status': pur_status,
+                    'amount': pur_amount,
                     'products': []
                 }
             orders[order_id]['products'].append({
                 'product_id': product_id,
                 'name': product_name,
-                'amount': pur_amount,
                 'quantity': pur_quantity,
                 'pic_url': pic_url
             })
@@ -2077,7 +2077,7 @@ def admin_laptop():
     search_query = request.args.get('search', search_query)
     
     sql_query = """
-    SELECT p.product_id, p.product_name, p.brand, p.price, p.memory, p.graphics, p.storage, p.battery, p.processor, p.os, p.weight, pic.pic_url, p.stock, p.status
+    SELECT p.product_id, p.product_name, p.brand, p.processor, p.graphics, p.dimensions, p.weight, p.os, p.memory, p.storage, p.power_supply, p.battery, p.price, p.stock, p.status, pic.pic_url
     FROM product p
     LEFT JOIN (
         SELECT product_id, MIN(pic_url) as pic_url
