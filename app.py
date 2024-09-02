@@ -60,7 +60,7 @@ def login():
     return render_template("login.html")
 
 #register (flash message left)
-@app.route("/register", methods=["GET","POST"])
+@app.route("/register", methods=["GET","POST"])     
 def register():
     if request.method == "POST":
         userdata=request.form
@@ -188,7 +188,7 @@ def reset_password():
         if len(password) < 8 and len(password) > 20:
             flash("Password must be between 8 and 20 characters.")
             return redirect("/reset_password")
-        if not re.match(r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$', password):
+        if not re.search(r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$', password):
             flash("Password must contain at least one letter, one number, and one special character.")
             return redirect("/reset_password")
 
@@ -2141,6 +2141,14 @@ def admin_laptop_add():
 
         cur = mysql.connection.cursor()
 
+        # Check if the product name already exists
+        cur.execute("SELECT COUNT(*) FROM product WHERE product_name = %s", (product_name,))
+        name_exists = cur.fetchone()[0]
+
+        if name_exists > 0:
+            flash("A laptop with this product name already exists. Please choose a different name.", "danger")
+            return redirect(url_for("admin_laptop_add"))
+
         # Get the latest product_id from the database
         cur.execute("SELECT product_id FROM product ORDER BY product_id DESC LIMIT 1")
         latest_id = cur.fetchone()
@@ -2156,14 +2164,10 @@ def admin_laptop_add():
         # Insert the new product with the auto-generated product_id
         cur.execute('''INSERT INTO product (product_id, product_name, brand, processor, graphics, dimensions, weight, os, memory, storage, power_supply, battery, price, stock)
                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)''',
-                     (product_id, product_name, brand, processor, graphics, dimensions, weight, os, memory, storage, power_supply, battery, price, stock))
+                    (product_id, product_name, brand, processor, graphics, dimensions, weight, os, memory, storage, power_supply, battery, price, stock))
 
         mysql.connection.commit()
-        print(f"New laptop added with ID: {product_id}, Name: {product_name}")
         cur.close()
-
-        # Print statement after successful save
-        print(f"Laptop successfully added with ID {product_id}.")
 
         flash(f"Laptop added successfully with ID {product_id}.", "success")
         return redirect(f"/admin/laptop_images/{product_id}")
@@ -2200,6 +2204,15 @@ def admin_laptop_edit():
                 battery = request.form.get('battery') or laptop_dict['battery']
                 price = request.form.get('price') or laptop_dict['price']
                 stock = request.form.get('stock') or laptop_dict['stock']
+
+                # Check if the product name already exists (excluding current product_id)
+                cur.execute("SELECT COUNT(*) FROM product WHERE product_name = %s AND product_id != %s", (product_name, product_id))
+                name_exists = cur.fetchone()[0]
+
+                if name_exists > 0:
+                    flash("A laptop with this product name already exists. Please choose a different name.", "danger")
+                    cur.close()
+                    return render_template("admin_laptop_edit_form.html", laptop=laptop_dict)
 
                 # Update product details and stock
                 cur.execute('''UPDATE product SET product_name = %s, brand = %s, processor = %s, graphics = %s, dimensions = %s,

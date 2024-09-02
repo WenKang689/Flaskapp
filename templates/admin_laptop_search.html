@@ -143,14 +143,19 @@
             gap: 5px;
         }
 
+        .button-container a,
+        .button-container form {
+            width: 100%; /* Ensure the buttons take up the full width */
+        }
+
         .button-container button {
-            padding: 8px 1px;
+            width: 100%; /* Fill the button's container */
+            padding: 8px;
             border: none;
             background-color: #4CAF50;
             color: white;
             border-radius: 4px;
             cursor: pointer;
-            width: 50%;
         }
 
         .button-container button:hover {
@@ -209,7 +214,7 @@
         }
 
         .actions-column {
-            width: 200px; /* Ensure consistent width for actions column */
+            width: 120px; /* Ensure consistent width for actions column */
         }
 
         .flash-message { 
